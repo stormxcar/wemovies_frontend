@@ -7,7 +7,14 @@ const API_BASE_URL = process.env.REACT_APP_API_URL;
 // fetchMovies.js
 export const fetchMovies = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/movies`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5 giây
+
+        const response = await fetch(`${API_BASE_URL}/api/movies`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
