@@ -1,113 +1,52 @@
 import axios from 'axios';
 
-// Cấu hình URL backend
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
-// Hàm lấy danh sách phim
-// fetchMovies.js
+// Helper function for fetch requests
+const fetchJson = async (url, options = {}) => {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Fetch error at ${url}:`, error.message);
+        throw error;
+    }
+};
+
+// Fetch movies with timeout
 export const fetchMovies = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5 giây
-
-        const response = await fetch(`${API_BASE_URL}/api/movies`, {
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Failed to fetch movies:", error.message);
-        throw error;
-    }
-};
-
-// hàm lấy danh mục
-export const fetchCategories = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/categories`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Failed to fetch categories:", error.message);
-        throw error;
-    }
-};
-
-export const fetchMoviesByCategory = async (categoryName) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/movies/category/${categoryName}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log('Fetched data:', data);
+        const data = await fetchJson(`${API_BASE_URL}/api/movies`, { signal: controller.signal });
         return data;
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        return [];
+    } finally {
+        clearTimeout(timeoutId);
     }
 };
 
-// get movie by hote
-export const fetchMovieByHot = async () => {
-    try{
-        const response = await fetch(`${API_BASE_URL}/api/movies/hot`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
-    }catch(error){
-        console.error('Error fetching data:', error);
-        return error;
-    }
-};
+export const fetchCategories = () =>
+    fetchJson(`${API_BASE_URL}/api/categories`);
 
-// get movie by categoru id
-export const fetchMovieByCategoryId = async (categoryId) => {
-    try{
-        const response = await fetch(`${API_BASE_URL}/api/movies/category/id/${categoryId}`);
-        if(!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
-    }catch(error)
-    {
-        console.error('Error fetching data:', error);
-        return error;
-    }
-};
+export const fetchMoviesByCategory = (categoryName) =>
+    fetchJson(`${API_BASE_URL}/api/movies/category/${encodeURIComponent(categoryName)}`)
+        .catch(() => []);
 
-// api.js
-export const fetchMoviesByCountryAndCategory = async (countryName, categoryName) => {
-    try{
-        const response = await fetch(`${API_BASE_URL}/api/movies/country/${encodeURIComponent(countryName)}/category/${encodeURIComponent(categoryName)}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
-    }catch(error){
-        console.error('Error fetching data:', error);
-        return error;
-    }
-};
+export const fetchMovieByHot = () =>
+    fetchJson(`${API_BASE_URL}/api/movies/hot`)
+        .catch(error => error);
 
+export const fetchMovieByCategoryId = (categoryId) =>
+    fetchJson(`${API_BASE_URL}/api/movies/category/id/${encodeURIComponent(categoryId)}`)
+        .catch(error => error);
 
-// search movie by name
-export const fetchMoviesByName = async (name) => {
-    try{
-        const response = await fetch(`${API_BASE_URL}/api/movies/search/${name}`);
-        if(!response.ok){
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
-    }catch(error){
-        console.error('Error fetching data:', error);
-        return error;
-    }
-}
+export const fetchMoviesByCountryAndCategory = (countryName, categoryName) =>
+    fetchJson(`${API_BASE_URL}/api/movies/country/${encodeURIComponent(countryName)}/category/${encodeURIComponent(categoryName)}`)
+        .catch(error => error);
+
+export const fetchMoviesByName = (name) =>
+    fetchJson(`${API_BASE_URL}/api/movies/search/${encodeURIComponent(name)}`)
+        .catch(error => error);
