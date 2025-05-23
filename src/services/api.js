@@ -1,13 +1,13 @@
 import axios from 'axios';
 
 // Cấu hình URL backend
-// const API_BASE_URL = "http://localhost:8080/api/movies";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // Hàm lấy danh sách phim
 // fetchMovies.js
 export const fetchMovies = async () => {
     try {
-        const response = await fetch("http://localhost:8080/api/movies");
+        const response = await fetch(`${API_BASE_URL}/api/movies`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -21,7 +21,7 @@ export const fetchMovies = async () => {
 // hàm lấy danh mục
 export const fetchCategories = async () => {
     try {
-        const response = await fetch("http://localhost:8080/api/categories");
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -34,7 +34,7 @@ export const fetchCategories = async () => {
 
 export const fetchMoviesByCategory = async (categoryName) => {
     try {
-        const response = await fetch(`http://localhost:8080/api/movies/category/${categoryName}`);
+        const response = await fetch(`${API_BASE_URL}/api/movies/category/${categoryName}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -50,7 +50,7 @@ export const fetchMoviesByCategory = async (categoryName) => {
 // get movie by hote
 export const fetchMovieByHot = async () => {
     try{
-        const response = await fetch("http://localhost:8080/api/movies/hot");
+        const response = await fetch(`${API_BASE_URL}/api/movies/hot`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -64,7 +64,7 @@ export const fetchMovieByHot = async () => {
 // get movie by categoru id
 export const fetchMovieByCategoryId = async (categoryId) => {
     try{
-        const response = await fetch(`http://localhost:8080/api/movies/category/id/${categoryId}`);
+        const response = await fetch(`${API_BASE_URL}/api/movies/category/id/${categoryId}`);
         if(!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -79,7 +79,7 @@ export const fetchMovieByCategoryId = async (categoryId) => {
 // api.js
 export const fetchMoviesByCountryAndCategory = async (countryName, categoryName) => {
     try{
-        const response = await fetch(`http://localhost:8080/api/movies/country/${encodeURIComponent(countryName)}/category/${encodeURIComponent(categoryName)}`);
+        const response = await fetch(`${API_BASE_URL}/api/movies/country/${encodeURIComponent(countryName)}/category/${encodeURIComponent(categoryName)}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -94,7 +94,7 @@ export const fetchMoviesByCountryAndCategory = async (countryName, categoryName)
 // search movie by name
 export const fetchMoviesByName = async (name) => {
     try{
-        const response = await fetch(`http://localhost:8080/api/movies/search/${name}`);
+        const response = await fetch(`${API_BASE_URL}/api/movies/search/${name}`);
         if(!response.ok){
             throw new Error('Network response was not ok');
         }

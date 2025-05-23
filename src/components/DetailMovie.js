@@ -13,7 +13,7 @@ const DetailMovie = () => {
     useEffect(() => {
         const fetchMovieDetail = async () => {
             // Giả sử bạn có API lấy chi tiết phim bằng ID
-            const response = await fetch(`http://localhost:8080/api/movies/${id}`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/movies/${id}`);
             const data = await response.json();
             console.log('Movie detail:', data);
             setMovieDetail(data);
@@ -27,7 +27,7 @@ const DetailMovie = () => {
 
         const fetchRelatedMovies = async (categoryId) => {
             // http://localhost:8080/api/movies/category/id/2
-            const response = await fetch(`http://localhost:8080/api/movies/category/id/${categoryId}`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/movies/category/id/${categoryId}`);
             const data = await response.json();
             console.log('Related movies:', data)
             setRelatedMovies(Array.isArray(data) ? data : []);
