@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
+console.log('API_BASE_URL:', API_BASE_URL);
+
 // Helper function for fetch requests
 const fetchJson = async (url, options = {}) => {
     try {
