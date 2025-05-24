@@ -6,9 +6,8 @@ import "swiper/css/pagination";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import CardMovie from "./CardMovie";
-import MovieList from "./MovieList";
 
-function HorizontalMovies({ title, movies = [] }) {
+function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
   const navigate = useNavigate();
   const validMovies = Array.isArray(movies) ? movies : [];
 
@@ -16,7 +15,9 @@ function HorizontalMovies({ title, movies = [] }) {
 
   // handle button click see all movies of a category or country => link to MovieList component
   const handleSeeAllMovies = () => {
-    navigate('/allmovies', { state: { category: title } });
+    if (MovieListComponent) {
+      navigate(to, { state: { category: title, movies } });
+    }
   };
 
   if (validMovies.length === 0) {
@@ -31,7 +32,7 @@ function HorizontalMovies({ title, movies = [] }) {
   }
 
   return (
-    <div className="my-6 py-5">
+    <div className="my-6 py-5 mx-5">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
         <button

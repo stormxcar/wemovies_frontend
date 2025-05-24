@@ -10,6 +10,8 @@ import Footer from './components/Footer';
 import Search from './components/Search';
 import EpisodeDetail from './components/EpisodeDetail';
 import MovieList from './components/MovieList';
+import Watch from './components/Watch';
+import MoviePage from './components/MoviePage';
 
 function App() {
     return (
@@ -26,6 +28,8 @@ function App() {
                     <Route path="/search" element={<Search />} />
                     <Route path="/allmovies" element={<MovieList />} />
                     <Route path="/allmovies/:categoryName" element={<MovieList />} />
+                    <Route path="/movie/watch/:id" element={<Watch />} />
+                    <Route path="/moviepage" element={<MoviePage />} />
                 </Routes>
                 <Footer />
             </div>

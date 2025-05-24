@@ -3,7 +3,7 @@ import { memo } from "react";
 // import { Link } from "react-router-dom";
 
 const Footer = memo(() => (
-    <footer className="bg-gray-900 text-white py-6 w-full">
+    <footer className="bg-gray-900 text-white py-6 w-full pt-20">
         <div className="container flex flex-col space-y-4 pl-[2.5rem] pt-4">
 
             {/* Logo and Social Media */}

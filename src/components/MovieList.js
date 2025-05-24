@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import ReactPaginate from 'react-paginate';
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import ReactPaginate from "react-paginate";
 
-function MovieList({ movies = [], onMovieClick }) {
+function MovieList({ movies = [], onMovieClick , title}) {
   const location = useLocation();
-  const { category } = location.state || {};
+  const { category, movies: stateMovies } = location.state || {};
   const [filteredMovies, setFilteredMovies] = useState([]);
 
   useEffect(() => {
     if (category) {
-      const filtered = movies.filter(movie => movie.category === category);
-      setFilteredMovies(filtered);
+      // const filtered = movies.filter((movie) => movie.category === category);
+      setFilteredMovies(stateMovies || movies);
     } else {
       setFilteredMovies(movies);
     }
   }, [category, movies]);
   const [currentPage, setCurrentPage] = useState(0);
-  const moviesPerPage = 7; // Number of movies per page (matches screenshot)
+  const moviesPerPage = 28; // 7 columns x 4 rows
 
   // Pagination logic
   const offset = currentPage * moviesPerPage;
@@ -32,7 +32,7 @@ function MovieList({ movies = [], onMovieClick }) {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-      <div className="relative rounded-lg w-45 h-80 cursor-pointer">
+      <div className="relative rounded-lg w-48 h-64 cursor-pointer mx-auto mt-12">
         <div
           className="relative w-full h-full overflow-visible"
           onMouseEnter={() => setIsHovered(true)}
@@ -42,31 +42,31 @@ function MovieList({ movies = [], onMovieClick }) {
           {/* Original Card */}
           <div
             className="absolute w-full h-full transition-transform duration-300"
-            style={{ transform: isHovered ? 'scale(1)' : 'scale(1)' }}
+            style={{ transform: isHovered ? "scale(1)" : "scale(1)" }}
           >
             <img
               src={movie.thumb_url}
               alt={movie.title}
               className="rounded-lg w-full h-full object-cover"
-              style={{ objectPosition: 'top' }}
+              style={{ objectPosition: "top" }}
             />
-            <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black to-transparent text-white text-center">
+            <div className="w-full p-2 text-white text-center">
               <h3 className="text-lg">{movie.title}</h3>
-              <h3 className="font-bold">{movie.release_year}</h3>
+              <p className="text-sm">{movie.release_year}</p>
             </div>
           </div>
 
           {/* Expanded Overlay Card */}
           {isHovered && (
             <div
-              className="absolute top-[-100px] left-1/2 transform -translate-x-1/2 w-[400px] h-[500px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
+              className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-[350px] h-[400px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
               style={{ opacity: isHovered ? 1 : 0 }}
             >
               <img
                 src={movie.thumb_url}
                 alt={movie.title}
                 className="rounded-lg w-full h-[70%] object-cover"
-                style={{ objectPosition: 'top' }}
+                style={{ objectPosition: "top" }}
               />
               <div className="px-6 py-2 flex justify-end flex-col">
                 <h3 className="text-lg font-bold">{movie.title}</h3>
@@ -83,16 +83,19 @@ function MovieList({ movies = [], onMovieClick }) {
   };
 
   return (
-    <div className="movie-list-container w-full h-full bg-gray-900 text-white p-4 min-h-screen">
+    <div className="w-full h-full bg-gray-900 text-white p-4 px-12 min-h-screen pt-32">
       {/* Title */}
-      <h2 className="text-xl font-bold mb-4"></h2>
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      <div>
+        <h3>Bộ lọc</h3>
+      </div>
 
       {/* Movie Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-        {currentMovies.length > 0 ? (
-          currentMovies.map((movie) => (
-            <CardMovie key={movie.movie_id} movie={movie} />
-          ))
+      <div className="grid grid-cols-7 gap-8">
+        {currentMovies.slice(0, 28).length > 0 ? (
+          currentMovies
+            .slice(0, 28)
+            .map((movie) => <CardMovie key={movie.movie_id} movie={movie} />)
         ) : (
           <div className="col-span-full flex items-center justify-center h-80 text-white">
             No movies available
@@ -102,11 +105,11 @@ function MovieList({ movies = [], onMovieClick }) {
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <div className="pagination flex justify-center mt-4">
+        <div className="pagination flex justify-center mt-28">
           <ReactPaginate
             previousLabel={<span className="px-2">←</span>}
             nextLabel={<span className="px-2">→</span>}
-            breakLabel={'...'}
+            breakLabel={"..."}
             pageCount={pageCount}
             marginPagesDisplayed={2}
             pageRangeDisplayed={3}
