@@ -63,7 +63,7 @@ const ShowMovies = () => {
                 {loading.movies ? (
                     <p>Loading movies...</p>
                 ) : (
-                    <GridMovies title="Phim mới | Phim lẻ" movies={movieList} moviesPerPage={12} />
+                    <GridMovies title="Phim mới | Phim lẻ" movies={movieList} moviesPerPage={6} />
                 )}
             </div>
         </div>
