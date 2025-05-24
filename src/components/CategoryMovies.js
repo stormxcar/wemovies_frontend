@@ -34,7 +34,7 @@ const CategoryMovies = () => {
     }, [fetchMovies]);
 
     return (
-        <div className="w-full px-10 bg-gray-800">
+        <div className="w-full px-10 bg-gray-800 pt-16">
             {/* Breadcrumb */}
             <nav className="my-4">
                 <span onClick={() => navigate('/')} className="text-white cursor-pointer">Movies</span>

@@ -5,6 +5,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 function GridMovies({ title, movies, moviesPerPage }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const validMovies = Array.isArray(movies) ? movies : [];
 
   const totalPages = useMemo(
     () => Math.ceil(movies.length / moviesPerPage),
@@ -30,6 +31,17 @@ function GridMovies({ title, movies, moviesPerPage }) {
   const handlePreviousPage = useCallback(() => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   }, []);
+
+  if (validMovies.length === 0) {
+    return (
+      <div className="">
+        <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
+        <div className="flex items-center justify-center h-80 text-white">
+          No movies available
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="my-6 w-full">

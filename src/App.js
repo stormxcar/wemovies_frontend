@@ -9,6 +9,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Search from './components/Search';
 import EpisodeDetail from './components/EpisodeDetail';
+import MovieList from './components/MovieList';
 
 function App() {
     return (
@@ -23,6 +24,8 @@ function App() {
                     <Route path="/movie/:id/episode/:episodeIndex" element={<EpisodeDetail />} />
                     <Route path="/movies/:categoryName" element={<CategoryMovies />} />
                     <Route path="/search" element={<Search />} />
+                    <Route path="/allmovies" element={<MovieList />} />
+                    <Route path="/allmovies/:categoryName" element={<MovieList />} />
                 </Routes>
                 <Footer />
             </div>
