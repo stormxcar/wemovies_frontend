@@ -5,7 +5,7 @@ import ShowMovies from './components/ShowMovies';
 import DetailMovie from './components/DetailMovie';
 import CategoryMovies from './components/CategoryMovies';
 import Header from './components/Header';
-import Navbar from './components/Navbar';
+// import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Search from './components/Search';
 import EpisodeDetail from './components/EpisodeDetail';
@@ -15,7 +15,7 @@ function App() {
         <Router>
             <div className="flex flex-col items-center justify-center w-full">
                 <Header />
-                <Navbar />
+                {/* <Navbar /> */}
                 <Routes>
                     <Route path="/" element={<ShowMovies />} />
                     <Route path="/category/:categoryName" element={<CategoryMovies />} />

@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import HorizontalMovies from "./HorizontalMovies";
 
 const DetailMovie = () => {
     const { id } = useParams();
     const [movieDetail, setMovieDetail] = useState(null);
     const [relatedMovies, setRelatedMovies] = useState([]);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const fetchRelatedMovies = useCallback(async (categoryId) => {
         try {
