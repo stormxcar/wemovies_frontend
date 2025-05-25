@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -27,6 +27,12 @@ import Update from "./admin/Update";
 import MovieDetail from "./admin/Detail";
 import Settings from "./admin/Settings";
 import TypeList from "./admin/TypeList";
+
+import { getCategories } from "./admin/api/Category.api";
+import { getCountries } from "./admin/api/Country.api";
+import { getMovies } from "./admin/api/Movie.api";
+import { getTypes } from "./admin/api/Type.api";
+import { getUsers } from "./admin/api/User.api";
 
 const UserLayout = () => (
   <div className="flex flex-col items-center justify-center w-full min-h-screen">
@@ -101,50 +107,12 @@ const AdminLayout = ({
 );
 
 const MainApp = () => {
-  const sampleMovies = [
-    {
-      id: 1,
-      title: "Inception",
-      category: "Action",
-      country: "USA",
-      type: "Movie",
-      year: 2010,
-      description:
-        "A thief who steals corporate secrets through dream infiltration technology.",
-    },
-    {
-      id: 2,
-      title: "Parasite",
-      category: "Drama",
-      country: "Korea",
-      type: "Movie",
-      year: 2019,
-      description:
-        "A poor family schemes to become employed by a wealthy family.",
-    },
-  ];
-  const sampleCategories = [
-    { id: 1, name: "Action" },
-    { id: 2, name: "Drama" },
-  ];
-  const sampleCountries = [
-    { id: 1, name: "USA" },
-    { id: 2, name: "Korea" },
-  ];
-  const sampleTypes = [
-    { id: 1, name: "Movie" },
-    { id: 2, name: "Series" },
-  ];
-  const sampleUsers = [
-    { id: 1, username: "admin1", email: "admin1@example.com" },
-    { id: 2, username: "admin2", email: "admin2@example.com" },
-  ];
+  const [movies, setMovies] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  const [movies, setMovies] = useState(sampleMovies);
-  const [categories, setCategories] = useState(sampleCategories);
-  const [countries, setCountries] = useState(sampleCountries);
-  const [types, setTypes] = useState(sampleTypes);
-  const [users, setUsers] = useState(sampleUsers);
   const user = { username: "Admin", email: "admin@example.com" };
 
   const navigate = useNavigate();
@@ -205,6 +173,64 @@ const MainApp = () => {
   const handleUpdateUser = (data) => {
     setUsers(users.map((user) => (user.id === data.id ? data : user)));
   };
+
+  // Define display fields for each list type
+  const movieDisplayFields = [
+    { key: "movie_id", label: "ID" },
+    { key: "title", label: "Tên phim" },
+    { key: "release_year", label: "Năm phát hành" },
+    { key: "country.name", label: "Quốc gia" },
+    {
+      key: "movieTypes",
+      label: "Loại phim",
+      render: (item) => item.map((type) => type.type_name).join(", "),
+    },
+    {
+      key: "movieCategories",
+      label: "Danh mục",
+      render: (item) => item.map((cat) => cat.name).join(", "),
+    },
+  ];
+
+  const categoryDisplayFields = [
+    { key: "category_id", label: "ID" },
+    { key: "name", label: "Tên danh mục" },
+  ];
+
+  const countryDisplayFields = [
+    { key: "country_id", label: "ID" },
+    { key: "name", label: "Tên quốc gia" },
+  ];
+
+  const userDisplayFields = [
+    { key: "id", label: "ID" },
+    { key: "userName", label: "Tên người dùng" },
+    { key: "email", label: "Email" },
+  ];
+
+  useEffect(() => {
+    try {
+      const fetchData = async () => {
+        const categoriesData = await getCategories();
+        const countriesData = await getCountries();
+        const moviesData = await getMovies();
+        const typesData = await getTypes();
+        const usersData = await getUsers();
+
+        setCategories(categoriesData);
+        setCountries(countriesData);
+        setMovies(moviesData);
+        setTypes(typesData);
+        setUsers(usersData);
+
+        
+
+      };
+      fetchData();
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }, []);
 
   return (
     <>
@@ -275,6 +301,8 @@ const MainApp = () => {
                 onDelete={handleDeleteMovie}
                 onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
                 searchFields={["title", "category", "country"]}
+                displayFields={movieDisplayFields}
+                keyField="movie_id"
               />
             }
           />
@@ -302,6 +330,8 @@ const MainApp = () => {
                 onEdit={handleEditCategory}
                 onDelete={handleDeleteCategory}
                 searchFields={["name"]}
+                displayFields={categoryDisplayFields}
+                keyField="category_id"
               />
             }
           />
@@ -328,6 +358,8 @@ const MainApp = () => {
                 onEdit={handleEditCountry}
                 onDelete={handleDeleteCountry}
                 searchFields={["name"]}
+                displayFields={countryDisplayFields}
+                keyField="country_id"
               />
             }
           />
@@ -353,6 +385,8 @@ const MainApp = () => {
                 onEdit={handleEditUser}
                 onDelete={handleDeleteUser}
                 searchFields={["username", "email"]}
+                displayFields={userDisplayFields}
+                keyField={"id"}
               />
             }
           />

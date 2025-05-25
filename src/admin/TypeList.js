@@ -9,9 +9,9 @@ const TypeList = ({ types, onEdit }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState(null);
 
-  const filteredTypes = types.filter((type) =>
-    type.name.toLowerCase().includes(search.toLowerCase())
-  );
+const filteredTypes = types.filter((type) =>
+    type?.type_name?.toLowerCase().includes(search.toLowerCase())
+);
 
   const handleEdit = (type) => {
     setCurrentType(type);
@@ -44,9 +44,9 @@ const TypeList = ({ types, onEdit }) => {
         </thead>
         <tbody>
           {filteredTypes.map((type) => (
-            <tr key={type.id} className="border">
-              <td className="border p-2">{type.id}</td>
-              <td className="border p-2">{type.name}</td>
+            <tr key={type.movie_type_id} className="border">
+              <td className="border p-2">{type.movie_type_id}</td>
+              <td className="border p-2">{type.type_name}</td>
               <td className="border p-2">
                 <button
                   onClick={() => handleEdit(type)}
