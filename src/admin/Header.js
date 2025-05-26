@@ -1,7 +1,49 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 // Header Component
-const Header = ({ user }) => {
+const Header = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const verifyResponse = await axios.get(
+          "http://localhost:8080/api/auth/verifyUser",
+          { withCredentials: true }
+        );
+        // console.log("Verify User Response:", verifyResponse.data);
+        setUser(verifyResponse.data);
+        // console.log("User state updated:", verifyResponse.data);
+      } catch (error) {
+        console.error(
+          "Error verifying user:",
+          error.response?.data || error.message
+        );
+        console.log("Error Response Headers:", error.response?.headers);
+        console.log("Request Headers:", error.response?.config.headers);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:8080/api/auth/logout",
+        {},
+        { withCredentials: true }
+      );
+      setUser(null);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, message: "New user registered" },
@@ -13,7 +55,7 @@ const Header = ({ user }) => {
       <div className="text-xl font-bold">Movie Admin</div>
       <div className="flex items-center space-x-4">
         <div className="relative">
-          <button className="focus:outline-none">
+          {/* <button className="focus:outline-none">
             <svg
               className="w-6 h-6"
               fill="none"
@@ -32,29 +74,40 @@ const Header = ({ user }) => {
                 {notifications.length}
               </span>
             )}
-          </button>
+          </button> */}
         </div>
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="focus:outline-none"
           >
-            <img
-              src="https://via.placeholder.com/40"
-              alt="Avatar"
-              className="w-10 h-10 rounded-full"
-            />
+            {user ? (
+              <img
+                src={user.avatar || "https://via.placeholder.com/40"}
+                alt="Avatar"
+                className="w-10 h-10 rounded-full border-2 border-white"
+              />
+            ) : (
+              <span>Loading...</span>
+            )}
           </button>
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg py-2 z-10">
               <div className="px-4 py-2">
-                <p className="font-bold">{user.username}</p>
-                <p className="text-sm">{user.email}</p>
+                {user && (
+                  <>
+                    <p className="font-bold">{user.username}</p>
+                    <p className="text-sm">{user.email}</p>
+                  </>
+                )}
               </div>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+              {/* <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                 Profile
-              </button>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+              </button> */}
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
                 Logout
               </button>
             </div>

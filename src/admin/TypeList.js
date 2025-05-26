@@ -1,27 +1,64 @@
-import React, { useState } from "react";
-import Modal from "./Modal";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import axios from "axios";
 
-// Type List with Edit Modal
-// TypeList Component
-const TypeList = ({ types, onEdit }) => {
+const TypeList = ({ types: initialTypes, onEdit }) => {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState(null);
+  const [localTypes, setLocalTypes] = useState(initialTypes); // Local state for types
 
-const filteredTypes = types.filter((type) =>
-    type?.type_name?.toLowerCase().includes(search.toLowerCase())
-);
+  // Sync localTypes with initialTypes when it changes
+  useEffect(() => {
+    setLocalTypes(initialTypes);
+  }, [initialTypes]);
+
+  const filteredTypes = localTypes.filter((type) =>
+    type?.name?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleEdit = (type) => {
-    setCurrentType(type);
+    setCurrentType({ ...type });
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    onEdit(currentType);
-    setIsModalOpen(false);
-    toast.success("Loại phim đã được cập nhật");
+  const handleSave = async () => {
+    try {
+      console.log("Saving type with data:", currentType);
+      const response = await axios.put(
+        `http://localhost:8080/api/types/update/${currentType.id}`,
+        currentType,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      console.log("Update successful, response:", response.data);
+      toast.success("Loại phim đã được cập nhật");
+
+      // Update localTypes immediately
+      setLocalTypes((prevTypes) =>
+        prevTypes.map((type) =>
+          type.id === response.data.id ? response.data : type
+        )
+      );
+
+      setIsModalOpen(false);
+      if (onEdit) {
+        console.log("Calling onEdit with updated type:", response.data);
+        onEdit(response.data); // Still notify the parent
+      }
+    } catch (error) {
+      console.error("Error updating type:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data ||
+          "Lỗi khi cập nhật loại phim"
+      );
+    }
   };
 
   return (
@@ -44,9 +81,9 @@ const filteredTypes = types.filter((type) =>
         </thead>
         <tbody>
           {filteredTypes.map((type) => (
-            <tr key={type.movie_type_id} className="border">
-              <td className="border p-2">{type.movie_type_id}</td>
-              <td className="border p-2">{type.type_name}</td>
+            <tr key={type.id} className="border">
+              <td className="border p-2">{type.id}</td>
+              <td className="border p-2">{type.name}</td>
               <td className="border p-2">
                 <button
                   onClick={() => handleEdit(type)}
@@ -59,7 +96,6 @@ const filteredTypes = types.filter((type) =>
           ))}
         </tbody>
       </table>
-      {/* Placeholder cho react-modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-md shadow-lg">

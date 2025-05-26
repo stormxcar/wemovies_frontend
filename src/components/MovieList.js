@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import ReactPaginate from "react-paginate";
 
-function MovieList({ movies = [], onMovieClick , title}) {
+function MovieList({ movies = [], onMovieClick, title }) {
   const location = useLocation();
   const { category, movies: stateMovies } = location.state || {};
   const [filteredMovies, setFilteredMovies] = useState([]);

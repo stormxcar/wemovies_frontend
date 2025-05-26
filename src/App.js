@@ -5,9 +5,11 @@ import {
   Routes,
   Outlet,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 import ShowMovies from "./components/ShowMovies";
 import DetailMovie from "./components/DetailMovie";
@@ -33,6 +35,14 @@ import { getCountries } from "./admin/api/Country.api";
 import { getMovies } from "./admin/api/Movie.api";
 import { getTypes } from "./admin/api/Type.api";
 import { getUsers } from "./admin/api/User.api";
+
+import AuthPage from "./AuthPage";
+import ProtectedRoute from "./ProtectRoute";
+import AddCategory from "./admin/AddCategory";
+import AddCountry from "./admin/AddCountry";
+import AddType from "./admin/AddType";
+import AddMovie from "./admin/AddMovie";
+import UpdateMovie from "./admin/UpdateMovie";
 
 const UserLayout = () => (
   <div className="flex flex-col items-center justify-center w-full min-h-screen">
@@ -117,6 +127,8 @@ const MainApp = () => {
 
   const navigate = useNavigate();
 
+  const location = useLocation();
+
   const handleEditMovie = () => {
     navigate("/admin/movies/update");
   };
@@ -176,14 +188,14 @@ const MainApp = () => {
 
   // Define display fields for each list type
   const movieDisplayFields = [
-    { key: "movie_id", label: "ID" },
+    { key: "id", label: "ID" },
     { key: "title", label: "Tên phim" },
     { key: "release_year", label: "Năm phát hành" },
     { key: "country.name", label: "Quốc gia" },
     {
       key: "movieTypes",
       label: "Loại phim",
-      render: (item) => item.map((type) => type.type_name).join(", "),
+      render: (item) => item.map((type) => type.name).join(", "),
     },
     {
       key: "movieCategories",
@@ -193,13 +205,39 @@ const MainApp = () => {
   ];
 
   const categoryDisplayFields = [
-    { key: "category_id", label: "ID" },
+    { key: "id", label: "ID" },
     { key: "name", label: "Tên danh mục" },
   ];
 
+  const categoryFields = [
+    {
+      name: "name",
+      label: "Tên danh mục",
+      type: "text",
+      placeholder: "Nhập tên danh mục",
+    },
+  ];
+
   const countryDisplayFields = [
-    { key: "country_id", label: "ID" },
+    { key: "id", label: "ID" },
     { key: "name", label: "Tên quốc gia" },
+  ];
+  const countryFields = [
+    {
+      name: "name",
+      label: "Tên quốc gia",
+      type: "text",
+      placeholder: "Nhập tên quốc giagia",
+    },
+  ];
+
+  const typeFields = [
+    {
+      name: "name",
+      label: "Tên loại phim",
+      type: "text",
+      placeholder: "Nhập tên loại phim ",
+    },
   ];
 
   const userDisplayFields = [
@@ -209,34 +247,40 @@ const MainApp = () => {
   ];
 
   useEffect(() => {
-    try {
-      const fetchData = async () => {
-        const categoriesData = await getCategories();
-        const countriesData = await getCountries();
-        const moviesData = await getMovies();
-        const typesData = await getTypes();
-        const usersData = await getUsers();
-
-        setCategories(categoriesData);
-        setCountries(countriesData);
-        setMovies(moviesData);
-        setTypes(typesData);
-        setUsers(usersData);
-
-        
-
-      };
-      fetchData();
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+    const fetchData = async () => {
+      try {
+        if (location.pathname === "/admin/categories") {
+          const categoriesData = await getCategories();
+          setCategories(categoriesData);
+        } else if (location.pathname === "/admin/countries") {
+          const countriesData = await getCountries();
+          setCountries(countriesData);
+        } else if (location.pathname === "/admin/types") {
+          const typesData = await getTypes();
+          setTypes(typesData);
+        } else if (location.pathname === "/admin/movies") {
+          const moviesData = await getMovies();
+          setMovies(moviesData);
+        } else if (location.pathname === "/admin/users") {
+          const usersData = await getUsers();
+          setUsers(usersData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    if (movies.length === 0) {
+      getMovies().then(setMovies).catch(console.error);
     }
-  }, []);
+    fetchData();
+  }, [location.pathname, movies]);
 
   return (
     <>
       <ToastContainer />
       <Routes>
         {/* User Routes */}
+        <Route path="/auth" element={<AuthPage />} />
         <Route element={<UserLayout />}>
           <Route path="/" element={<ShowMovies />} />
           <Route path="/category/:categoryName" element={<CategoryMovies />} />
@@ -257,37 +301,39 @@ const MainApp = () => {
         <Route
           path="/admin/*"
           element={
-            <AdminLayout
-              movies={movies}
-              setMovies={setMovies}
-              categories={categories}
-              setCategories={setCategories}
-              countries={countries}
-              setCountries={setCountries}
-              types={types}
-              setTypes={setTypes}
-              users={users}
-              setUsers={setUsers}
-              user={user}
-              handleEditMovie={handleEditMovie}
-              handleDeleteMovie={handleDeleteMovie}
-              handleAddMovie={handleAddMovie}
-              handleUpdateMovie={handleUpdateMovie}
-              handleEditCategory={handleEditCategory}
-              handleDeleteCategory={handleDeleteCategory}
-              handleAddCategory={handleAddCategory}
-              handleUpdateCategory={handleUpdateCategory}
-              handleEditCountry={handleEditCountry}
-              handleDeleteCountry={handleDeleteCountry}
-              handleAddCountry={handleAddCountry}
-              handleUpdateCountry={handleUpdateCountry}
-              handleEditType={handleEditType}
-              handleAddType={handleAddType}
-              handleEditUser={handleEditUser}
-              handleDeleteUser={handleDeleteUser}
-              handleAddUser={handleAddUser}
-              handleUpdateUser={handleUpdateUser}
-            />
+            <ProtectedRoute>
+              <AdminLayout
+                movies={movies}
+                setMovies={setMovies}
+                categories={categories}
+                setCategories={setCategories}
+                countries={countries}
+                setCountries={setCountries}
+                types={types}
+                setTypes={setTypes}
+                users={users}
+                setUsers={setUsers}
+                user={user}
+                handleEditMovie={handleEditMovie}
+                handleDeleteMovie={handleDeleteMovie}
+                handleAddMovie={handleAddMovie}
+                handleUpdateMovie={handleUpdateMovie}
+                handleEditCategory={handleEditCategory}
+                handleDeleteCategory={handleDeleteCategory}
+                handleAddCategory={handleAddCategory}
+                handleUpdateCategory={handleUpdateCategory}
+                handleEditCountry={handleEditCountry}
+                handleDeleteCountry={handleDeleteCountry}
+                handleAddCountry={handleAddCountry}
+                handleUpdateCountry={handleUpdateCountry}
+                handleEditType={handleEditType}
+                handleAddType={handleAddType}
+                handleEditUser={handleEditUser}
+                handleDeleteUser={handleDeleteUser}
+                handleAddUser={handleAddUser}
+                handleUpdateUser={handleUpdateUser}
+              />
+            </ProtectedRoute>
           }
         >
           <Route index element={<Home />} />
@@ -302,21 +348,27 @@ const MainApp = () => {
                 onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
                 searchFields={["title", "category", "country"]}
                 displayFields={movieDisplayFields}
-                keyField="movie_id"
+                keyField="id"
               />
             }
           />
           <Route
             path="movies/add"
-            element={<Add title="Phim" onAdd={handleAddMovie} />}
+            element={<AddMovie />}
           />
           <Route
             path="movies/update"
             element={
-              <Update
+              <UpdateMovie
                 title="Phim"
                 items={movies}
-                onUpdate={handleUpdateMovie}
+                // fields={movieDisplayFields}
+                updateEndpoint="http://localhost:8080/api/movies/update"
+                // onUpdate={(updated) =>
+                //   setCategories((prev) =>
+                //     prev.map((cat) => (cat.id === updated.id ? updated : cat))
+                //   )
+                // }
               />
             }
           />
@@ -331,21 +383,29 @@ const MainApp = () => {
                 onDelete={handleDeleteCategory}
                 searchFields={["name"]}
                 displayFields={categoryDisplayFields}
-                keyField="category_id"
+                keyField="id"
               />
             }
           />
-          <Route
-            path="categories/add"
-            element={<Add title="Danh mục" onAdd={handleAddCategory} />}
-          />
+          <Route path="categories/add" element={<AddCategory />} />
           <Route
             path="categories/update"
             element={
               <Update
                 title="Danh mục"
                 items={categories}
-                onUpdate={handleUpdateCategory}
+                fields={categoryFields} // Ensure this is defined
+                updateEndpoint="http://localhost:8080/api/categories/update"
+                onUpdate={(updated) => {
+                  console.log("onUpdate called with:", updated); // Debug: Log the updated item
+                  setCategories((prev) => {
+                    const newCategories = prev.map((cat) =>
+                      cat.id === updated.id ? updated : cat
+                    );
+                    console.log("Updated categories state:", newCategories); // Debug: Log the new state
+                    return newCategories;
+                  });
+                }}
               />
             }
           />
@@ -359,23 +419,51 @@ const MainApp = () => {
                 onDelete={handleDeleteCountry}
                 searchFields={["name"]}
                 displayFields={countryDisplayFields}
-                keyField="country_id"
+                keyField="id"
+              />
+            }
+          />
+          <Route path="countries/add" element={<AddCountry />} />
+          <Route
+            path="countries/update"
+            element={
+              <Update
+                title="Quốc gia"
+                items={countries}
+                fields={countryFields} // Ensure this is defined
+                updateEndpoint="http://localhost:8080/api/countries/update"
+                onUpdate={(updated) => {
+                  console.log("onUpdate called with:", updated); // Debug: Log the updated item
+                  setCategories((prev) => {
+                    const newCountries = prev.map((cat) =>
+                      cat.id === updated.id ? updated : cat
+                    );
+                    console.log("Updated categories state:", newCountries); // Debug: Log the new state
+                    return newCountries;
+                  });
+                }}
               />
             }
           />
           <Route
-            path="countries/add"
-            element={<Add title="Quốc gia" onAdd={handleAddCountry} />}
+            path="types"
+            element={
+              <TypeList
+                types={types}
+                onEdit={(updatedType) => {
+                  // console.log("App.js onEdit received:", updatedType);
+                  setTypes((prevTypes) =>
+                    prevTypes.map((type) =>
+                      type.id === updatedType.id
+                        ? updatedType
+                        : type
+                    )
+                  );
+                }}
+              />
+            }
           />
-          <Route
-            path="countries/update"
-            element={<Update title="Quốc gia" items={countries} />}
-          />
-          <Route path="types" element={<TypeList types={types} />} />
-          <Route
-            path="types/add"
-            element={<Add title="Loại phim" onAdd={handleAddType} />}
-          />
+          <Route path="types/add" element={<AddType />} />
           <Route
             path="users"
             element={

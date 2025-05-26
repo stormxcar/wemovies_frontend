@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const List = ({
   title,
@@ -45,8 +46,14 @@ const List = ({
   );
 
   const handleDelete = (id) => {
-    onDelete(id);
-    toast.success(`${title} đã được xóa`);
+    try{
+      const response = axios.delete(
+        `http://localhost:8080/api/${title.toLowerCase()}/delete/${id}`,
+        { withCredentials: true }
+      );
+    }catch(error){
+      console.log(error);
+    }
   };
 
   return (
