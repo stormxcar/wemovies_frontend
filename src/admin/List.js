@@ -48,7 +48,7 @@ const List = ({
   const handleDelete = (id) => {
     try{
       const response = axios.delete(
-        `http://localhost:8080/api/${title.toLowerCase()}/delete/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/${title.toLowerCase()}/delete/${id}`,
         { withCredentials: true }
       );
     }catch(error){

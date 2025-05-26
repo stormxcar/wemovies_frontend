@@ -15,7 +15,7 @@ const AddType = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/types/add",
+        `${process.env.REACT_APP_API_URL}/api/types/add`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

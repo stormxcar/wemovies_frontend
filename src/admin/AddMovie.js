@@ -38,9 +38,9 @@ const AddMovie = () => {
     const fetchOptions = async () => {
       try {
         const [typesResp, catsResp, countriesResp] = await Promise.all([
-          axios.get("http://localhost:8080/api/types"),
-          axios.get("http://localhost:8080/api/categories"),
-          axios.get("http://localhost:8080/api/countries"),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/types`),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/categories`),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/countries`),
         ]);
         setMovieTypes(
           typesResp.data.map((t) => ({ value: t.id, label: t.name }))
@@ -174,7 +174,7 @@ const AddMovie = () => {
       console.log("Params:", params.toString()); // Debug log
 
       const response = await axios.post(
-        "http://localhost:8080/api/movies/add",
+        "${process.env.REACT_APP_API_URL}/api/movies/add",
         payload,
         {
           headers: { "Content-Type": "application/json" },

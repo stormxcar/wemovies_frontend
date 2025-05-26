@@ -363,7 +363,7 @@ const MainApp = () => {
                 title="Phim"
                 items={movies}
                 // fields={movieDisplayFields}
-                updateEndpoint="http://localhost:8080/api/movies/update"
+                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/movies/update`}
                 // onUpdate={(updated) =>
                 //   setCategories((prev) =>
                 //     prev.map((cat) => (cat.id === updated.id ? updated : cat))
@@ -395,7 +395,7 @@ const MainApp = () => {
                 title="Danh mục"
                 items={categories}
                 fields={categoryFields} // Ensure this is defined
-                updateEndpoint="http://localhost:8080/api/categories/update"
+                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/categories/update`}
                 onUpdate={(updated) => {
                   console.log("onUpdate called with:", updated); // Debug: Log the updated item
                   setCategories((prev) => {
@@ -431,7 +431,7 @@ const MainApp = () => {
                 title="Quốc gia"
                 items={countries}
                 fields={countryFields} // Ensure this is defined
-                updateEndpoint="http://localhost:8080/api/countries/update"
+                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/countries/update`}
                 onUpdate={(updated) => {
                   console.log("onUpdate called with:", updated); // Debug: Log the updated item
                   setCategories((prev) => {
@@ -487,8 +487,10 @@ const MainApp = () => {
             element={
               <Update
                 title="Người dùng"
+                
                 items={users}
                 onUpdate={handleUpdateUser}
+                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/users/update`}
               />
             }
           />

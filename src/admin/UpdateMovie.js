@@ -42,9 +42,9 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     const fetchOptions = async () => {
       try {
         const [typesResp, catsResp, countriesResp] = await Promise.all([
-          axios.get("http://localhost:8080/api/types"),
-          axios.get("http://localhost:8080/api/categories"),
-          axios.get("http://localhost:8080/api/countries"),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/types`),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/categories`),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/countries`),
         ]);
         setMovieTypes(
           typesResp.data.map((t) => ({ value: t.id, label: t.name }))
@@ -125,10 +125,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         return;
       }
       const item = items.find((item) => item.id === parsedId);
-      console.log("====================================");
-      console.log("Selected ID:", selectedId);
-      console.log("Item data:", item);
-      console.log("====================================");
+      // console.log("====================================");
+      // console.log("Selected ID:", selectedId);
+      // console.log("Item data:", item);
+      // console.log("====================================");
       if (item) {
         const movieTypeIds = Array.isArray(item.movieTypes)
           ? item.movieTypes.map((t) => t.id || t.movie_type_id).filter(Boolean)
@@ -162,7 +162,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         });
         try {
           const response = await axios.get(
-            `http://localhost:8080/api/movies/${parsedId}/episodes`
+            `${process.env.REACT_APP_API_URL}/api/movies/${parsedId}/episodes`
           );
           const links = response.data || [];
           setEpisodeLinks(links);

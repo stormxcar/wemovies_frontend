@@ -15,7 +15,7 @@ const MovieDetail = () => {
         setLoading(true);
         setError(null);
         const response = await axios.get(
-          `http://localhost:8080/api/movies/detail/${id}`
+          `${process.env.REACT_APP_API_URL}/api/movies/detail/${id}`
         );
         setMovie(response.data);
       } catch (err) {

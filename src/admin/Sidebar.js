@@ -177,7 +177,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                       Danh sách
                     </button>
                   </li>
-                  <li>
+                  {/* <li>
                     <button
                       onClick={() => navigate("/admin/users/add")}
                       className="w-full text-left p-2 hover:bg-gray-700 rounded"
@@ -192,7 +192,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                     >
                       Cập nhật
                     </button>
-                  </li>
+                  </li> */}
                 </ul>
               )}
             </li>
