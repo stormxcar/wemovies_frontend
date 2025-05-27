@@ -42,7 +42,7 @@ const DetailMovie = () => {
 
   if (!movieDetail) return <div>Loading...</div>;
 
-  const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
+  // const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
 
   const convertToEmbedUrl = (url) => {
     const match = url.match(

@@ -1,6 +1,5 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import GridMovies from "./GridMovies";
 import MovieList from "./MovieList";
 
 function Search() {

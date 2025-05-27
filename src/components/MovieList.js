@@ -14,7 +14,7 @@ function MovieList({ movies = [], onMovieClick, title }) {
     } else {
       setFilteredMovies(movies);
     }
-  }, [category, movies]);
+}, [category, movies, stateMovies]);
   const [currentPage, setCurrentPage] = useState(0);
   const moviesPerPage = 28; // 7 columns x 4 rows
 

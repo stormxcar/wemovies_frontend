@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa";
 
 function GridMovies({ title, movies, moviesPerPage }) {
   const navigate = useNavigate();
@@ -14,6 +14,9 @@ function GridMovies({ title, movies, moviesPerPage }) {
 
   const currentMovies = useMemo(() => {
     const start = (currentPage - 1) * moviesPerPage;
+    if (!Array.isArray(movies) || movies.length === 0) {
+      return [];
+    }
     return movies.slice(start, start + moviesPerPage);
   }, [movies, currentPage, moviesPerPage]);
 

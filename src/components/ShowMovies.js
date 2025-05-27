@@ -16,7 +16,6 @@ const ShowMovies = () => {
   });
 
   useEffect(() => {
-    // Fetch all data in parallel
     const fetchAll = async () => {
       try {
         const [movies, hot, cats] = await Promise.all([
@@ -24,11 +23,22 @@ const ShowMovies = () => {
           fetchMovieByHot(),
           fetchCategories(),
         ]);
-        setMovieList(movies);
-        setMovieHot(hot);
-        setCategories(cats);
+
+        console.log('====================================');
+        console.log("Fetch Data:", {movies, hot, cats});
+        console.log('====================================');
+        setMovieList(Array.isArray(movies) ? movies : []);
+        setMovieHot(Array.isArray(hot) ? hot : []);
+        setCategories(Array.isArray(cats) ? cats : []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        if (error.name === "AbortError") {
+          console.error("Fetch aborted due to timeout:", error.message);
+        } else {
+          console.error("Error fetching data:", error.message);
+        }
+        setMovieList([]);
+        setMovieHot([]);
+        setCategories([]);
       } finally {
         setLoading({ movies: false, hot: false, categories: false });
       }

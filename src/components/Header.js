@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate , Link} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import Banner from "./Banner";
 import { fetchCategories } from "../services/api";
@@ -42,10 +42,12 @@ function Header() {
   };
 
   useEffect(() => {
-          fetchCategories()
-              .then(setCategories)
-              .catch((error) => console.error("Error fetching categories:", error));
-      }, []);
+    fetchCategories()
+      .then(setCategories)
+      .catch((error) => console.error("Error fetching categories:", error));
+
+    console.log("data: ", categories);
+  }, []);
 
   // Handle scroll for nav background change
   useEffect(() => {
@@ -135,14 +137,16 @@ function Header() {
             </button>
             {navOpen && (
               <ul className="absolute left-0 mt-2 bg-black/80 text-white px-4 py-2 rounded shadow-lg w-48">
-                {categories.map((item) => (
-                  <li
-                    key={item.name}
-                    className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
-                  >
-                    <Link to={`/category/${item.name}`}>{item.name}</Link>
-                  </li>
-                ))}
+                {Array.isArray(categories) &&
+                  categories.length > 0 &&
+                  categories.map((item) => (
+                    <li
+                      key={item.name}
+                      className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
+                    >
+                      <Link to={`/category/${item.name}`}>{item.name}</Link>
+                    </li>
+                  ))}
               </ul>
             )}
           </div>

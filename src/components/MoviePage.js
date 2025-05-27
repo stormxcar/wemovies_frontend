@@ -14,15 +14,15 @@ function MoviePage() {
     { movie_id: 8, thumb_url: 'https://picsum.photos/200/302', title: 'My Ví Dường', release_year: '2025' },
   ];
 
-  const moviesByActor = [
-    { movie_id: 9, thumb_url: 'https://via.placeholder.com/150', title: 'Actor Movie 1', release_year: '2024' },
-    { movie_id: 10, thumb_url: 'https://via.placeholder.com/150', title: 'Actor Movie 2', release_year: '2024' },
-  ];
+  // const moviesByActor = [
+  //   { movie_id: 9, thumb_url: 'https://via.placeholder.com/150', title: 'Actor Movie 1', release_year: '2024' },
+  //   { movie_id: 10, thumb_url: 'https://via.placeholder.com/150', title: 'Actor Movie 2', release_year: '2024' },
+  // ];
 
-  const moviesByCountry = [
-    { movie_id: 11, thumb_url: 'https://via.placeholder.com/150', title: 'Country Movie 1', release_year: '2023' },
-    { movie_id: 12, thumb_url: 'https://via.placeholder.com/150', title: 'Country Movie 2', release_year: '2023' },
-  ];
+  // const moviesByCountry = [
+  //   { movie_id: 11, thumb_url: 'https://via.placeholder.com/150', title: 'Country Movie 1', release_year: '2023' },
+  //   { movie_id: 12, thumb_url: 'https://via.placeholder.com/150', title: 'Country Movie 2', release_year: '2023' },
+  // ];
 
   const handleMovieClick = (movieId) => {
     console.log(`Navigating to movie with ID: ${movieId}`);
