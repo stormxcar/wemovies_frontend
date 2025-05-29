@@ -284,6 +284,10 @@ const MainApp = () => {
         <Route element={<UserLayout />}>
           <Route path="/" element={<ShowMovies />} />
           <Route path="/category/:categoryName" element={<CategoryMovies />} />
+          {/* <Route path="/category/:categoryId" element={<MovieList />} /> */}
+
+          <Route path="/country/:countryName" element={<CategoryMovies />} />
+
           <Route path="/movie/:id" element={<DetailMovie />} />
           <Route
             path="/movie/:id/episode/:episodeIndex"
@@ -294,6 +298,7 @@ const MainApp = () => {
           <Route path="/allmovies" element={<MovieList />} />
           <Route path="/allmovies/:categoryName" element={<MovieList />} />
           <Route path="/movie/watch/:id" element={<Watch />} />
+          <Route path="/movie/:id/episode/:episodeIndex" element={<Watch />} />
           <Route path="/moviepage" element={<MoviePage />} />
         </Route>
 
@@ -352,10 +357,7 @@ const MainApp = () => {
               />
             }
           />
-          <Route
-            path="movies/add"
-            element={<AddMovie />}
-          />
+          <Route path="movies/add" element={<AddMovie />} />
           <Route
             path="movies/update"
             element={
@@ -454,9 +456,7 @@ const MainApp = () => {
                   // console.log("App.js onEdit received:", updatedType);
                   setTypes((prevTypes) =>
                     prevTypes.map((type) =>
-                      type.id === updatedType.id
-                        ? updatedType
-                        : type
+                      type.id === updatedType.id ? updatedType : type
                     )
                   );
                 }}
@@ -487,7 +487,6 @@ const MainApp = () => {
             element={
               <Update
                 title="Người dùng"
-                
                 items={users}
                 onUpdate={handleUpdateUser}
                 updateEndpoint={`${process.env.REACT_APP_API_URL}/api/users/update`}

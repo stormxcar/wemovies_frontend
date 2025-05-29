@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ClipLoader } from "react-spinners";
 import HorizontalMovies from "./HorizontalMovies";
 import GridMovies from "./GridMovies";
 import { fetchMovieByHot, fetchMovies, fetchCategories } from "../services/api";
@@ -24,9 +25,9 @@ const ShowMovies = () => {
           fetchCategories(),
         ]);
 
-        console.log('====================================');
-        console.log("Fetch Data:", {movies, hot, cats});
-        console.log('====================================');
+        // console.log('====================================');
+        // console.log("Fetch Data:", {movies, hot, cats});
+        // console.log('====================================');
         setMovieList(Array.isArray(movies) ? movies : []);
         setMovieHot(Array.isArray(hot) ? hot : []);
         setCategories(Array.isArray(cats) ? cats : []);
@@ -63,7 +64,9 @@ const ShowMovies = () => {
 
       <div>
         {loading.hot ? (
-          <p>Loading movies...</p>
+          <div className="flex justify-center items-center h-20">
+            <ClipLoader color="#ffffff" size={50} />
+          </div>
         ) : (
           <HorizontalMovies
             title="Phim hot"
@@ -78,7 +81,9 @@ const ShowMovies = () => {
 
       <div>
         {loading.movies ? (
-          <p>Loading movies...</p>
+          <div className="flex justify-center items-center h-20">
+            <ClipLoader color="#ffffff" size={50} />
+          </div>
         ) : (
           <HorizontalMovies title="Thịnh hành" movies={movieList} />
         )}
@@ -86,7 +91,9 @@ const ShowMovies = () => {
 
       <div>
         {loading.movies ? (
-          <p>Loading movies...</p>
+          <div className="flex justify-center items-center h-20">
+            <ClipLoader color="#ffffff" size={50} />
+          </div>
         ) : (
           <GridMovies
             title="Phim mới | Phim lẻ"

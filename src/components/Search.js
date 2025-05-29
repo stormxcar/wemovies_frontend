@@ -7,7 +7,7 @@ function Search() {
     const movies = state?.movies || [];
 
     return (
-        <div className="bg-gray-900 text-white px-10 w-full">
+        <div className="bg-gray-900 text-white px-10 w-full flex-1 pt-20">
             <div className="">
                 {movies.length > 0 ? (
                     // <GridMovies title="Kết quả tim kiếm" movies={movies} moviesPerPage={8} />

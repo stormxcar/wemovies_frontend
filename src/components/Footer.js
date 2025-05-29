@@ -42,7 +42,8 @@ const Footer = memo(() => (
 
             {/* Description and Copyright */}
             <div className="text-xs text-gray-400 max-w-2xl">
-                Wemovies– Phim hay cả ngày – Trang xem phim online chất lượng cao miễn phí ViệtSub, thuyết minh, lồng tiếng full HD. Khong chỉ phim mực hồng tố, phim chiếu rạp, phim bộ, phim lẻ từ những quốc gia như Việt Nam, Hàn Quốc, Trung Quốc, Thái Lan, Nhật Bản, Âu Mỹ... đã được cập nhật thường xuyên để đáp ứng nhu cầu xem phim của khán giả. Với giao diện thân thiện, kho phim phong phú và tốc độ tải nhanh, RoPhim sẽ mang đến trải nghiệm giải trí tuyệt vời nhất cho bạn trong năm 2024 với hơn 4K!
+                Wemovies– Phim hay cả ngày – Trang xem phim online chất lượng cao miễn phí ViệtSub, thuyết minh, lồng tiếng full HD. Khong chỉ phim mực hồng tố, phim chiếu rạp, phim bộ, phim lẻ từ những quốc gia như Việt Nam, Hàn Quốc, Trung Quốc, Thái Lan, Nhật Bản, Âu Mỹ... đã được cập nhật thường xuyên để đáp ứng nhu cầu xem phim của khán giả. <br /><br />
+                Với giao diện thân thiện, kho phim phong phú và tốc độ tải nhanh, chúng tôi sẽ mang đến trải nghiệm giải trí tuyệt vời nhất cho bạn trong năm 2025 với hơn 4K!
                 <br /><br />
                 © 2025 wemovies
             </div>

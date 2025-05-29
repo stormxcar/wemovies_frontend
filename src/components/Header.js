@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import Banner from "./Banner";
 import { fetchCategories } from "../services/api";
+import { fetchJson } from "../services/api";
 
 function Header() {
   const [query, setQuery] = useState("");
@@ -18,10 +19,8 @@ function Header() {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const response = await fetch(
-        `${
-          process.env.REACT_APP_API_URL
-        }/api/movies/search?keyword=${encodeURIComponent(query)}`
+      const response = await fetchJson(
+        `/api/movies/search?keyword=${encodeURIComponent(query)}`
       );
       if (!response.ok) throw new Error(response.statusText);
 
@@ -144,26 +143,37 @@ function Header() {
                       key={item.name}
                       className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
                     >
-                      <Link to={`/category/${item.name}`}>{item.name}</Link>
+                      <li
+                        key={item.name}
+                        className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
+                        onClick={async () => {
+                          try {
+                            const movies = await fetchJson(
+                              `/api/movies/category/id/${item.id}`
+                            );
+                          
+                            navigate(`/category/${item.name}`, {
+                              state: {
+                                movies: Array.isArray(movies.data) ? movies.data : [],
+                                title: item.name,
+                              },
+                            });
+                          } catch (error) {
+                            console.error(
+                              "Error fetching movies for category:",
+                              error
+                            );
+                          }
+                        }}
+                      >
+                        {item.name}
+                      </li>
                     </li>
                   ))}
               </ul>
             )}
           </div>
-          <a
-            href="/phim-le"
-            className="hover:text-blue-300 transition-colors"
-            aria-label="Phim lẻ"
-          >
-            Phim lẻ
-          </a>
-          <a
-            href="/phim-bo"
-            className="hover:text-blue-300 transition-colors"
-            aria-label="Phim bộ"
-          >
-            Phim bộ
-          </a>
+
           <a
             href="/quoc-gia"
             className="hover:text-blue-300 transition-colors"

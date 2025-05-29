@@ -1,31 +1,44 @@
-// import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  "https://wemovies-backend-b74e2422331f.herokuapp.com";
+const LOCAL_API_URL =
+  process.env.REACT_APP_LOCAL_API_URL || "http://localhost:8080";
 
-// console.log("API_BASE_URL:", API_BASE_URL);
-
-const fetchJson = async (url, options = {}, retries = 3, retryDelay = 1000) => {
+export const tryRequest = async (baseUrl, endpoint, options = {}, retries = 3, retryDelay = 1000) => {
+  const fullUrl = `${baseUrl}${endpoint}`;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await axios.get(fullUrl, {
+        ...options,
+        timeout: 10000,
+      });
+      if (!response.data) {
+        throw new Error(`No data returned from ${fullUrl}`);
       }
-      const data = await response.json();
-      if (!data) {
-        throw new Error(`No data returned from ${url}`);
-      }
-      return data;
+      return { success: true, data: response.data };
     } catch (error) {
-      console.error(`Attempt ${attempt} failed for ${url}:`, error.message);
+      console.error(`Attempt ${attempt} failed for ${fullUrl}:`, error.message);
       if (attempt === retries) {
-        console.error(`All ${retries} attempts failed for ${url}`);
-        throw error; // Ném lỗi nếu đã thử hết số lần
+        return { success: false, error };
       }
-      // Đợi trước khi thử lại
       await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
+};
+
+export const fetchJson = async (endpoint, options = {}, retries = 3, retryDelay = 1000) => {
+  let result = await tryRequest(API_BASE_URL, endpoint, options, retries, retryDelay);
+  if (!result.success) {
+    console.warn(`Heroku API failed, falling back to local API: ${LOCAL_API_URL}`);
+    result = await tryRequest(LOCAL_API_URL, endpoint, options, retries, retryDelay);
+  }
+  if (!result.success) {
+    console.error(`All attempts failed for both URLs`);
+    throw result.error;
+  }
+  return result.data;
 };
 
 // Fetch movies with timeout
@@ -33,11 +46,11 @@ export const fetchMovies = async () => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
-    const data = await fetchJson(`${API_BASE_URL}/api/movies`);
-    return Array.isArray(data) ? data : []; // Đảm bảo trả về mảng
+    const data = await fetchJson("/api/movies");
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch movies failed:", error);
-    return []; // Giá trị mặc định
+    return [];
   } finally {
     clearTimeout(timeoutId);
   }
@@ -45,8 +58,8 @@ export const fetchMovies = async () => {
 
 export const fetchCategories = async () => {
   try {
-    const data = await fetchJson(`${API_BASE_URL}/api/categories`);
-    return Array.isArray(data.data) ? data.data : []; // Lấy data.data
+    const data = await fetchJson("/api/categories");
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch categories failed:", error);
     return [];
@@ -54,14 +67,14 @@ export const fetchCategories = async () => {
 };
 
 export const fetchMoviesByCategory = (categoryName) =>
-  fetchJson(
-    `${API_BASE_URL}/api/movies/category/${encodeURIComponent(categoryName)}`
-  ).catch(() => []);
+  fetchJson(`/api/movies/category/${encodeURIComponent(categoryName)}`).catch(
+    () => []
+  );
 
 export const fetchMovieByHot = async () => {
   try {
-    const data = await fetchJson(`${API_BASE_URL}/api/movies/hot`);
-    return Array.isArray(data) ? data : [];
+    const data = await fetchJson("/api/movies/hot");
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch hot movies failed:", error);
     return [];
@@ -71,9 +84,9 @@ export const fetchMovieByHot = async () => {
 export const fetchMovieByCategoryId = async (categoryId) => {
   try {
     const data = await fetchJson(
-      `${API_BASE_URL}/api/movies/category/id/${encodeURIComponent(categoryId)}`
+      `/api/movies/category/id/${encodeURIComponent(categoryId)}`
     );
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch movies by category ID failed:", error);
     return [];
@@ -86,11 +99,11 @@ export const fetchMoviesByCountryAndCategory = async (
 ) => {
   try {
     const data = await fetchJson(
-      `${API_BASE_URL}/api/movies/country/${encodeURIComponent(
+      `/api/movies/country/${encodeURIComponent(
         countryName
       )}/category/${encodeURIComponent(categoryName)}`
     );
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch movies by country and category failed:", error);
     return [];
@@ -100,9 +113,9 @@ export const fetchMoviesByCountryAndCategory = async (
 export const fetchMoviesByName = async (name) => {
   try {
     const data = await fetchJson(
-      `${API_BASE_URL}/api/movies/search/${encodeURIComponent(name)}`
+      `/api/movies/search/${encodeURIComponent(name)}`
     );
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch movies by name failed:", error);
     return [];

@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
+import { fetchJson } from "../services/api";
+import MovieList from "./MovieList";
+import { ClipLoader } from "react-spinners";
 
 const DetailMovie = () => {
   const { id } = useParams();
@@ -9,29 +12,35 @@ const DetailMovie = () => {
   const [showModal, setShowModal] = useState(false);
   // const navigate = useNavigate();
 
-  const fetchRelatedMovies = useCallback(async (categoryId) => {
-    try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/movies/category/id/${categoryId}`
-      );
-      const data = await res.json();
-      setRelatedMovies(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setRelatedMovies([]);
-    }
-  }, []);
+  const fetchRelatedMovies = useCallback(
+    async (categoryId) => {
+      if (!categoryId) {
+        console.log("No valid categoryId provided");
+        setRelatedMovies([]);
+        return;
+      }
+      try {
+        console.log("Fetching related movies for categoryId:", categoryId);
+        const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
+
+        setRelatedMovies(Array.isArray(data.data) ? data.data : []);
+      } catch (e) {
+        console.error("Error fetching related movies:", e);
+        setRelatedMovies([]);
+      }
+    },
+    [fetchJson]
+  );
 
   useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
-        const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/movies/${id}`
-        );
-        const data = await res.json();
+        const data = await fetchJson(`/api/movies/${id}`);
+
         setMovieDetail(data);
 
-        if (data.movieCategories?.length) {
-          fetchRelatedMovies(data.movieCategories[0].category_id);
+        if (data.data.movieCategories?.length) {
+          fetchRelatedMovies(data.data.movieCategories[0].id);
         }
       } catch (e) {
         setMovieDetail(null);
@@ -40,9 +49,14 @@ const DetailMovie = () => {
     fetchMovieDetail();
   }, [id, fetchRelatedMovies]);
 
-  if (!movieDetail) return <div>Loading...</div>;
+  if (!movieDetail)
+    return (
+      <div className="flex items-center justify-center">
+        <ClipLoader color="#555" />
+      </div>
+    );
 
-  // const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
+  const episodeLinks = movieDetail.data.episodeLinks?.split(",") || [];
 
   const convertToEmbedUrl = (url) => {
     const match = url.match(
@@ -51,22 +65,27 @@ const DetailMovie = () => {
     return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   };
 
-  const category = movieDetail.movieCategories?.[0];
+  const category = movieDetail.data.movieCategories?.[0];
+
+  const handleMovieClick = (movieId) => {
+    console.log(`Navigating to movie with ID: ${movieId}`);
+    // Add navigation logic here
+  };
 
   return (
     <div className="bg-gray-800 w-full">
       <div className="relative w-full h-[80vh]">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
         <img
-          src={movieDetail.thumb_url}
-          alt={movieDetail.title}
+          src={movieDetail.data.thumb_url}
+          alt={movieDetail.data.title}
           className="w-full h-full object-cover"
           style={{ objectPosition: "center" }}
         />
         <div className="absolute bottom-0 w-full p-12 bg-gradient-to-t from-black to-transparent font-bold text-white rounded-b-lg uppercase">
-          <span>{movieDetail.title}</span>
-          <span className="mr-4"> ({movieDetail.release_year}) </span>
-          {movieDetail.vietSub && (
+          <span>{movieDetail.data.title}</span>
+          <span className="mr-4"> ({movieDetail.data.release_year}) </span>
+          {movieDetail.data.vietSub && (
             <div className="my-3 mb-6">
               <span className="bg-green-500 text-white px-2 py-1 rounded-lg">
                 Việt Sub
@@ -74,13 +93,13 @@ const DetailMovie = () => {
             </div>
           )}
           <Link
-            to={"/movie/watch/" + movieDetail.movie_id}
-            state={{ movieDetail }}
+            to={"/movie/watch/" + movieDetail.data.id}
+            state={{ movieDetail: movieDetail.data }}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
           >
             Xem phim
           </Link>
-          {movieDetail.trailer && (
+          {movieDetail.data.trailer && (
             <>
               <button
                 onClick={() => setShowModal(true)}
@@ -98,7 +117,7 @@ const DetailMovie = () => {
                       Close
                     </button>
                     <iframe
-                      src={convertToEmbedUrl(movieDetail.trailer)}
+                      src={convertToEmbedUrl(movieDetail.data.trailer)}
                       title="Trailer"
                       width="100%"
                       height="400px"
@@ -129,19 +148,19 @@ const DetailMovie = () => {
               <span className="text-white mx-2">{">"}</span>
             </>
           )}
-          <span className="text-blue-500">{movieDetail.title}</span>
+          <span className="text-blue-500">{movieDetail.data.title}</span>
         </nav>
 
         <div className="flex justify-between">
           <div className="relative w-[30%] h-[300px] flex items-start flex-col justify-start float-left mb-6">
             <img
-              src={movieDetail.thumb_url}
-              alt={movieDetail.title}
+              src={movieDetail.data.thumb_url}
+              alt={movieDetail.data.title}
               className="h-full object-contain"
             />
             <div className="w-full font-bold text-white rounded-b-lg uppercase mt-4">
-              <span>{movieDetail.title}</span>
-              <span> ({movieDetail.release_year}) </span>
+              <span>{movieDetail.data.title}</span>
+              <span> ({movieDetail.data.release_year}) </span>
             </div>
           </div>
 
@@ -149,26 +168,49 @@ const DetailMovie = () => {
             <h2 className="font-bold my-4 text-white sm:text-xl md:text-2xl">
               Nội dung chi tiết
             </h2>
-            <h1 className="text-2xl mb-2 text-white">{movieDetail.title}</h1>
+            <h1 className="text-2xl mb-2 text-white">
+              {movieDetail.data.title}
+            </h1>
             <div>
               <div className="my-3">
                 <span className="text-white">Đạo diễn: </span>
-                <span className="text-white">{movieDetail.director}</span>
+                <span className="text-white">{movieDetail.data.director}</span>
               </div>
               <div className="my-3">
                 <span className="text-white">Diễn viên: </span>
-                <span className="text-white">{movieDetail.actors}</span>
+                <span className="text-white">{movieDetail.data.actors}</span>
               </div>
               <div className="my-3">
                 <span className="text-white">Thời lượng: </span>
-                <span className="text-white">{movieDetail.duration} phút</span>
+                <span className="text-white">
+                  {movieDetail.data.duration} phút
+                </span>
               </div>
               <div className="my-3">
                 <span className="text-white">Mô tả: </span>
                 <span
                   className="text-white"
-                  dangerouslySetInnerHTML={{ __html: movieDetail.description }}
+                  dangerouslySetInnerHTML={{
+                    __html: movieDetail.data.description,
+                  }}
                 />
+              </div>
+
+              <div className="flex flex-row flex-wrap mt-8">
+                {episodeLinks.length > 0 ? (
+                  episodeLinks.map((link, idx) => (
+                    <div key={idx} className="my-2">
+                      <Link
+                        to={`/movie/${id}/episode/${idx}`}
+                        className="text-black bg-gray-300 py-3 px-6 mr-3 mb-3 rounded-lg"
+                      >
+                        Tập {idx + 1}
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-white">Không có tập phim nào.</p>
+                )}
               </div>
             </div>
           </div>
@@ -215,7 +257,14 @@ const DetailMovie = () => {
       </div>
 
       <div className="my-4 mx-12 mb-8">
-        <HorizontalMovies title="Phim liên quan" movies={relatedMovies} />
+        <HorizontalMovies
+          title="Phim liên quan"
+          movies={relatedMovies}
+          to="/allmovies"
+          MovieListComponent={
+            <MovieList movies={relatedMovies} onMovieClick={handleMovieClick} />
+          }
+        />
       </div>
     </div>
   );

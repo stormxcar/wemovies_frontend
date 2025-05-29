@@ -79,13 +79,13 @@ function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
           >
             {validMovies.length > 0 ? (
               validMovies.map(
-                ({ movie_id, thumb_url, title, release_year }) => (
+                ({ id, thumb_url, title, release_year }) => (
                   <SwiperSlide
-                    key={movie_id}
-                    onClick={() => handleClickToDetail(movie_id)}
+                    key={id}
+                    onClick={() => handleClickToDetail(id)}
                   >
                     <CardMovie
-                      movie={{ movie_id, thumb_url, title, release_year }}
+                      movie={{ id, thumb_url, title, release_year }}
                     />
                   </SwiperSlide>
                 )

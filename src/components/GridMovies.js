@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaChevronRight } from "react-icons/fa";
+import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
 
 function GridMovies({ title, movies, moviesPerPage }) {
   const navigate = useNavigate();
@@ -19,6 +19,10 @@ function GridMovies({ title, movies, moviesPerPage }) {
     }
     return movies.slice(start, start + moviesPerPage);
   }, [movies, currentPage, moviesPerPage]);
+
+  // console.log('====================================');
+  // console.log("currentMovies:", currentMovies);
+  // console.log('====================================');
 
   const handleClickToDetail = useCallback(
     (movieID) => {
@@ -40,7 +44,7 @@ function GridMovies({ title, movies, moviesPerPage }) {
       <div className="">
         <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
         <div className="flex items-center justify-center h-80 text-white">
-          No movies available
+          Không có phim nào có sẵn 
         </div>
       </div>
     );
@@ -62,12 +66,12 @@ function GridMovies({ title, movies, moviesPerPage }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
         {currentMovies.map((movie) => (
           <div
-            key={movie.movie_id}
+            key={movie.id}
             className="w-30 h-64 group cursor-pointer overflow-hidden"
-            onClick={() => handleClickToDetail(movie.movie_id)}
+            onClick={() => handleClickToDetail(movie.id)}
           >
             <div className="overflow-hidden h-[70%]">
-              <div className="absolute inset-0 w-full h-full bottom-0 bg-gradient-to-b from-black to-transparent"></div>
+              {/* <div className="absolute inset-0 w-full h-full bottom-0 bg-gradient-to-b from-black to-transparent"></div> */}
               <img
                 src={movie.thumb_url}
                 alt={movie.title}
@@ -85,23 +89,23 @@ function GridMovies({ title, movies, moviesPerPage }) {
         ))}
       </div>
 
-      <div className="flex justify-between mt-4 items-center">
+      <div className="flex justify-center gap-2 mt-8 items-center">
         <button
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-300 rounded text-black"
+          className="px-4 py-4 bg-gray-300 text-black items-center flex justify-center rounded-full"
         >
-          Previous
+          <FaChevronLeft className="inline" />
         </button>
         <span className="text-white">
-          Page {currentPage} of {totalPages}
+          {currentPage} / {totalPages}
         </span>
         <button
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-gray-300 rounded text-black"
+          className="px-4 py-4 bg-gray-300 rounded-full text-black items-center flex justify-center"
         >
-          Next
+          <FaChevronRight className="inline" />
         </button>
       </div>
     </div>

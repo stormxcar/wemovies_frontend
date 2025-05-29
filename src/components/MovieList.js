@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import ReactPaginate from "react-paginate";
+// icon filter
+import { FaFilter } from "react-icons/fa";
 
 function MovieList({ movies = [], onMovieClick, title }) {
   const location = useLocation();
@@ -28,16 +30,16 @@ function MovieList({ movies = [], onMovieClick, title }) {
   };
 
   // Internal CardMovie component
-  const CardMovie = ({ movie }) => {
+const CardMovie = ({ movie, onMovieClick }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-      <div className="relative rounded-lg w-48 h-64 cursor-pointer mx-auto mt-12">
+      <div className="relative rounded-lg w-48 h-64 cursor-pointer mx-auto mt-20">
         <div
           className="relative w-full h-full overflow-visible"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => onMovieClick(movie.movie_id)}
+          onClick={() => onMovieClick(movie.id)}
         >
           {/* Original Card */}
           <div
@@ -86,8 +88,11 @@ function MovieList({ movies = [], onMovieClick, title }) {
     <div className="w-full h-full bg-gray-900 text-white p-4 px-12 min-h-screen pt-32">
       {/* Title */}
       <h2 className="text-xl font-bold mb-4">{title}</h2>
-      <div>
+      <div className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4">
         <h3>Bộ lọc</h3>
+        <button className="flex items-center gap-2 text-white">
+          <FaFilter />
+          </button>
       </div>
 
       {/* Movie Grid */}
@@ -95,7 +100,7 @@ function MovieList({ movies = [], onMovieClick, title }) {
         {currentMovies.slice(0, 28).length > 0 ? (
           currentMovies
             .slice(0, 28)
-            .map((movie) => <CardMovie key={movie.movie_id} movie={movie} />)
+            .map((movie) => <CardMovie key={movie.id} movie={movie} onMovieClick={onMovieClick} />)
         ) : (
           <div className="col-span-full flex items-center justify-center h-80 text-white">
             No movies available
