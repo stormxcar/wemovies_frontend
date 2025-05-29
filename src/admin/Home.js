@@ -33,10 +33,18 @@ const Home = () => {
         setUsers(usersData);
       };
       fetchData();
+
+      
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   }, []);
+
+  useEffect(() => {
+    console.log('====================================');
+      console.log("data categories:", categories);
+      console.log('====================================');
+  }, [movies]);
 
   // Home Component
   return (

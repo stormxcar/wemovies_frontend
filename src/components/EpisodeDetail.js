@@ -1,41 +1,107 @@
-// EpisodeDetail.js
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { fetchJson } from "../services/api"; // Adjust the import path as necessary
+import React, { useEffect, useState, useCallback } from "react"; // Import added
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
+import { fetchJson } from "../admin/api/fetch.api";
+import HorizontalMovies from "./HorizontalMovies";
 
 const EpisodeDetail = () => {
   const { id, episodeIndex } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation(); // This line causes the error if not set up correctly
   const [movieDetail, setMovieDetail] = useState(null);
+  const [relatedMovies, setRelatedMovies] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
+
     const fetchMovieDetail = async () => {
       try {
-        const response = await fetchJson(`/api/movies/${id}`);
-        if (!response.ok) throw new Error("Network response was not ok");
-        const data = await response.json();
-
-        console.log("====================================");
-        console.log(`Fetched movie detail for ID: ${id}`, data);
-        console.log("====================================");
-        if (isMounted) setMovieDetail(data);
+        const stateMovieDetail = location.state?.movieDetail;
+        if (stateMovieDetail) {
+          console.log("Using state movieDetail:", stateMovieDetail);
+          if (isMounted) setMovieDetail({ data: stateMovieDetail });
+        } else {
+          const response = await fetchJson(`/api/movies/${id}`);
+          if (!response.ok) throw new Error("Network response was not ok");
+          const data = await response.json();
+          console.log(`Fetched movie detail for ID: ${id}`, data);
+          if (isMounted) setMovieDetail(data);
+        }
       } catch (error) {
-        // Optionally handle error
+        console.error("Error fetching movie detail:", error);
         if (isMounted) setMovieDetail(null);
       }
     };
+
     fetchMovieDetail();
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, location.state]);
+
+  const fetchRelatedMovies = useCallback(
+    async (categoryId) => {
+      if (!categoryId) {
+        console.log("No valid categoryId provided");
+        setRelatedMovies([]);
+        return;
+      }
+      try {
+        console.log("Fetching related movies for categoryId:", categoryId);
+        const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
+
+        setRelatedMovies(Array.isArray(data.data) ? data.data : []);
+      } catch (e) {
+        console.error("Error fetching related movies:", e);
+        setRelatedMovies([]);
+      }
+    },
+    [fetchJson]
+  );
+
+  console.log('====================================');
+  console.log("data apisoe related", relatedMovies);
+  console.log('====================================');
+
+  useEffect(() => {
+    const fetchMovieDetail = async () => {
+      try {
+        const data = await fetchJson(`/api/movies/${id}`);
+
+        setMovieDetail(data);
+
+        if (data.data.movieCategories?.length) {
+          fetchRelatedMovies(data.data.movieCategories[0].id);
+        }
+      } catch (e) {
+        setMovieDetail(null);
+      }
+    };
+    fetchMovieDetail();
+  }, [id, fetchRelatedMovies]);
 
   if (!movieDetail) return <div>Loading...</div>;
 
-  const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
-  const episodeLink = episodeLinks[episodeIndex] || "";
+  const episodeLink =
+    movieDetail.data?.episodes?.[Number(episodeIndex)]?.link || "";
+  console.log("====================================");
+  console.log("Movie episodeLink:", episodeLink);
+  console.log("====================================");
 
-  const category = movieDetail.movieCategories?.[0]?.name?.toLowerCase() || "";
+  const episodeLinks =
+    Array.isArray(movieDetail.data.episodes) &&
+    movieDetail.data.episodes?.map((episode) => ({
+      link: episode.link,
+      episodeNumber: episode.episodeNumber,
+    }));
+
+  const category =
+    movieDetail.data?.movieCategories?.[0]?.name?.toLowerCase() || "";
+
+  const handleMovieClick = (movieId) => {
+    navigate(`/movie/${movieId}`);
+  };
+
+  const currentEpisode = Number(episodeIndex);
 
   return (
     <div className="px-10 bg-gray-800 w-full flex-1 pt-16">
@@ -48,24 +114,102 @@ const EpisodeDetail = () => {
           {category}
         </Link>
         <span className="text-white mx-2">{">"}</span>
-        <span className="text-blue-500">{movieDetail.title}</span>
+        <span className="text-blue-500">{movieDetail.data?.title}</span>
       </nav>
       <div className="flex flex-col items-center justify-center">
         <h1 className="text-2xl mb-2 text-white">
-          {movieDetail.title} - Tập {Number(episodeIndex) + 1}
+          {movieDetail.data?.title} - Tập {Number(episodeIndex) + 1}
         </h1>
         {episodeLink ? (
           <iframe
             width="615"
             height="315"
             src={episodeLink}
-            title={`${movieDetail.title} - Tập ${Number(episodeIndex) + 1}`}
+            title={`${movieDetail.data?.title} - Tập ${
+              Number(episodeIndex) + 1
+            }`}
             frameBorder="1"
             allowFullScreen
           />
         ) : (
           <div className="text-white">Không tìm thấy tập phim này.</div>
         )}
+      </div>
+
+      <div className="flex justify-between my-8 ">
+        <div className="relative w-[30%] h-[300px] flex items-start flex-col justify-start float-left mb-6">
+          <img
+            src={movieDetail.data.thumb_url}
+            alt={movieDetail.data.title}
+            className="h-full object-contain"
+          />
+          <div className="w-full font-bold text-white rounded-b-lg uppercase mt-4">
+            <span>{movieDetail.data.title}</span>
+            <span> ({movieDetail.data.release_year}) </span>
+          </div>
+        </div>
+
+        <div className="w-[70%] pl-12">
+          <h2 className="font-bold my-4 text-white sm:text-xl md:text-2xl">
+            Nội dung chi tiết
+          </h2>
+          <h1 className="text-2xl mb-2 text-white">{movieDetail.data.title}</h1>
+          <div>
+            <div className="my-3">
+              <span className="text-white">Đạo diễn: </span>
+              <span className="text-white">{movieDetail.data.director}</span>
+            </div>
+            <div className="my-3">
+              <span className="text-white">Diễn viên: </span>
+              <span className="text-white">{movieDetail.data.actors}</span>
+            </div>
+            <div className="my-3">
+              <span className="text-white">Thời lượng: </span>
+              <span className="text-white">
+                {movieDetail.data.duration} phút
+              </span>
+            </div>
+            <div className="my-3">
+              <span className="text-white">Mô tả: </span>
+              <span
+                className="text-white"
+                dangerouslySetInnerHTML={{
+                  __html: movieDetail.data.description,
+                }}
+              />
+            </div>
+
+            <div className="flex flex-row flex-wrap mt-8">
+              {episodeLinks.length > 0
+                ? episodeLinks.map((link, idx) => (
+                    <div key={idx} className="my-2">
+                      <Link
+                        to={`/movie/${id}/episode/${idx}`}
+                        className={`text-white py-3 px-6 mr-3 mb-3 rounded-lg ${
+                          currentEpisode === idx
+                            ? "bg-blue-500 font-bold"
+                            : "bg-gray-300/50"
+                        }`}
+                        state={{ movieDetail: movieDetail.data }}
+                      >
+                        Tập {link.episodeNumber}
+                      </Link>
+                    </div>
+                  ))
+                : null}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="my-4 mx-12 mb-8">
+        <HorizontalMovies
+          title="Phim liên quan"
+          movies={relatedMovies}
+          to="/allmovies"
+          onMovieClick={handleMovieClick}
+          categoryId={null}
+        />
       </div>
     </div>
   );

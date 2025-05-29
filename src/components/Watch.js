@@ -54,7 +54,7 @@ function Watch() {
     });
   };
 
-  const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
+  // const episodeLinks = movieDetail.episodeLinks?.split(",") || [];
 
   
 
@@ -131,7 +131,8 @@ function Watch() {
             {relatedMovies.length > 0 ? (
               <div className="mt-4">
                 {relatedMovies.map((movie) => (
-                  <div
+                  <Link
+                    to={`/watch/${movie.id}`}
                     key={movie.id}
                     className="flex mb-4 items-center rounded-lg"
                   >
@@ -146,7 +147,7 @@ function Watch() {
                     <div>
                       <h3 className="text-sm font-normal">{movie.title}</h3>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (

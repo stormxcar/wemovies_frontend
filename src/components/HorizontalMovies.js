@@ -1,4 +1,4 @@
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -7,16 +7,29 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import CardMovie from "./CardMovie";
 
-function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
+function HorizontalMovies({ title, movies = [], to, categoryId, onMovieClick }) {
   const navigate = useNavigate();
   const validMovies = Array.isArray(movies) ? movies : [];
 
-  const handleClickToDetail = (movieID) => navigate(`/movie/${movieID}`);
+  // Xử lý click vào phim
+  const handleClickToDetail = (movieId) => {
+    if (onMovieClick) {
+      onMovieClick(movieId);
+    } else {
+      navigate(`/movie/${movieId}`);
+    }
+  };
 
-  // handle button click see all movies of a category or country => link to MovieList component
+  // Xử lý click "Xem tất cả"
   const handleSeeAllMovies = () => {
-    if (MovieListComponent) {
-      navigate(to, { state: { category: title, movies } });
+    if (to) {
+      navigate(to, {
+        state: {
+          category: title, // Truyền tiêu đề (ví dụ: "Phim Hot")
+          movies: validMovies, // Truyền danh sách phim
+          categoryId: categoryId || null, // Truyền categoryId nếu có, nếu không thì null
+        },
+      });
     }
   };
 
@@ -35,13 +48,15 @@ function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
     <div className="my-6 py-5 mx-5">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
-        <button
-          onClick={handleSeeAllMovies}
-          className="text-white hover:bg-blue-700 rounded px-4 py-2 flex items-center"
-        >
-          Xem tất cả
-          <FaChevronRight className="inline ml-2" />
-        </button>
+        {to && ( // Chỉ hiển thị nút "Xem tất cả" nếu có prop to
+          <button
+            onClick={handleSeeAllMovies}
+            className="text-white hover:bg-blue-700 rounded px-4 py-2 flex items-center"
+          >
+            Xem tất cả
+            <FaChevronRight className="inline ml-2" />
+          </button>
+        )}
       </div>
 
       <div
@@ -64,11 +79,10 @@ function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
             spaceBetween={20}
             slidesPerView={4}
             navigation={{
-              nextEl: ".review-swiper-button-next",
-              prevEl: ".review-swiper-button-prev",
+              nextEl: ".review-swiper-button-prev",
+              prevEl: ".review-swiper-button-next",
             }}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
-            // pagination={{ clickable: true }}
             breakpoints={{
               1024: { slidesPerView: 4 },
               768: { slidesPerView: 3 },
@@ -77,26 +91,14 @@ function HorizontalMovies({ title, movies = [], to, MovieListComponent }) {
             }}
             className="p-4 overflow-visible"
           >
-            {validMovies.length > 0 ? (
-              validMovies.map(
-                ({ id, thumb_url, title, release_year }) => (
-                  <SwiperSlide
-                    key={id}
-                    onClick={() => handleClickToDetail(id)}
-                  >
-                    <CardMovie
-                      movie={{ id, thumb_url, title, release_year }}
-                    />
-                  </SwiperSlide>
-                )
-              )
-            ) : (
-              <SwiperSlide>
-                <div className="flex items-center justify-center h-80 text-white">
-                  No movies available
-                </div>
+            {validMovies.map(({ id, thumb_url, title, release_year }) => (
+              <SwiperSlide key={id} onClick={() => handleClickToDetail(id)}>
+                <CardMovie
+                  movie={{ id, thumb_url, title, release_year }}
+                  onMovieClick={onMovieClick}
+                />
               </SwiperSlide>
-            )}
+            ))}
           </Swiper>
         </div>
       </div>

@@ -15,7 +15,7 @@ const AddCategory = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/categories/add`,
+        `${process.env.REACT_APP_LOCAL_API_URL}/api/categories/add`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

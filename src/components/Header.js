@@ -151,10 +151,12 @@ function Header() {
                             const movies = await fetchJson(
                               `/api/movies/category/id/${item.id}`
                             );
-                          
-                            navigate(`/category/${item.name}`, {
+
+                            navigate(`/movies/${item.name}`, {
                               state: {
-                                movies: Array.isArray(movies.data) ? movies.data : [],
+                                movies: Array.isArray(movies.data)
+                                  ? movies.data
+                                  : [],
                                 title: item.name,
                               },
                             });

@@ -26,7 +26,7 @@ const TypeList = ({ types: initialTypes, onEdit }) => {
     try {
       console.log("Saving type with data:", currentType);
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/types/update/${currentType.id}`,
+        `${process.env.REACT_APP_LOCAL_API_URL}/api/types/update/${currentType.id}`,
         currentType,
         {
           headers: { "Content-Type": "application/json" },

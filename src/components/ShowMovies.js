@@ -3,10 +3,11 @@ import { ClipLoader } from "react-spinners";
 import HorizontalMovies from "./HorizontalMovies";
 import GridMovies from "./GridMovies";
 import { fetchMovieByHot, fetchMovies, fetchCategories } from "../services/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MovieList from "./MovieList";
 
 const ShowMovies = () => {
+  const navigate = useNavigate();
   const [movieList, setMovieList] = useState([]);
   const [movieHot, setMovieHot] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -48,7 +49,8 @@ const ShowMovies = () => {
   }, []);
 
   const handleMovieClick = (movieId) => {
-    console.log(`Navigating to movie with ID: ${movieId}`);
+    // console.log(`Navigating to movie with ID: ${movieId}`);
+    navigate(`/movie/${movieId}`);
     // Add navigation logic here
   };
 
@@ -72,9 +74,8 @@ const ShowMovies = () => {
             title="Phim hot"
             movies={movieHot}
             to="/allmovies"
-            MovieListComponent={
-              <MovieList movies={movieHot} onMovieClick={handleMovieClick} />
-            }
+            onMovieClick={handleMovieClick}
+            categoryId={null}
           />
         )}
       </div>
@@ -85,7 +86,13 @@ const ShowMovies = () => {
             <ClipLoader color="#ffffff" size={50} />
           </div>
         ) : (
-          <HorizontalMovies title="Thịnh hành" movies={movieList} />
+          <HorizontalMovies
+            title="Phim thịnh hành | đề xuất"
+            movies={movieList}
+            to="/allmovies"
+            onMovieClick={handleMovieClick}
+            categoryId={null}
+          />
         )}
       </div>
 

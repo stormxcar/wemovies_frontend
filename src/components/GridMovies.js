@@ -54,13 +54,13 @@ function GridMovies({ title, movies, moviesPerPage }) {
     <div className="my-6 w-full">
       <div className="flex w-full flex-row items-center justify-between mb-4">
         <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
-        <Link
+        {/* <Link
           to=""
           className="text-white hover:bg-blue-700 rounded px-4 py-2 flex items-center"
         >
           Xem tất cả
           <FaChevronRight className="inline ml-2" />
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">

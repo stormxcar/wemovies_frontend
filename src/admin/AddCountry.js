@@ -15,7 +15,7 @@ const AddCountry = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/countries/add`,
+        `${process.env.REACT_APP_LOCAL_API_URL}/api/countries/add`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

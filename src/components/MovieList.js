@@ -1,22 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
+import { fetchJson } from "../admin/api/fetch.api";
 
-function MovieList({ movies = [], onMovieClick, title }) {
+function MovieList({ movies = [], onMovieClick }) {
+  const navigate = useNavigate();
   const location = useLocation();
-  const { category, movies: stateMovies } = location.state || {};
+  const { categoryName } = useParams();
+  const {
+    category,
+    movies: stateMovies,
+    title,
+    categoryId,
+  } = location.state || {};
   const [filteredMovies, setFilteredMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchMoviesByCategory = async (categoryId) => {
+    try {
+      setLoading(true);
+      const movies = await fetchJson(`/api/movies/category/id/${categoryId}`);
+      setFilteredMovies(Array.isArray(movies.data) ? movies.data : []);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching movies for category:", error);
+      setError("Failed to load movies");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (category) {
-      // const filtered = movies.filter((movie) => movie.category === category);
-      setFilteredMovies(stateMovies || movies);
+    if (stateMovies && Array.isArray(stateMovies)) {
+      // Nếu có stateMovies từ navigate (ví dụ: từ HorizontalMovies), sử dụng nó
+      setFilteredMovies(stateMovies);
+    } else if (categoryId) {
+      // Nếu có categoryId, gọi API để lấy danh sách phim
+      fetchMoviesByCategory(categoryId);
+    } else if (categoryName) {
+      // Nếu chỉ có categoryName (truy cập trực tiếp), thử ánh xạ sang categoryId
+      const inferredCategoryId = getCategoryIdFromName(categoryName);
+      if (inferredCategoryId) {
+        fetchMoviesByCategory(inferredCategoryId);
+      } else {
+        setError("Invalid category");
+      }
     } else {
+      // Sử dụng movies mặc định nếu không có dữ liệu
       setFilteredMovies(movies);
     }
-}, [category, movies, stateMovies]);
+  }, [categoryName, stateMovies, categoryId, movies]);
+
   const [currentPage, setCurrentPage] = useState(0);
   const moviesPerPage = 28; // 7 columns x 4 rows
 
@@ -29,8 +65,12 @@ function MovieList({ movies = [], onMovieClick, title }) {
     setCurrentPage(event.selected);
   };
 
+   const handleMovieClick = (movieId) => {
+    navigate(`/movie/${movieId}`);
+  };
+
   // Internal CardMovie component
-const CardMovie = ({ movie, onMovieClick }) => {
+  const CardMovie = ({ movie, onMovieClick }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -39,9 +79,8 @@ const CardMovie = ({ movie, onMovieClick }) => {
           className="relative w-full h-full overflow-visible"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => onMovieClick(movie.id)}
+          onClick={() => onMovieClick && onMovieClick(movie.id)} // Kiểm tra onMovieClick trước khi gọi
         >
-          {/* Original Card */}
           <div
             className="absolute w-full h-full transition-transform duration-300"
             style={{ transform: isHovered ? "scale(1)" : "scale(1)" }}
@@ -57,8 +96,6 @@ const CardMovie = ({ movie, onMovieClick }) => {
               <p className="text-sm">{movie.release_year}</p>
             </div>
           </div>
-
-          {/* Expanded Overlay Card */}
           {isHovered && (
             <div
               className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-[350px] h-[400px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
@@ -87,12 +124,12 @@ const CardMovie = ({ movie, onMovieClick }) => {
   return (
     <div className="w-full h-full bg-gray-900 text-white p-4 px-12 min-h-screen pt-32">
       {/* Title */}
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      <h2 className="text-xl font-bold mb-4">{title || category}</h2>
       <div className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4">
         <h3>Bộ lọc</h3>
         <button className="flex items-center gap-2 text-white">
           <FaFilter />
-          </button>
+        </button>
       </div>
 
       {/* Movie Grid */}
@@ -100,7 +137,13 @@ const CardMovie = ({ movie, onMovieClick }) => {
         {currentMovies.slice(0, 28).length > 0 ? (
           currentMovies
             .slice(0, 28)
-            .map((movie) => <CardMovie key={movie.id} movie={movie} onMovieClick={onMovieClick} />)
+            .map((movie) => (
+              <CardMovie
+                key={movie.id}
+                movie={movie}
+                onMovieClick={handleMovieClick}
+              />
+            ))
         ) : (
           <div className="col-span-full flex items-center justify-center h-80 text-white">
             No movies available

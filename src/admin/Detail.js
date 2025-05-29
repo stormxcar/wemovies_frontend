@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { fetchJson } from "../services/api";
 
 const MovieDetail = () => {
   const [movie, setMovie] = useState(null);
@@ -14,9 +15,7 @@ const MovieDetail = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/movies/detail/${id}`
-        );
+        const response = await fetchJson(`/api/movies/detail/${id}`);
         setMovie(response.data);
       } catch (err) {
         console.error("Error fetching movie detail:", err);

@@ -293,7 +293,8 @@ const MainApp = () => {
             path="/movie/:id/episode/:episodeIndex"
             element={<EpisodeDetail />}
           />
-          <Route path="/movies/:categoryName" element={<CategoryMovies />} />
+          <Route path="/movies/:categoryName" element={<MovieList />} />
+          
           <Route path="/search" element={<Search />} />
           <Route path="/allmovies" element={<MovieList />} />
           <Route path="/allmovies/:categoryName" element={<MovieList />} />
@@ -365,7 +366,7 @@ const MainApp = () => {
                 title="Phim"
                 items={movies}
                 // fields={movieDisplayFields}
-                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/movies/update`}
+                updateEndpoint={`/api/movies/update`}
                 // onUpdate={(updated) =>
                 //   setCategories((prev) =>
                 //     prev.map((cat) => (cat.id === updated.id ? updated : cat))
@@ -397,7 +398,7 @@ const MainApp = () => {
                 title="Danh mục"
                 items={categories}
                 fields={categoryFields} // Ensure this is defined
-                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/categories/update`}
+                updateEndpoint={`${process.env.REACT_APP_LOCAL_API_URL}/api/categories/update`}
                 onUpdate={(updated) => {
                   console.log("onUpdate called with:", updated); // Debug: Log the updated item
                   setCategories((prev) => {
@@ -433,7 +434,7 @@ const MainApp = () => {
                 title="Quốc gia"
                 items={countries}
                 fields={countryFields} // Ensure this is defined
-                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/countries/update`}
+                updateEndpoint={`${process.env.REACT_APP_LOCAL_API_URL}/api/countries/update`}
                 onUpdate={(updated) => {
                   console.log("onUpdate called with:", updated); // Debug: Log the updated item
                   setCategories((prev) => {
@@ -489,7 +490,7 @@ const MainApp = () => {
                 title="Người dùng"
                 items={users}
                 onUpdate={handleUpdateUser}
-                updateEndpoint={`${process.env.REACT_APP_API_URL}/api/users/update`}
+                updateEndpoint={`${process.env.REACT_APP_LOCAL_API_URL}/api/users/update`}
               />
             }
           />

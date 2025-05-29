@@ -10,7 +10,7 @@ const Header = () => {
     const fetchUser = async () => {
       try {
         const verifyResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/auth/verifyUser`,
+          `${process.env.REACT_APP_LOCAL_API_URL}/api/auth/verifyUser`,
           { withCredentials: true }
         );
         // console.log("Verify User Response:", verifyResponse.data);
@@ -33,7 +33,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/logout`,
+        `${process.env.REACT_APP_LOCAL_API_URL}/api/auth/logout`,
         {},
         { withCredentials: true }
       );

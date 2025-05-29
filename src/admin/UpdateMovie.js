@@ -1,19 +1,44 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useMemo, useReducer } from "react";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { fetchJson } from "./api/fetch.api";
+import { getTypes } from "./api/Type.api";
+import { getCategories } from "./api/Category.api";
+import { getCountries } from "./api/Country.api";
+
+// Reducer for formData state management
+const formReducer = (state, action) => {
+  switch (action.type) {
+    case "UPDATE_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "UPDATE_EPISODE_LINK":
+      const newEpisodeLinks = [...state.episodeLinks];
+      newEpisodeLinks[action.index] = action.value;
+      return { ...state, episodeLinks: newEpisodeLinks };
+    case "ADD_ACTOR":
+      return { ...state, actors: [...state.actors, ""] };
+    case "UPDATE_ACTOR":
+      const newActors = [...state.actors];
+      newActors[action.index] = action.value;
+      return { ...state, actors: newActors };
+    case "RESET":
+      return action.payload;
+    default:
+      return state;
+  }
+};
 
 const UpdateMovie = ({ title, items, updateEndpoint }) => {
   const [selectedId, setSelectedId] = useState("");
-  const [formData, setFormData] = useState({
+  const [formData, dispatchFormData] = useReducer(formReducer, {
     id: "",
     title: "",
     titleByLanguage: "",
     status: "",
-    totalEpisodes: null,
+    totalEpisodes: "",
     director: "",
     actors: [""],
     duration: "",
@@ -28,7 +53,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     thumb_url: "",
     trailer: "",
     link: "",
-    episodeLinks: null,
+    episodeLinks: [], // Initialize as empty array
   });
   const [movieTypes, setMovieTypes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -41,23 +66,22 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [typesResp, catsResp, countriesResp] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/api/types`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/categories`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/countries`),
+        setLoading(true);
+        const [typesData, catsData, countriesData] = await Promise.all([
+          getTypes(),
+          getCategories(),
+          getCountries(),
         ]);
-        setMovieTypes(
-          typesResp.data.map((t) => ({ value: t.id, label: t.name }))
-        );
-        setCategories(
-          catsResp.data.map((c) => ({ value: c.id, label: c.name }))
-        );
+        setMovieTypes(typesData.map((t) => ({ value: t.id, label: t.name })));
+        setCategories(catsData.map((c) => ({ value: c.id, label: c.name })));
         setCountries(
-          countriesResp.data.map((c) => ({ value: c.id, label: c.name }))
+          countriesData.map((c) => ({ value: c.id, label: c.name }))
         );
       } catch (err) {
         console.error("Error fetching options:", err);
-        toast.error("Không thể tải dữ liệu lựa chọn. Vui lòng thử lại.");
+        toast.error("Không thể tải dữ liệu. Vui lòng thử lại.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchOptions();
@@ -67,28 +91,30 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   useEffect(() => {
     const syncData = async () => {
       if (!selectedId || selectedId === "") {
-        console.log("selectedId is empty, resetting formData");
-        setFormData({
-          id: "",
-          title: "",
-          titleByLanguage: "",
-          status: "",
-          totalEpisodes: null,
-          director: "",
-          actors: [""],
-          duration: "",
-          quality: "",
-          vietSub: "",
-          description: "",
-          release_year: 2000,
-          movieTypeIds: [],
-          categoryIds: [],
-          countryId: null,
-          hot: "",
-          thumb_url: "",
-          trailer: "",
-          link: "",
-          episodeLinks: null,
+        dispatchFormData({
+          type: "RESET",
+          payload: {
+            id: "",
+            title: "",
+            titleByLanguage: "",
+            status: "",
+            totalEpisodes: "",
+            director: "",
+            actors: [""],
+            duration: "",
+            quality: "",
+            vietSub: "",
+            description: "",
+            release_year: 2000,
+            movieTypeIds: [],
+            categoryIds: [],
+            countryId: null,
+            hot: "",
+            thumb_url: "",
+            trailer: "",
+            link: "",
+            episodeLinks: [],
+          },
         });
         setEpisodeLinks([]);
         return;
@@ -96,40 +122,39 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       setLoading(true);
       const parsedId = parseInt(selectedId);
       if (isNaN(parsedId)) {
-        console.warn("Invalid ID, resetting formData");
         setSelectedId("");
-        setFormData({
-          id: "",
-          title: "",
-          titleByLanguage: "",
-          status: "",
-          totalEpisodes: null,
-          director: "",
-          actors: [""],
-          duration: "",
-          quality: "",
-          vietSub: "",
-          description: "",
-          release_year: 2000,
-          movieTypeIds: [],
-          categoryIds: [],
-          countryId: null,
-          hot: "",
-          thumb_url: "",
-          trailer: "",
-          link: "",
-          episodeLinks: null,
+        dispatchFormData({
+          type: "RESET",
+          payload: {
+            id: "",
+            title: "",
+            titleByLanguage: "",
+            status: "",
+            totalEpisodes: "",
+            director: "",
+            actors: [""],
+            duration: "",
+            quality: "",
+            vietSub: "",
+            description: "",
+            release_year: 2000,
+            movieTypeIds: [],
+            categoryIds: [],
+            countryId: null,
+            hot: "",
+            thumb_url: "",
+            trailer: "",
+            link: "",
+            episodeLinks: [],
+          },
         });
         setEpisodeLinks([]);
         setLoading(false);
         return;
       }
       const item = items.find((item) => item.id === parsedId);
-      // console.log("====================================");
-      // console.log("Selected ID:", selectedId);
-      // console.log("Item data:", item);
-      // console.log("====================================");
       if (item) {
+        console.log("Fetched item.link:", item.link);
         const movieTypeIds = Array.isArray(item.movieTypes)
           ? item.movieTypes.map((t) => t.id || t.movie_type_id).filter(Boolean)
           : [];
@@ -138,12 +163,12 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
               .map((c) => c.id || c.category_id)
               .filter(Boolean)
           : [];
-        setFormData({
+        const newFormData = {
           id: item.id || "",
           title: item.title || "",
           titleByLanguage: item.titleByLanguage || "",
           status: item.status || "",
-          totalEpisodes: item.totalEpisodes || null,
+          totalEpisodes: item.totalEpisodes || "",
           director: item.director || "",
           actors: item.actors ? Array.from(item.actors) : [""],
           duration: item.duration || "",
@@ -158,20 +183,24 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           thumb_url: item.thumb_url || "",
           trailer: item.trailer || "",
           link: item.link || "",
-          episodeLinks: null,
-        });
+          episodeLinks: [], // Will be set after fetching episodes
+        };
+        dispatchFormData({ type: "RESET", payload: newFormData });
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/movies/${parsedId}/episodes`
-          );
+          const response = await fetchJson(`/api/movies/${parsedId}/episodes`);
           const links = response.data || [];
           setEpisodeLinks(links);
           if (links.length > 0) {
-            setFormData((prev) => ({
-              ...prev,
-              totalEpisodes: links.length.toString(),
-              episodeLinks: links,
-            }));
+            dispatchFormData({
+              type: "UPDATE_FIELD",
+              field: "totalEpisodes",
+              value: links.length.toString(),
+            });
+            dispatchFormData({
+              type: "UPDATE_FIELD",
+              field: "episodeLinks",
+              value: links,
+            });
           }
         } catch (err) {
           console.error("Error fetching episode links:", err);
@@ -179,27 +208,30 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           toast.error("Không thể tải danh sách tập phim.");
         }
       } else {
-        setFormData({
-          id: "",
-          title: "",
-          titleByLanguage: "",
-          status: "",
-          totalEpisodes: null,
-          director: "",
-          actors: [""],
-          duration: "",
-          quality: "",
-          vietSub: "",
-          description: "",
-          release_year: 2000,
-          movieTypeIds: [],
-          categoryIds: [],
-          countryId: null,
-          hot: "",
-          thumb_url: "",
-          trailer: "",
-          link: "",
-          episodeLinks: null,
+        dispatchFormData({
+          type: "RESET",
+          payload: {
+            id: "",
+            title: "",
+            titleByLanguage: "",
+            status: "",
+            totalEpisodes: "",
+            director: "",
+            actors: [""],
+            duration: "",
+            quality: "",
+            vietSub: "",
+            description: "",
+            release_year: 2000,
+            movieTypeIds: [],
+            categoryIds: [],
+            countryId: null,
+            hot: "",
+            thumb_url: "",
+            trailer: "",
+            link: "",
+            episodeLinks: [],
+          },
         });
         setEpisodeLinks([]);
       }
@@ -208,94 +240,101 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     syncData();
   }, [selectedId, items]);
 
-  // Handle totalEpisodes and status changes
-  useEffect(() => {
-    const totalEpisodes = parseInt(formData.totalEpisodes);
-    const status = formData.status || ""; // Default to empty string if undefined
-
-    console.log("====================================");
-    console.log("status:", status);
-    console.log("totalEpisodes:", totalEpisodes);
-    console.log("====================================");
-
-    const isFullStatus = status.toLowerCase() === "full";
-
-    if (isFullStatus) {
-      setFormData((prev) => ({
-        ...prev,
-        totalEpisodes: "",
-        episodeLinks: null,
-        link: prev.link || "",
-      }));
-      setEpisodeLinks([]);
-    } else if (!isNaN(totalEpisodes) && totalEpisodes > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        episodeLinks: Array(totalEpisodes).fill(""),
-        link: "",
-      }));
-      setEpisodeLinks(Array(totalEpisodes).fill(""));
-    } else if (formData.episodeLinks && formData.episodeLinks.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        totalEpisodes: formData.episodeLinks.length.toString(),
-        link: "",
-      }));
-      setEpisodeLinks([...formData.episodeLinks]);
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        episodeLinks: null,
-        link: prev.link || "",
-      }));
-      setEpisodeLinks([]);
-    }
-  }, [formData.totalEpisodes, formData.status, formData.episodeLinks]);
+  // Memoize isFullStatus to avoid recalculating on every render
+  const isFullStatus = useMemo(
+    () => (formData.status || "").toLowerCase() === "full",
+    [formData.status]
+  );
 
   // Handle input changes
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "totalEpisodes") {
+      const totalEpisodes = parseInt(value);
+      if (!isNaN(totalEpisodes) && totalEpisodes > 0 && !isFullStatus) {
+        dispatchFormData({
+          type: "UPDATE_FIELD",
+          field: "episodeLinks",
+          value: Array(totalEpisodes).fill(""),
+        });
+        setEpisodeLinks(Array(totalEpisodes).fill(""));
+        dispatchFormData({
+          type: "UPDATE_FIELD",
+          field: "link",
+          value: "",
+        });
+      } else {
+        dispatchFormData({
+          type: "UPDATE_FIELD",
+          field: "episodeLinks",
+          value: [],
+        });
+        setEpisodeLinks([]);
+      }
+    } else if (name === "status") {
+      if (value.toLowerCase() === "full") {
+        dispatchFormData({
+          type: "UPDATE_FIELD",
+          field: "totalEpisodes",
+          value: "",
+        });
+        dispatchFormData({
+          type: "UPDATE_FIELD",
+          field: "episodeLinks",
+          value: [],
+        });
+        setEpisodeLinks([]);
+      }
+    }
+    dispatchFormData({ type: "UPDATE_FIELD", field: name, value });
   };
 
-  // Handle actor changes
   const handleActorChange = (index, e) => {
-    const newActors = [...formData.actors];
-    newActors[index] = e.target.value;
-    setFormData((prev) => ({ ...prev, actors: newActors }));
+    dispatchFormData({
+      type: "UPDATE_ACTOR",
+      index,
+      value: e.target.value,
+    });
   };
 
-  // Add new actor input
   const addActor = () => {
-    setFormData((prev) => ({ ...prev, actors: [...prev.actors, ""] }));
+    dispatchFormData({ type: "ADD_ACTOR" });
   };
 
-  // Handle episode link changes
   const handleEpisodeLinkChange = (index, e) => {
-    const newEpisodeLinks = [...(formData.episodeLinks || [])];
+    dispatchFormData({
+      type: "UPDATE_EPISODE_LINK",
+      index,
+      value: e.target.value,
+    });
+    const newEpisodeLinks = [...formData.episodeLinks];
     newEpisodeLinks[index] = e.target.value;
-    setFormData((prev) => ({ ...prev, episodeLinks: newEpisodeLinks }));
+    setEpisodeLinks(newEpisodeLinks);
   };
 
   const handleEditorChange = (event, editor) => {
     const data = editor.getData();
-    setFormData((prev) => ({ ...prev, description: data }));
+    dispatchFormData({
+      type: "UPDATE_FIELD",
+      field: "description",
+      value: data,
+    });
   };
 
-  // Handle Select changes
   const handleSelectChange = (name, selectedOptions) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: selectedOptions
+    dispatchFormData({
+      type: "UPDATE_FIELD",
+      field: name,
+      value: selectedOptions
         ? Array.isArray(selectedOptions)
           ? selectedOptions.map((o) => o.value)
           : selectedOptions.value
         : name === "countryId"
         ? null
         : [],
-    }));
+    });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.id) {
@@ -304,34 +343,77 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     }
     try {
       const payload = {
-        ...formData,
-        actors: formData.actors.filter((actor) => actor.trim()),
-        episodeLinks: formData.episodeLinks
-          ? formData.episodeLinks.filter((link) => link.trim())
-          : null,
+        id: formData.id,
+        title: formData.title,
+        titleByLanguage: formData.titleByLanguage,
+        status: formData.status,
+        totalEpisodes: formData.totalEpisodes || null,
+        director: formData.director,
+        duration: String(formData.duration), // Convert to string
+        quality: formData.quality,
+        vietSub: formData.vietSub === "true",
+        description: formData.description,
+        release_year: parseInt(formData.release_year) || 2000,
+        hot: formData.hot === "true",
+        thumb_url: formData.thumb_url,
+        trailer: formData.trailer,
+        link: isFullStatus
+          ? Array.isArray(formData.link)
+            ? formData.link[0]
+            : formData.link
+          : null, // Ensure link is a string
       };
+
       const params = new URLSearchParams();
-      payload.actors.forEach((actor) => params.append("actors", actor));
-      if (payload.episodeLinks) {
-        payload.episodeLinks.forEach((link) =>
+      const filteredActors = formData.actors.filter((actor) => actor.trim());
+      filteredActors.forEach((actor) => params.append("actors", actor));
+
+      if (
+        !isFullStatus &&
+        formData.episodeLinks &&
+        formData.episodeLinks.length > 0
+      ) {
+        const filteredEpisodeLinks = formData.episodeLinks.filter((link) =>
+          link.trim()
+        );
+        filteredEpisodeLinks.forEach((link) =>
           params.append("episodeLinks", link)
         );
+        // payload.episodeLinks = filteredEpisodeLinks;
+        payload.totalEpisodes = filteredEpisodeLinks.length;
+      } else {
+        // payload.episodeLinks = null;
+        payload.totalEpisodes = null;
       }
-      params.append("countryId", payload.countryId || "");
-      payload.movieTypeIds.forEach((id) => params.append("movieTypeIds", id));
-      payload.categoryIds.forEach((id) => params.append("categoryIds", id));
 
-      const response = await axios.put(
-        `${updateEndpoint}/${formData.id}`,
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-          params: params,
-        }
-      );
+      params.append("countryId", formData.countryId || "");
+      formData.movieTypeIds.forEach((id) => params.append("movieTypeIds", id));
+      formData.categoryIds.forEach((id) => params.append("categoryIds", id));
+
+      const queryString = params.toString();
+      const url = `${updateEndpoint}/${formData.id}${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      console.log("Sending payload:", JSON.stringify(payload));
+      console.log("Update URL:", url);
+
+      const options = {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      };
+
+      const response = await fetchJson(url, options);
+
+      console.log("====================================");
+      console.log("response", response);
+      console.log("====================================");
       toast.success(`${title} đã được cập nhật`);
-      console.log("Updated Item:", response.data);
       navigate(`/admin/movies`);
     } catch (error) {
       console.error(
@@ -342,6 +424,13 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     }
   };
 
+  // Check if form has changes
+  const hasChanges = useMemo(() => {
+    return Object.keys(formData).some(
+      (key) => formData[key] !== "" && formData[key] != null
+    );
+  }, [formData]);
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Chỉnh sửa {title}</h1>
@@ -351,15 +440,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         <>
           <select
             value={selectedId || ""}
-            onChange={(e) => {
-              console.log(
-                "Dropdown selected value:",
-                e.target.value,
-                "Type:",
-                typeof e.target.value
-              );
-              setSelectedId(e.target.value); // Update selectedId directly
-            }}
+            onChange={(e) => setSelectedId(e.target.value)}
             className="w-full p-2 mb-4 border rounded"
           >
             <option value="">Chọn {title}</option>
@@ -370,7 +451,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
             ))}
           </select>
           {selectedId && (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} method="PUT" className="space-y-4">
               <input type="hidden" name="id" value={formData.id} />
               <div>
                 <label htmlFor="title" className="block text-sm font-medium">
@@ -411,23 +492,56 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="totalEpisodes"
-                  className="block text-sm font-medium"
-                >
-                  Số tập:
-                </label>
-                <input
-                  type="number"
-                  name="totalEpisodes"
-                  value={formData.totalEpisodes || ""}
-                  onChange={handleChange}
-                  min="1"
-                  disabled={formData.status.toLowerCase() === "full"}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
+              {!isFullStatus && (
+                <div>
+                  <label
+                    htmlFor="totalEpisodes"
+                    className="block text-sm font-medium"
+                  >
+                    Số tập:
+                  </label>
+                  <input
+                    type="number"
+                    name="totalEpisodes"
+                    value={formData.totalEpisodes || ""}
+                    onChange={handleChange}
+                    min="1"
+                    className="w-full p-2 border rounded"
+                  />
+                  {formData.episodeLinks.length > 0 && (
+                    <div className="space-y-2">
+                      {formData.episodeLinks.map((link, index) => (
+                        <div key={index} className="flex space-x-4">
+                          <label className="block text-sm font-medium">
+                            Tập {index + 1}:
+                          </label>
+                          <input
+                            type="text"
+                            value={link || ""}
+                            onChange={(e) => handleEpisodeLinkChange(index, e)}
+                            placeholder={`Link cho tập ${index + 1}`}
+                            className="flex-1 p-2 border rounded"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {isFullStatus && (
+                <div>
+                  <label htmlFor="link" className="block text-sm font-medium">
+                    Đường dẫn (phát chính):
+                  </label>
+                  <input
+                    type="text"
+                    name="link"
+                    value={formData.link}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              )}
               <div>
                 <label htmlFor="director" className="block text-sm font-medium">
                   Đạo diễn:
@@ -512,14 +626,6 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 >
                   Mô tả:
                 </label>
-                {/* <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  maxLength="65535"
-                /> */}
-
                 <CKEditor
                   name="description"
                   editor={ClassicEditor}
@@ -648,54 +754,11 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div>
-                <label htmlFor="link" className="block text-sm font-medium">
-                  Đường dẫn (phát chính):
-                </label>
-                <input
-                  type="text"
-                  name="link"
-                  value={formData.link}
-                  onChange={handleChange}
-                  disabled={
-                    formData.episodeLinks && formData.episodeLinks.length > 0
-                  }
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              {formData.episodeLinks && formData.episodeLinks.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium">
-                    Đường dẫn các tập:
-                  </label>
-                  {formData.episodeLinks.map((link, index) => (
-                    <div key={index} className="form-group">
-                      <label
-                        htmlFor={`episodeLink${index + 1}`}
-                        className="block text-sm font-medium"
-                      >
-                        Tập {index + 1}:
-                      </label>
-                      <input
-                        type="text"
-                        id={`episodeLink${index + 1}`}
-                        value={link}
-                        onChange={(e) => handleEpisodeLinkChange(index, e)}
-                        required
-                        className="w-full p-2 border rounded"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
               <div className="flex space-x-2 mt-4">
                 <button
                   type="button"
                   className="px-4 py-2 bg-red-700 rounded text-white"
                   onClick={() => {
-                    const hasChanges = Object.keys(formData).some(
-                      (key) => formData[key] !== "" && formData[key] !== null
-                    );
                     if (hasChanges) {
                       if (
                         window.confirm("Bạn có muốn lưu các thay đổi không?")
@@ -714,24 +777,53 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 <button
                   type="reset"
                   className="px-4 py-2 bg-green-400 text-white rounded hover:bg-green-600"
+                  onClick={() => {
+                    dispatchFormData({
+                      type: "RESET",
+                      payload: {
+                        id: formData.id,
+                        title: "",
+                        titleByLanguage: "",
+                        status: "",
+                        totalEpisodes: "",
+                        director: "",
+                        actors: [""],
+                        duration: "",
+                        quality: "",
+                        vietSub: "",
+                        description: "",
+                        release_year: 2000,
+                        movieTypeIds: [],
+                        categoryIds: [],
+                        countryId: null,
+                        hot: "",
+                        thumb_url: "",
+                        trailer: "",
+                        link: "",
+                        episodeLinks: [],
+                      },
+                    });
+                    setEpisodeLinks([]);
+                  }}
                 >
                   Làm mới
                 </button>
                 <button
                   type="submit"
-                  onClick={() => {
-                    const hasChanges = Object.keys(formData).some(
-                      (key) => formData[key] !== "" && formData[key] !== null
-                    );
+                  onClick={(e) => {
                     if (!hasChanges) {
                       toast.error("Không có thay đổi nào để cập nhật.");
+                      e.preventDefault();
                       return;
                     }
-
-                    if (hasChanges) {
+                    if (
                       window.confirm(
                         `Bạn có chắc chắn muốn cập nhật ${title} này không?`
-                      ) && handleSubmit(new Event("submit"));
+                      )
+                    ) {
+                      handleSubmit(e);
+                    } else {
+                      e.preventDefault();
                     }
                   }}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

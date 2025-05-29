@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
 import MovieList from "./MovieList";
@@ -7,6 +7,7 @@ import { ClipLoader } from "react-spinners";
 
 const DetailMovie = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [movieDetail, setMovieDetail] = useState(null);
   const [relatedMovies, setRelatedMovies] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +57,13 @@ const DetailMovie = () => {
       </div>
     );
 
-  const episodeLinks = movieDetail.data.episodeLinks?.split(",") || [];
+  // const episodeLinks = movieDetail.data.episodeLinks?.split(",") || [];
+  const episodeLinks =
+    Array.isArray(movieDetail.data.episodes) &&
+    movieDetail.data.episodes?.map((episode) => ({
+      link: episode.link,
+      episodeNumber: episode.episodeNumber,
+    }));
 
   const convertToEmbedUrl = (url) => {
     const match = url.match(
@@ -68,12 +75,17 @@ const DetailMovie = () => {
   const category = movieDetail.data.movieCategories?.[0];
 
   const handleMovieClick = (movieId) => {
-    console.log(`Navigating to movie with ID: ${movieId}`);
+    // console.log(`Navigating to movie with ID: ${movieId}`);
+    navigate(`/movie/${movieId}`);
     // Add navigation logic here
   };
 
+  console.log('====================================');
+  console.log("relatedMovies:", relatedMovies);
+  console.log('====================================');
+
   return (
-    <div className="bg-gray-800 w-full">
+    <div className="bg-gray-800 w-full flex-1">
       <div className="relative w-full h-[80vh]">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
         <img
@@ -197,73 +209,34 @@ const DetailMovie = () => {
               </div>
 
               <div className="flex flex-row flex-wrap mt-8">
-                {episodeLinks.length > 0 ? (
-                  episodeLinks.map((link, idx) => (
-                    <div key={idx} className="my-2">
-                      <Link
-                        to={`/movie/${id}/episode/${idx}`}
-                        className="text-black bg-gray-300 py-3 px-6 mr-3 mb-3 rounded-lg"
-                      >
-                        Tập {idx + 1}
-                      </Link>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-white">Không có tập phim nào.</p>
-                )}
+                {episodeLinks.length > 0
+                  ? episodeLinks.map((link, idx) => (
+                      <div key={idx} className="my-2">
+                        <Link
+                          to={`/movie/${id}/episode/${idx}`}
+                          className="text-white bg-gray-300/50 py-3 px-6 mr-3 mb-3 rounded-lg"
+                          state={{ movieDetail: movieDetail.data }}
+                        >
+                          Tập {link.episodeNumber}
+                        </Link>
+                      </div>
+                    ))
+                  : null}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="my-4 mt-12">
-        {/* <h2 className="font-bold my-4 text-white text-center">Trailer</h2>
-        <div className="flex justify-center">
-          <iframe
-            className="w-full w-[350px] h-[315px]"
-            src={convertToEmbedUrl(movieDetail.trailer)}
-            title={movieDetail.title}
-            frameBorder="1"
-            allowFullScreen
-          ></iframe>
-        </div> */}
-
-        {/* <h2 className="text-white text-center font-bold my-3">Xem phim</h2>
-        <div className="flex flex-row flex-wrap">
-          {episodeLinks.length > 0 ? (
-            episodeLinks.map((link, idx) => (
-              <div key={idx} className="my-2">
-                <Link
-                  to={`/movie/${id}/episode/${idx}`}
-                  className="text-white bg-blue-400 p-3 mr-3 mb-3 rounded-lg"
-                >
-                  Tập {idx + 1}
-                </Link>
-              </div>
-            ))
-          ) : (
-            <div className="mx-2 justify-center items-center flex w-full">
-              <iframe
-                className="lg:w-[1000px] lg:h-[500px] md:w-[500px] md:h-[350px] sm:w-[500px] sm:h-[315px]"
-                src={movieDetail.link}
-                title={movieDetail.title}
-                frameBorder="1"
-                allowFullScreen
-              ></iframe>
-            </div>
-          )}
-        </div> */}
-      </div>
+      <div className="my-4 mt-12"></div>
 
       <div className="my-4 mx-12 mb-8">
         <HorizontalMovies
           title="Phim liên quan"
           movies={relatedMovies}
           to="/allmovies"
-          MovieListComponent={
-            <MovieList movies={relatedMovies} onMovieClick={handleMovieClick} />
-          }
+          onMovieClick={handleMovieClick}
+          categoryId={null}
         />
       </div>
     </div>

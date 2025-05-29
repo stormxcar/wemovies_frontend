@@ -4,8 +4,15 @@ import Select from "react-select";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { getTypes } from "./api/Type.api";
+import { getCategories } from "./api/Category.api";
+import { getCountries } from "./api/Country.api";
+import { fetchJson } from "./api/fetch.api";
 
 const AddMovie = () => {
+  const navigate = useNavigate();
+  // Initialize form data state
   const [formData, setFormData] = useState({
     title: "",
     titleByLanguage: "",
@@ -37,23 +44,22 @@ const AddMovie = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [typesResp, catsResp, countriesResp] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/api/types`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/categories`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/countries`),
+        setLoading(true);
+        const [typesData, catsData, countriesData] = await Promise.all([
+          getTypes(),
+          getCategories(),
+          getCountries(),
         ]);
-        setMovieTypes(
-          typesResp.data.map((t) => ({ value: t.id, label: t.name }))
-        );
-        setCategories(
-          catsResp.data.map((c) => ({ value: c.id, label: c.name }))
-        );
+        setMovieTypes(typesData.map((t) => ({ value: t.id, label: t.name })));
+        setCategories(catsData.map((c) => ({ value: c.id, label: c.name })));
         setCountries(
-          countriesResp.data.map((c) => ({ value: c.id, label: c.name }))
+          countriesData.map((c) => ({ value: c.id, label: c.name }))
         );
       } catch (err) {
         console.error("Error fetching options:", err);
         setError("Không thể tải dữ liệu. Vui lòng thử lại.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchOptions();
@@ -134,13 +140,13 @@ const AddMovie = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
-      // Prepare payload for the Movie entity (only fields expected in the body)
       const payload = {
         title: formData.title,
         titleByLanguage: formData.titleByLanguage,
         status: formData.status,
-        totalEpisodes: formData.totalEpisodes || null, // Convert empty string to null
+        totalEpisodes: formData.totalEpisodes || null,
         director: formData.director,
         duration: formData.duration,
         quality: formData.quality,
@@ -150,38 +156,42 @@ const AddMovie = () => {
         hot: formData.hot,
         thumb_url: formData.thumb_url,
         trailer: formData.trailer,
-        link: formData.link, // Only set if episodeLinks is null
+        link: formData.link,
       };
 
-      // Prepare params for RequestParam
       const params = new URLSearchParams();
-      // Append actors
       formData.actors
         .filter((actor) => actor.trim())
         .forEach((actor) => params.append("actors", actor));
-      // Append episodeLinks if they exist
       if (formData.episodeLinks && formData.episodeLinks.length > 0) {
         formData.episodeLinks
           .filter((link) => link.trim())
           .forEach((link) => params.append("episodeLinks", link));
       }
-      // Append other required parameters
       params.append("countryId", formData.countryId || "");
       formData.movieTypeIds.forEach((id) => params.append("movieTypeIds", id));
       formData.categoryIds.forEach((id) => params.append("categoryIds", id));
 
-      console.log("Payload:", payload); // Debug log
-      console.log("Params:", params.toString()); // Debug log
+      const queryString = params.toString();
+      const url = `/api/movies/add${queryString ? `?${queryString}` : ""}`; // Ensure correct path
 
-      const response = await axios.post(
-        "${process.env.REACT_APP_API_URL}/api/movies/add",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-          params: params,
-        }
-      );
+      console.log("Request URL:", url); // Debug the exact URL
+
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      };
+
+      await fetchJson(url, options);
+      // console.log("Response:", response);
       toast.success("Phim đã được thêm thành công!");
+      setLoading(false);
+      setError(null);
+      // Reset form and navigate
       setFormData({
         title: "",
         titleByLanguage: "",
@@ -194,20 +204,19 @@ const AddMovie = () => {
         vietSub: "",
         description: "",
         release_year: 2000,
-        movieTypeIds: [],
-        categoryIds: [],
-        countryId: null,
+        movieTypeIds: [], // Initialized as empty array
+        categoryIds: [], // Initialized as empty array
+        countryId: null, // Initialized as null for single select
         hot: "",
         thumb_url: "",
         trailer: "",
         link: "",
         episodeLinks: null,
       });
+      navigate("/admin/movies");
     } catch (err) {
       console.error("Error adding movie:", err);
-      toast.error("Lỗi khi thêm phim. Vui lòng thử lại.");
-      setError(err.response?.data?.message || "Lỗi không xác định.");
-    } finally {
+      setError(err.message || "Lỗi khi thêm phim. Vui lòng thử lại.");
       setLoading(false);
     }
   };
@@ -216,7 +225,7 @@ const AddMovie = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Thêm phim mới</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} method="POST" className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm font-medium">
             Tiêu đề:
@@ -498,20 +507,27 @@ const AddMovie = () => {
               Đường dẫn các tập:
             </label>
             {formData.episodeLinks.map((link, index) => (
-              <div key={index} className="form-group">
+              <div key={index} className="form-group flex space-x-4">
                 <label
-                  htmlFor={`episodeLink${index + 1}`}
+                  htmlFor={`episodeNumber${index + 1}`}
                   className="block text-sm font-medium"
                 >
                   Tập {index + 1}:
                 </label>
                 <input
                   type="text"
+                  id={`episodeNumber${index + 1}`}
+                  value={index + 1} // Auto-set episode number
+                  readOnly
+                  className="w-16 p-2 border rounded"
+                />
+                <input
+                  type="text"
                   id={`episodeLink${index + 1}`}
                   value={link}
                   onChange={(e) => handleEpisodeLinkChange(index, e)}
                   required
-                  className="w-full p-2 border rounded"
+                  className="flex-1 p-2 border rounded"
                 />
               </div>
             ))}
