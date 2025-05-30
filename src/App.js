@@ -41,7 +41,7 @@ import AddCategory from "./admin/pages/categories/AddCategory";
 import AddCountry from "./admin/pages/countries/AddCountry";
 import AddType from "./admin/pages/types/AddType";
 import AddMovie from "./admin/pages/movies/AddMovie";
-import UpdateMovie from "./admin/pages/movies/UpdateMovie"
+import UpdateMovie from "./admin/pages/movies/UpdateMovie";
 
 const UserLayout = () => (
   <div className="flex flex-col items-center justify-center w-full min-h-screen">
@@ -125,7 +125,6 @@ const MainApp = () => {
   const user = { username: "Admin", email: "admin@example.com" };
 
   const navigate = useNavigate();
-
   const location = useLocation();
 
   const handleEditMovie = () => {
@@ -185,7 +184,6 @@ const MainApp = () => {
     setUsers(users.map((user) => (user.id === data.id ? data : user)));
   };
 
-  // Define display fields for each list type
   const movieDisplayFields = [
     { key: "id", label: "ID" },
     { key: "title", label: "Tên phim" },
@@ -226,7 +224,7 @@ const MainApp = () => {
       name: "name",
       label: "Tên quốc gia",
       type: "text",
-      placeholder: "Nhập tên quốc giagia",
+      placeholder: "Nhập tên quốc gia",
     },
   ];
 
@@ -235,7 +233,7 @@ const MainApp = () => {
       name: "name",
       label: "Tên loại phim",
       type: "text",
-      placeholder: "Nhập tên loại phim ",
+      placeholder: "Nhập tên loại phim",
     },
   ];
 
@@ -246,33 +244,71 @@ const MainApp = () => {
   ];
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchInitialData = async () => {
+      try {
+        const [moviesData, categoriesData, countriesData, typesData, usersData] = await Promise.all([
+          getMovies(),
+          getCategories(),
+          getCountries(),
+          getTypes(),
+          getUsers(),
+        ]);
+
+        if (isMounted) {
+          setMovies(Array.isArray(moviesData) ? moviesData : []);
+          setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+          setCountries(Array.isArray(countriesData) ? countriesData : []);
+          setTypes(Array.isArray(typesData) ? typesData : []);
+          setUsers(Array.isArray(usersData) ? usersData : []);
+        }
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+
+    fetchInitialData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
-        if (location.pathname === "/admin/categories") {
-          const categoriesData = await getCategories();
-          setCategories(categoriesData);
-        } else if (location.pathname === "/admin/countries") {
-          const countriesData = await getCountries();
-          setCountries(countriesData);
-        } else if (location.pathname === "/admin/types") {
-          const typesData = await getTypes();
-          setTypes(typesData);
-        } else if (location.pathname === "/admin/movies") {
-          const moviesData = await getMovies();
-          setMovies(moviesData);
-        } else if (location.pathname === "/admin/users") {
-          const usersData = await getUsers();
-          setUsers(usersData);
+        if (location.pathname.startsWith("/admin/")) {
+          if (location.pathname === "/admin/categories") {
+            const categoriesData = await getCategories();
+            if (isMounted) setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+          } else if (location.pathname === "/admin/countries") {
+            const countriesData = await getCountries();
+            if (isMounted) setCountries(Array.isArray(countriesData) ? countriesData : []);
+          } else if (location.pathname === "/admin/types") {
+            const typesData = await getTypes();
+            if (isMounted) setTypes(Array.isArray(typesData) ? typesData : []);
+          } else if (location.pathname === "/admin/movies") {
+            const moviesData = await getMovies();
+            if (isMounted) setMovies(Array.isArray(moviesData) ? moviesData : []);
+          } else if (location.pathname === "/admin/users") {
+            const usersData = await getUsers();
+            if (isMounted) setUsers(Array.isArray(usersData) ? usersData : []);
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    if (movies.length === 0) {
-      getMovies().then(setMovies).catch(console.error);
-    }
+
     fetchData();
-  }, [location.pathname, movies]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname]);
 
   return (
     <>
@@ -283,10 +319,7 @@ const MainApp = () => {
         <Route element={<UserLayout />}>
           <Route path="/" element={<ShowMovies />} />
           <Route path="/category/:categoryName" element={<CategoryMovies />} />
-          {/* <Route path="/category/:categoryId" element={<MovieList />} /> */}
-
           <Route path="/country/:countryName" element={<CategoryMovies />} />
-
           <Route path="/movie/:id" element={<DetailMovie />} />
           <Route
             path="/movie/:id/episode/:episodeIndex"
@@ -294,7 +327,6 @@ const MainApp = () => {
           />
           <Route path="/movies/:categoryName" element={<MovieList />} />
           <Route path="/movies/:countryName" element={<MovieList />} />
-          
           <Route path="/search" element={<Search />} />
           <Route path="/allmovies" element={<MovieList />} />
           <Route path="/allmovies/:categoryName" element={<MovieList />} />
@@ -365,13 +397,7 @@ const MainApp = () => {
               <UpdateMovie
                 title="Phim"
                 items={movies}
-                // fields={movieDisplayFields}
                 updateEndpoint={`/api/movies/update`}
-                // onUpdate={(updated) =>
-                //   setCategories((prev) =>
-                //     prev.map((cat) => (cat.id === updated.id ? updated : cat))
-                //   )
-                // }
               />
             }
           />
@@ -397,18 +423,9 @@ const MainApp = () => {
               <Update
                 title="Danh mục"
                 items={categories}
-                fields={categoryFields} // Ensure this is defined
+                fields={categoryFields}
                 updateEndpoint={`${process.env.REACT_APP_LOCAL_API_URL}/api/categories/update`}
-                onUpdate={(updated) => {
-                  console.log("onUpdate called with:", updated); // Debug: Log the updated item
-                  setCategories((prev) => {
-                    const newCategories = prev.map((cat) =>
-                      cat.id === updated.id ? updated : cat
-                    );
-                    console.log("Updated categories state:", newCategories); // Debug: Log the new state
-                    return newCategories;
-                  });
-                }}
+                onUpdate={handleUpdateCategory}
               />
             }
           />
@@ -433,18 +450,9 @@ const MainApp = () => {
               <Update
                 title="Quốc gia"
                 items={countries}
-                fields={countryFields} // Ensure this is defined
+                fields={countryFields}
                 updateEndpoint={`${process.env.REACT_APP_LOCAL_API_URL}/api/countries/update`}
-                onUpdate={(updated) => {
-                  console.log("onUpdate called with:", updated); // Debug: Log the updated item
-                  setCategories((prev) => {
-                    const newCountries = prev.map((cat) =>
-                      cat.id === updated.id ? updated : cat
-                    );
-                    console.log("Updated categories state:", newCountries); // Debug: Log the new state
-                    return newCountries;
-                  });
-                }}
+                onUpdate={handleUpdateCountry}
               />
             }
           />
@@ -453,14 +461,8 @@ const MainApp = () => {
             element={
               <TypeList
                 types={types}
-                onEdit={(updatedType) => {
-                  // console.log("App.js onEdit received:", updatedType);
-                  setTypes((prevTypes) =>
-                    prevTypes.map((type) =>
-                      type.id === updatedType.id ? updatedType : type
-                    )
-                  );
-                }}
+                onEdit={handleEditType}
+                onAdd={handleAddType}
               />
             }
           />
@@ -475,7 +477,7 @@ const MainApp = () => {
                 onDelete={handleDeleteUser}
                 searchFields={["username", "email"]}
                 displayFields={userDisplayFields}
-                keyField={"id"}
+                keyField="id"
               />
             }
           />

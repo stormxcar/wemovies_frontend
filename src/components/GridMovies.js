@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import SkeletonWrapper from "./SkeletonWrapper";
 
 function GridMovies({ title, movies, moviesPerPage }) {
   const navigate = useNavigate();
@@ -64,29 +65,41 @@ function GridMovies({ title, movies, moviesPerPage }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-        {currentMovies.map((movie) => (
-          <div
-            key={movie.id}
-            className="w-30 h-64 group cursor-pointer overflow-hidden"
-            onClick={() => handleClickToDetail(movie.id)}
-          >
-            <div className="overflow-hidden h-[70%]">
-              {/* <div className="absolute inset-0 w-full h-full bottom-0 bg-gradient-to-b from-black to-transparent"></div> */}
-              <img
-                src={movie.thumb_url}
-                alt={movie.title}
-                className="rounded mb-2 w-full h-full flex-1 object-cover transition-transform group-hover:scale-105"
-                style={{ objectPosition: "top" }}
-              />
-            </div>
-            <div className="h-[30%] p-4">
-              <h4 className="text-lg font-semibold flex-1 text-white">
-                {movie.title}
-              </h4>
-              <h5 className="text-gray-400">({movie.titleByLanguage})</h5>
-            </div>
-          </div>
-        ))}
+        {currentMovies.length === 0
+          ? Array(moviesPerPage)
+              .fill()
+              .map((_, index) => (
+                <SkeletonWrapper
+                  key={index}
+                  loading={true}
+                  height={256}
+                  width={192}
+                >
+                  <div className="w-30 h-64 rounded-lg skeleton-animation" />
+                </SkeletonWrapper>
+              ))
+          : currentMovies.map((movie) => (
+              <div
+                key={movie.id}
+                className="w-30 h-64 group cursor-pointer overflow-hidden"
+                onClick={() => handleClickToDetail(movie.id)}
+              >
+                <div className="overflow-hidden h-[70%]">
+                  <img
+                    src={movie.thumb_url}
+                    alt={movie.title}
+                    className="rounded mb-2 w-full h-full flex-1 object-cover transition-transform group-hover:scale-105"
+                    style={{ objectPosition: "top" }}
+                  />
+                </div>
+                <div className="h-[30%] p-4">
+                  <h4 className="text-lg font-semibold flex-1 text-white">
+                    {movie.title}
+                  </h4>
+                  <h5 className="text-gray-400">({movie.titleByLanguage})</h5>
+                </div>
+              </div>
+            ))}
       </div>
 
       <div className="flex justify-center gap-2 mt-8 items-center">

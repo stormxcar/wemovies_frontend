@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSearch, FaCaretDown } from "react-icons/fa";
+import { FaSearch, FaCaretDown, FaTimes } from "react-icons/fa";
 import Banner from "./Banner";
 import { fetchCategories, fetchCountries } from "../services/api";
 import { fetchJson } from "../services/api";
@@ -13,6 +13,14 @@ function Header() {
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
+  const [showRegister, setShowRegister] = useState(false); // Trạng thái popup đăng ký
+  const [registerForm, setRegisterForm] = useState({
+    displayName: "",
+    email: "",
+    password: "",
+  }); // Form đăng ký
+  const [showLogin, setShowLogin] = useState(false); // Trạng thái popup đăng nhập
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" }); // Form đăng nhập
 
   const navigate = useNavigate();
 
@@ -56,7 +64,25 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const closeModal = () => setActiveModal(null);
+  const closeModal = () => {
+    setActiveModal(null);
+    setShowRegister(false);
+    setShowLogin(false);
+  };
+
+  const handleRegisterSubmit = (e) => {
+    e.preventDefault();
+    console.log("Register:", registerForm);
+    // Thêm logic đăng ký (gọi API) ở đây
+    setShowRegister(false);
+  };
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    console.log("Login:", loginForm);
+    // Thêm logic đăng nhập (gọi API) ở đây
+    setShowLogin(false);
+  };
 
   return (
     <header className="w-full bg-transparent">
@@ -236,26 +262,36 @@ function Header() {
               )}
             </div>
 
-            <a
+            {/* <a
               href="/dien-vien"
               className="hover:text-blue-300 transition-colors"
               aria-label="Diễn viên"
             >
               Diễn viên
-            </a>
+            </a> */}
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
           <a
-            href="/dang-ky"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowRegister(true);
+            }}
             className="hover:text-blue-300 transition-colors"
             aria-label="Đăng ký"
           >
             Đăng ký
           </a>
           <a
-            href="/dang-nhap"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowLogin(true);
+            }}
             className="hover:text-blue-300 transition-colors"
             aria-label="Đăng nhập"
           >
@@ -265,6 +301,140 @@ function Header() {
       </div>
 
       {window.location.pathname === "/" && <Banner />}
+
+      {showRegister && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              onClick={closeModal}
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-xl text-white font-semibold mb-4">
+              Tạo tài khoản mới
+            </h2>
+            <p className="text-gray-300 mb-6">
+              Nếu bạn đã có tài khoản, <a href="#" onClick={(e) => {
+                e.preventDefault();
+                setShowLogin(true);
+                setShowRegister(false);
+              }} className="text-blue-300">đăng nhập</a>
+            </p>
+            <form onSubmit={handleRegisterSubmit}>
+              <input
+                type="text"
+                value={registerForm.displayName}
+                onChange={(e) =>
+                  setRegisterForm({
+                    ...registerForm,
+                    displayName: e.target.value,
+                  })
+                }
+                placeholder="Tên hiển thị"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              <input
+                type="email"
+                value={registerForm.email}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, email: e.target.value })
+                }
+                placeholder="Email"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              <input
+                type="password"
+                value={registerForm.password}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, password: e.target.value })
+                }
+                placeholder="Mật khẩu"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              <input
+                type="confirmPassword"
+                value={registerForm.confirmPassword}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, password: e.target.value })
+                }
+                placeholder="Nhập lại mật khẩu"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              <button
+                type="submit"
+                className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Đăng ký
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showLogin && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              onClick={closeModal}
+            >
+              <FaTimes />
+            </button>
+            <div className="mb-8">
+              <h2 className="text-xl text-white font-semibold mb-2">
+                Đăng nhập
+              </h2>
+              <p className="text-gray-300 mb-6">
+                Nếu bạn chưa có tài khoản, <a href="#" onClick={(e) => {
+                e.preventDefault();
+                setShowRegister(true);
+                setShowLogin(false);
+              }} className="text-blue-300">đăng ký ngay</a>
+              </p>
+            </div>
+
+            <form onSubmit={handleLoginSubmit}>
+              <input
+                type="email"
+                value={loginForm.email}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, email: e.target.value })
+                }
+                placeholder="Email"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 border-[1px] border-gray-700"
+              />
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, password: e.target.value })
+                }
+                placeholder="Mật khẩu"
+                className="w-full px-4 py-2 mb-4 bg-gray-900/10 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 border-[1px] border-gray-700"
+              />
+              <button
+                type="submit"
+                className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Đăng nhập
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

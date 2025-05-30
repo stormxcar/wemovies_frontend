@@ -6,12 +6,18 @@ import "swiper/css/pagination";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import CardMovie from "./CardMovie";
+import SkeletonWrapper from "./SkeletonWrapper";
 
-function HorizontalMovies({ title, movies = [], to, categoryId, onMovieClick }) {
+function HorizontalMovies({
+  title,
+  movies = [],
+  to,
+  categoryId,
+  onMovieClick,
+}) {
   const navigate = useNavigate();
   const validMovies = Array.isArray(movies) ? movies : [];
 
-  // Xử lý click vào phim
   const handleClickToDetail = (movieId) => {
     if (onMovieClick) {
       onMovieClick(movieId);
@@ -20,14 +26,13 @@ function HorizontalMovies({ title, movies = [], to, categoryId, onMovieClick }) 
     }
   };
 
-  // Xử lý click "Xem tất cả"
   const handleSeeAllMovies = () => {
     if (to) {
       navigate(to, {
         state: {
-          category: title, // Truyền tiêu đề (ví dụ: "Phim Hot")
-          movies: validMovies, // Truyền danh sách phim
-          categoryId: categoryId || null, // Truyền categoryId nếu có, nếu không thì null
+          category: title,
+          movies: validMovies,
+          categoryId: categoryId || null,
         },
       });
     }
@@ -48,7 +53,7 @@ function HorizontalMovies({ title, movies = [], to, categoryId, onMovieClick }) 
     <div className="my-6 py-5 mx-5">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
-        {to && ( // Chỉ hiển thị nút "Xem tất cả" nếu có prop to
+        {to && (
           <button
             onClick={handleSeeAllMovies}
             className="text-white hover:bg-blue-700 rounded px-4 py-2 flex items-center"
@@ -91,14 +96,24 @@ function HorizontalMovies({ title, movies = [], to, categoryId, onMovieClick }) 
             }}
             className="p-4 overflow-visible"
           >
-            {validMovies.map(({ id, thumb_url, title, release_year }) => (
-              <SwiperSlide key={id} onClick={() => handleClickToDetail(id)}>
-                <CardMovie
-                  movie={{ id, thumb_url, title, release_year }}
-                  onMovieClick={onMovieClick}
-                />
-              </SwiperSlide>
-            ))}
+            {validMovies.length === 0
+              ? Array(4)
+                  .fill()
+                  .map((_, index) => (
+                    <SwiperSlide key={index}>
+                      <SkeletonWrapper loading={true} height={320} width={180}>
+                        <div className="w-45 h-80 rounded-lg skeleton-animation" />
+                      </SkeletonWrapper>
+                    </SwiperSlide>
+                  ))
+              : validMovies.map(({ id, thumb_url, title, release_year }) => (
+                  <SwiperSlide key={id} onClick={() => handleClickToDetail(id)}>
+                    <CardMovie
+                      movie={{ id, thumb_url, title, release_year }}
+                      onMovieClick={onMovieClick}
+                    />
+                  </SwiperSlide>
+                ))}
           </Swiper>
         </div>
       </div>

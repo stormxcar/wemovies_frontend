@@ -10,7 +10,7 @@ export const tryRequest = async (
   baseUrl,
   endpoint,
   options = {},
-  retries = 3,
+  retries = 2, // Giảm từ 3 xuống 2
   retryDelay = 1000
 ) => {
   const fullUrl = `${baseUrl}${endpoint}`;
@@ -18,7 +18,7 @@ export const tryRequest = async (
     try {
       const response = await axios.get(fullUrl, {
         ...options,
-        timeout: 10000,
+        timeout: 5000, // Giảm timeout từ 10000ms xuống 5000ms
       });
       if (!response.data) {
         throw new Error(`No data returned from ${fullUrl}`);
@@ -37,7 +37,7 @@ export const tryRequest = async (
 export const fetchJson = async (
   endpoint,
   options = {},
-  retries = 3,
+  retries = 2,
   retryDelay = 1000
 ) => {
   let result = await tryRequest(
@@ -66,10 +66,10 @@ export const fetchJson = async (
   return result.data;
 };
 
-// Fetch movies with timeout
+// Các hàm fetch khác giữ nguyên
 export const fetchMovies = async () => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const data = await fetchJson("/api/movies");
     return Array.isArray(data.data) ? data.data : [];
@@ -90,12 +90,23 @@ export const fetchCategories = async () => {
     return [];
   }
 };
+
 export const fetchCountries = async () => {
   try {
     const data = await fetchJson("/api/countries");
     return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch countries failed:", error);
+    return [];
+  }
+};
+
+export const fetchMovieType = async () => {
+  try {
+    const data = await fetchJson("/api/types");
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error("Fetch movie type failed:", error);
     return [];
   }
 };

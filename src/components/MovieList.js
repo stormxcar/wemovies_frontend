@@ -4,11 +4,13 @@ import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
 import { fetchJson } from "../admin/api/fetch.api";
+import { fetchMovieType } from "../services/api";
 
 function MovieList({ movies = [], onMovieClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { categoryName } = useParams();
+  const [showFilter, setShowFilter] = useState(false);
   const {
     category,
     movies: stateMovies,
@@ -18,6 +20,33 @@ function MovieList({ movies = [], onMovieClick }) {
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [types, setTypes] = useState([]);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [types] = await Promise.all([fetchMovieType()]);
+
+        setTypes(Array.isArray(types) ? types : []);
+
+        console.log('====================================');
+        console.log("Fetch Data:", { types });
+        console.log('====================================');
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.error("Fetch aborted due to timeout:", error.message);
+        } else {
+          console.error("Error fetching data:", error.message);
+        }
+
+        setTypes([]);
+      } finally {
+        setLoading({ types: false });
+      }
+    };
+    fetchAll();
+  }, []);
 
   const fetchMoviesByCategory = async (categoryId) => {
     try {
@@ -41,12 +70,12 @@ function MovieList({ movies = [], onMovieClick }) {
       fetchMoviesByCategory(categoryId);
     } else if (categoryName) {
       // Nếu chỉ có categoryName (truy cập trực tiếp), thử ánh xạ sang categoryId
-      const inferredCategoryId = getCategoryIdFromName(categoryName);
-      if (inferredCategoryId) {
-        fetchMoviesByCategory(inferredCategoryId);
-      } else {
-        setError("Invalid category");
-      }
+      // const inferredCategoryId = getCategoryIdFromName(categoryName);
+      // if (inferredCategoryId) {
+        fetchMoviesByCategory(categoryName);
+      // } else {
+      //   setError("Invalid category");
+      // }
     } else {
       // Sử dụng movies mặc định nếu không có dữ liệu
       setFilteredMovies(movies);
@@ -65,7 +94,7 @@ function MovieList({ movies = [], onMovieClick }) {
     setCurrentPage(event.selected);
   };
 
-   const handleMovieClick = (movieId) => {
+  const handleMovieClick = (movieId) => {
     navigate(`/movie/${movieId}`);
   };
 
@@ -125,12 +154,155 @@ function MovieList({ movies = [], onMovieClick }) {
     <div className="w-full h-full bg-gray-900 text-white p-4 px-12 min-h-screen pt-32">
       {/* Title */}
       <h2 className="text-xl font-bold mb-4">{title || category}</h2>
-      <div className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4">
+      <button
+        onClick={(e) => {
+          e.stopPropagation(); // Ngăn sự kiện lan ra ngoài để đóng modal
+          setShowFilter((prev) => !prev);
+        }}
+        className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4"
+      >
         <h3>Bộ lọc</h3>
-        <button className="flex items-center gap-2 text-white">
+        <span className="flex items-center gap-2 text-white">
           <FaFilter />
-        </button>
-      </div>
+        </span>
+      </button>
+
+      {showFilter && (
+        <div className="bg-gray-900 text-white p-4 rounded-lg shadow-lg border-[1px] border-gray-800">
+          <div className="flex flex-col gap-4 pr-10 pl-6">
+            <div className="flex items-center">
+              <h4 className="font-semibold min-w-[100px] text-right">Quốc gia:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {[
+                  "Tất cả",
+                  "Anh",
+                  "Canada",
+                  "Hàn Quốc",
+                  "Hồng Kông",
+                  "Mỹ",
+                  "Nhật Bản",
+                  "Pháp",
+                  "Thái Lan",
+                  "Trung Quốc",
+                  "Úc",
+                  "Đài Loan",
+                  "Đức",
+                ].map((item) => (
+                  <li key={item} className="cursor-pointer hover:text-blue-400">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center ">
+              <h4 className="font-semibold min-w-[100px] text-right">Loại phim:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {["Tất cả", "Phim lẻ", "Phim bộ"].map((item) => (
+                  <li key={item} className="cursor-pointer hover:text-blue-400">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center">
+              <h4 className="font-semibold min-w-[100px] text-right">Xếp hạng:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {[
+                  "Tất cả",
+                  "P (Mọi lứa tuổi)",
+                  "K (Dưới 13 tuổi)",
+                  "T13 (13 tuổi trở lên)",
+                  "T16 (16 tuổi trở lên)",
+                  "T18 (18 tuổi trở lên)",
+                ].map((item) => (
+                  <li key={item} className="cursor-pointer hover:text-blue-400">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex">
+              <h4 className="font-semibold min-w-[100px] text-right">Thể loại:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {types.map((item) => (
+                  <li key={item.id} className="cursor-pointer hover:text-blue-400">
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center">
+              <h4 className="font-semibold min-w-[100px] text-right">Phiên bản:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {["Tất cả", "Phụ đề", "Lồng tiếng", "Thuyết minh"].map(
+                  (item) => (
+                    <li
+                      key={item}
+                      className="cursor-pointer hover:text-blue-400"
+                    >
+                      {item}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+            <div className="flex items-center">
+              <h4 className="font-semibold min-w-[100px] text-right">Năm sản xuất:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {[
+                  "Tất cả",
+                  "2025",
+                  "2024",
+                  "2023",
+                  "2022",
+                  "2021",
+                  "2020",
+                  "2019",
+                  "2018",
+                  "2017",
+                  "2016",
+                  "2015",
+                  "2014",
+                  "2013",
+                  "2012",
+                  "2011",
+                  "2010",
+                ].map((item) => (
+                  <li key={item} className="cursor-pointer hover:text-blue-400">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center">
+              <h4 className="font-semibold min-w-[100px] text-right">Sắp xếp:</h4>
+              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+                {["Mới nhất", "Mới cập nhật", "Điểm IMDB", "Lượt xem"].map(
+                  (item) => (
+                    <li
+                      key={item}
+                      className="cursor-pointer hover:text-blue-400"
+                    >
+                      {item}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+            <div className="mt-8 flex justify-start space-x-4">
+              <button className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition-colors">
+                Lọc kết quả
+              </button>
+              <button
+                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                onClick={() => setShowFilter(false)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Movie Grid */}
       <div className="grid grid-cols-7 gap-8">
