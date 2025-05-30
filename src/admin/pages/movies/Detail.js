@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { fetchJson } from "../services/api";
+import { fetchJson } from "../../../services/api";
 
 const MovieDetail = () => {
   const [movie, setMovie] = useState(null);

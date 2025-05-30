@@ -214,7 +214,7 @@ const DetailMovie = () => {
                       <div key={idx} className="my-2">
                         <Link
                           to={`/movie/${id}/episode/${idx}`}
-                          className="text-white bg-gray-300/50 py-3 px-6 mr-3 mb-3 rounded-lg"
+                          className="text-white bg-gray-300/50 py-4 px-12 mr-3 mb-3 rounded-lg text-xl"
                           state={{ movieDetail: movieDetail.data }}
                         >
                           Tập {link.episodeNumber}
@@ -228,9 +228,9 @@ const DetailMovie = () => {
         </div>
       </div>
 
-      <div className="my-4 mt-12"></div>
+      {/* <div className="my-4 mt-12"></div> */}
 
-      <div className="my-4 mx-12 mb-8">
+      <div className="my-4 mx-12 mb-8 mt-40">
         <HorizontalMovies
           title="Phim liên quan"
           movies={relatedMovies}

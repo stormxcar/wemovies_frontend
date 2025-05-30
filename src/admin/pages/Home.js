@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { getCategories } from "../admin/api/Category.api";
-import { getCountries } from "../admin/api/Country.api";
-import { getMovies } from "../admin/api/Movie.api";
-import { getTypes } from "../admin/api/Type.api";
-import { getUsers } from "../admin/api/User.api";
+import { getCategories } from "../api/Category.api";
+import { getCountries } from "../api/Country.api";
+import { getMovies } from "../api/Movie.api";
+import { getTypes } from "../api/Type.api";
+import { getUsers } from "../api/User.api";
 
 // Home Component
 const Home = () => {
@@ -33,18 +33,16 @@ const Home = () => {
         setUsers(usersData);
       };
       fetchData();
-
-      
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   }, []);
 
   useEffect(() => {
-    console.log('====================================');
-      console.log("data categories:", categories);
-      console.log('====================================');
-  }, [movies]);
+    console.log("====================================");
+    console.log("data users:", users);
+    console.log("====================================");
+  }, [users]);
 
   // Home Component
   return (

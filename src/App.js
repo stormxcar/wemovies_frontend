@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
 
 import ShowMovies from "./components/ShowMovies";
 import DetailMovie from "./components/DetailMovie";
@@ -21,14 +20,14 @@ import EpisodeDetail from "./components/EpisodeDetail";
 import MovieList from "./components/MovieList";
 import Watch from "./components/Watch";
 import MoviePage from "./components/MoviePage";
-import Dashboard from "./admin/Dashboard";
-import Home from "./admin/Home";
-import List from "./admin/List";
-import Add from "./admin/Add";
-import Update from "./admin/Update";
-import MovieDetail from "./admin/Detail";
-import Settings from "./admin/Settings";
-import TypeList from "./admin/TypeList";
+import Dashboard from "./admin/pages/Dashboard";
+import Home from "./admin/pages/Home";
+import List from "./admin/components/List";
+import Add from "./admin/components/Add";
+import Update from "./admin/components/Update";
+import MovieDetail from "./admin/pages/movies/Detail";
+import Settings from "./admin/pages/Settings";
+import TypeList from "./admin/pages/types/TypeList";
 
 import { getCategories } from "./admin/api/Category.api";
 import { getCountries } from "./admin/api/Country.api";
@@ -38,11 +37,11 @@ import { getUsers } from "./admin/api/User.api";
 
 import AuthPage from "./AuthPage";
 import ProtectedRoute from "./ProtectRoute";
-import AddCategory from "./admin/AddCategory";
-import AddCountry from "./admin/AddCountry";
-import AddType from "./admin/AddType";
-import AddMovie from "./admin/AddMovie";
-import UpdateMovie from "./admin/UpdateMovie";
+import AddCategory from "./admin/pages/categories/AddCategory";
+import AddCountry from "./admin/pages/countries/AddCountry";
+import AddType from "./admin/pages/types/AddType";
+import AddMovie from "./admin/pages/movies/AddMovie";
+import UpdateMovie from "./admin/pages/movies/UpdateMovie"
 
 const UserLayout = () => (
   <div className="flex flex-col items-center justify-center w-full min-h-screen">
@@ -294,6 +293,7 @@ const MainApp = () => {
             element={<EpisodeDetail />}
           />
           <Route path="/movies/:categoryName" element={<MovieList />} />
+          <Route path="/movies/:countryName" element={<MovieList />} />
           
           <Route path="/search" element={<Search />} />
           <Route path="/allmovies" element={<MovieList />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 function CardMovie({ movie }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -13,13 +13,13 @@ function CardMovie({ movie }) {
         {/* Original Card (Scales on Hover) */}
         <div
           className="absolute w-full h-full transition-transform duration-300"
-          style={{ transform: isHovered ? 'scale(1)' : 'scale(1)' }}
+          style={{ transform: isHovered ? "scale(1)" : "scale(1)" }}
         >
           <img
             src={movie.thumb_url}
             alt={movie.title}
             className="rounded-lg w-full h-full object-cover"
-            style={{objectPosition:'top'}}
+            style={{ objectPosition: "top" }}
           />
           <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black to-transparent text-white text-center">
             <h3 className="text-lg">{movie.title}</h3>
@@ -29,7 +29,7 @@ function CardMovie({ movie }) {
 
         {/* Expanded Overlay Card */}
         {isHovered && (
-<div
+          <div
             className="absolute top-[-100px] left-1/3 transform -translate-x-1/2 w-[400px] h-[500px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
             style={{ opacity: isHovered ? 1 : 0 }}
           >
@@ -37,7 +37,7 @@ function CardMovie({ movie }) {
               src={movie.thumb_url}
               alt={movie.title}
               className="rounded-lg w-full h-[70%] object-cover"
-              style={{objectPosition:'top'}}
+              style={{ objectPosition: "top" }}
             />
             <div className="px-6 py-2 flex justify-end flex-col ">
               <h3 className="text-lg font-bold">{movie.title}</h3>

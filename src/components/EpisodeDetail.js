@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react"; // Import added
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { fetchJson } from "../admin/api/fetch.api";
 import HorizontalMovies from "./HorizontalMovies";
+import { FaChevronLeft } from "react-icons/fa";
 
 const EpisodeDetail = () => {
   const { id, episodeIndex } = useParams();
@@ -58,9 +59,9 @@ const EpisodeDetail = () => {
     [fetchJson]
   );
 
-  console.log('====================================');
-  console.log("data apisoe related", relatedMovies);
-  console.log('====================================');
+  // console.log('====================================');
+  // console.log("data apisoe related", relatedMovies);
+  // console.log('====================================');
 
   useEffect(() => {
     const fetchMovieDetail = async () => {
@@ -105,32 +106,40 @@ const EpisodeDetail = () => {
 
   return (
     <div className="px-10 bg-gray-800 w-full flex-1 pt-16">
-      <nav className="my-4">
-        <Link to="/" className="text-white">
-          Movies
-        </Link>
-        <span className="text-white mx-2">{">"}</span>
-        <Link to={`/movies/${category}`} className="text-white">
-          {category}
-        </Link>
-        <span className="text-white mx-2">{">"}</span>
-        <span className="text-blue-500">{movieDetail.data?.title}</span>
-      </nav>
-      <div className="flex flex-col items-center justify-center">
-        <h1 className="text-2xl mb-2 text-white">
-          {movieDetail.data?.title} - Tập {Number(episodeIndex) + 1}
-        </h1>
+      <div className="flex flex-col items-center justify-center mt-6 mb-4">
+        <div className="flex items-center mb-4 w-full">
+          <div className="rounded-full text-white flex items-center justify-center border-2 p-3 mr-3">
+            <FaChevronLeft className="text-xl cursor-pointer" />
+          </div>
+          <p className="text-xl text-white">
+            Xem phim {movieDetail.data?.title}
+          </p>
+        </div>
         {episodeLink ? (
-          <iframe
-            width="615"
-            height="315"
-            src={episodeLink}
-            title={`${movieDetail.data?.title} - Tập ${
-              Number(episodeIndex) + 1
-            }`}
-            frameBorder="1"
-            allowFullScreen
-          />
+          <div className="w-full rounded-lg">
+            <iframe
+              width="100%"
+              height="600px"
+              src={episodeLink}
+              title={`${movieDetail.data?.title} - Tập ${
+                Number(episodeIndex) + 1
+              }`}
+              className="rounded-lg"
+              frameBorder="1"
+              allowFullScreen
+            />
+            <nav className="my-10">
+              <Link to="/" className="text-white">
+                Movies
+              </Link>
+              <span className="text-white mx-2">{">"}</span>
+              <Link to={`/movies/${category}`} className="text-white">
+                {category}
+              </Link>
+              <span className="text-white mx-2">{">"}</span>
+              <span className="text-blue-500">{movieDetail.data?.title}</span>
+            </nav>
+          </div>
         ) : (
           <div className="text-white">Không tìm thấy tập phim này.</div>
         )}
@@ -185,7 +194,7 @@ const EpisodeDetail = () => {
                     <div key={idx} className="my-2">
                       <Link
                         to={`/movie/${id}/episode/${idx}`}
-                        className={`text-white py-3 px-6 mr-3 mb-3 rounded-lg ${
+                        className={`text-white py-4 px-12 text-xl mr-3 mb-3 rounded-lg ${
                           currentEpisode === idx
                             ? "bg-blue-500 font-bold"
                             : "bg-gray-300/50"
@@ -202,7 +211,7 @@ const EpisodeDetail = () => {
         </div>
       </div>
 
-      <div className="my-4 mx-12 mb-8">
+      <div className="my-4 mb-8 mt-40">
         <HorizontalMovies
           title="Phim liên quan"
           movies={relatedMovies}

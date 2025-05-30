@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { Navigate, useLocation, useParams, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useParams, useNavigate , Link} from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { fetchJson } from "../services/api";
 import MovieList from "./MovieList";

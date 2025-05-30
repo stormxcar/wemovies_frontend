@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { fetchJson } from "./admin/api/fetch.api";
 
 const RegisterForm = ({ setStep, setEmail }) => {
   const [formData, setFormData] = useState({
@@ -20,12 +21,29 @@ const RegisterForm = ({ setStep, setEmail }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8080/api/auth/request-otp", formData);
-      toast.success("OTP đã được gửi đến email của bạn");
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(formData),
+        credentials: "include", // Add this for cookie support
+      };
+      console.log("Request Payload:", formData);
+      const response = await fetchJson("/api/auth/request-otp", options);
+      // Handle both JSON and text responses
+      const message =
+        typeof response === "string"
+          ? response
+          : response?.message || "OTP đã được gửi đến email của bạn";
+      console.log("Response Message:", message);
+      toast.success(message);
       setEmail(formData.email);
       setStep("verify");
     } catch (error) {
-      toast.error(error.response?.data || "Lỗi khi gửi OTP");
+      console.error("Error in handleSubmit:", error.message);
+      toast.error(error.message || "Lỗi khi gửi OTP");
     }
   };
 
@@ -93,10 +111,18 @@ const VerifyOtpForm = ({ email, setStep }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `http://localhost:8080/api/auth/verify-otp?email=${encodeURIComponent(
+      await fetchJson(
+        `/api/auth/verify-otp?email=${encodeURIComponent(
           email
-        )}&otp=${encodeURIComponent(otp)}`
+        )}&otp=${encodeURIComponent(otp)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include", // Add this for cookie support
+        }
       );
 
       toast.success("Xác thực OTP thành công. Vui lòng đăng nhập.");
@@ -148,44 +174,72 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      const loginResponse = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        {
+      console.log("Login Request Payload:", {
+        email: formDataLogin.email,
+        passWord: formDataLogin.passWord,
+      });
+
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
           email: formDataLogin.email,
           passWord: formDataLogin.passWord,
-        },
-        { withCredentials: true }
-      );
+        }),
+        credentials: "include", // Include credentials for cookies
+      };
+
+      const loginResponse = await fetchJson("/api/auth/login", options);
+      console.log("Login Response:", loginResponse);
+
+      // Assuming the backend returns a JSON object
+      if (!loginResponse) {
+        throw new Error("Login failed: No response data");
+      }
 
       // Check cookies in browser storage
       const cookies = document.cookie;
       console.log("Browser Cookies after Login:", cookies);
 
-      // Check user role
-      const verifyResponse = await axios.get(
-        "http://localhost:8080/api/auth/verifyUser",
-        {
-          withCredentials: true,
-        }
-      );
+      // Verify user role
+      const verifyResponse = await fetchJson("/api/auth/verifyUser", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+      console.log("Verify User Response:", verifyResponse);
 
-      const role =
-        verifyResponse.data.role?.roleName || verifyResponse.data.role;
+      const role = verifyResponse?.role || verifyResponse?.data?.role.roleName;
       if (role === "ADMIN") {
         toast.success("Đăng nhập Admin thành công!");
         navigate("/admin");
       } else {
         toast.error("Chỉ admin mới có quyền truy cập!");
-        await axios.post(
-          "http://localhost:8080/api/auth/logout",
-          {},
-          { withCredentials: true }
-        );
+
+        // Log the logout response
+        const logoutResponse = await fetchJson("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+        });
+        console.log("Logout Response:", logoutResponse);
       }
     } catch (error) {
-      console.error("Login Error:", error.response?.data || error.message);
-      console.log("Response Headers:", error.response?.headers);
-      toast.error(error.response?.data || "Đăng nhập thất bại");
+      console.error("Login Error:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response,
+      });
+      toast.error(error.message || "Đăng nhập thất bại");
     }
   };
 

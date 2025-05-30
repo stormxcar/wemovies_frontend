@@ -12,19 +12,48 @@ export const fetchJson = async (
   retries = 3,
   retryDelay = 1000
 ) => {
-  // Hàm thử yêu cầu với một base URL cụ thể
   const tryFetch = async (baseUrl, endpoint, opts) => {
     const fullUrl = `${baseUrl}${endpoint}`;
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const response = await fetch(fullUrl, opts);
+        const fetchOptions = { ...opts, credentials: "include" }; // Include credentials
+        console.log(
+          `Attempt ${attempt} - Fetching URL: ${fullUrl}`,
+          fetchOptions
+        );
+        const response = await fetch(fullUrl, fetchOptions);
+        const contentType = response.headers.get("Content-Type");
+        const status = response.status;
+        console.log(
+          `Attempt ${attempt} - Status: ${status}, Content-Type: ${contentType}`
+        );
+        const rawText = await response.text();
+        console.log(`Attempt ${attempt} - Raw Response:`, rawText);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${status}, body: ${rawText}`);
         }
-        const data = await response.json();
+
+        let data;
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            data = JSON.parse(rawText);
+          } catch (jsonError) {
+            console.error(
+              `Attempt ${attempt} - JSON Parsing Error:`,
+              jsonError
+            );
+            // If JSON parsing fails, treat as text
+            data = rawText;
+          }
+        } else {
+          data = rawText; // Treat as plain text
+        }
+
         if (!data) {
           throw new Error(`No data returned from ${fullUrl}`);
         }
+
         return { success: true, data };
       } catch (error) {
         console.error(
@@ -39,11 +68,9 @@ export const fetchJson = async (
     }
   };
 
-  // Thử với URL Heroku trước
   const endpoint = url.startsWith("/") ? url : `/${url}`;
   let result = await tryFetch(API_BASE_URL, endpoint, options);
 
-  // Nếu Heroku thất bại, thử với URL cục bộ
   if (!result.success) {
     console.warn(
       `Heroku API failed, falling back to local API: ${LOCAL_API_URL}`
@@ -51,7 +78,6 @@ export const fetchJson = async (
     result = await tryFetch(LOCAL_API_URL, endpoint, options);
   }
 
-  // Nếu cả hai đều thất bại, ném lỗi
   if (!result.success) {
     console.error(`All attempts failed for both URLs`);
     throw result.error;

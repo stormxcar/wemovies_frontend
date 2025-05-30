@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
+import Header from "../components/Header"
+import Sidebar from "../components/Sidebar";
 
 const Dashboard = ({
   movies,

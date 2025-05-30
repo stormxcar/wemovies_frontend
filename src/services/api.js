@@ -6,7 +6,13 @@ const API_BASE_URL =
 const LOCAL_API_URL =
   process.env.REACT_APP_LOCAL_API_URL || "http://localhost:8080";
 
-export const tryRequest = async (baseUrl, endpoint, options = {}, retries = 3, retryDelay = 1000) => {
+export const tryRequest = async (
+  baseUrl,
+  endpoint,
+  options = {},
+  retries = 3,
+  retryDelay = 1000
+) => {
   const fullUrl = `${baseUrl}${endpoint}`;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -28,11 +34,30 @@ export const tryRequest = async (baseUrl, endpoint, options = {}, retries = 3, r
   }
 };
 
-export const fetchJson = async (endpoint, options = {}, retries = 3, retryDelay = 1000) => {
-  let result = await tryRequest(API_BASE_URL, endpoint, options, retries, retryDelay);
+export const fetchJson = async (
+  endpoint,
+  options = {},
+  retries = 3,
+  retryDelay = 1000
+) => {
+  let result = await tryRequest(
+    API_BASE_URL,
+    endpoint,
+    options,
+    retries,
+    retryDelay
+  );
   if (!result.success) {
-    console.warn(`Heroku API failed, falling back to local API: ${LOCAL_API_URL}`);
-    result = await tryRequest(LOCAL_API_URL, endpoint, options, retries, retryDelay);
+    console.warn(
+      `Heroku API failed, falling back to local API: ${LOCAL_API_URL}`
+    );
+    result = await tryRequest(
+      LOCAL_API_URL,
+      endpoint,
+      options,
+      retries,
+      retryDelay
+    );
   }
   if (!result.success) {
     console.error(`All attempts failed for both URLs`);
@@ -62,6 +87,15 @@ export const fetchCategories = async () => {
     return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error("Fetch categories failed:", error);
+    return [];
+  }
+};
+export const fetchCountries = async () => {
+  try {
+    const data = await fetchJson("/api/countries");
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error("Fetch countries failed:", error);
     return [];
   }
 };

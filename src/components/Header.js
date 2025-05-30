@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaSearch, FaCaretDown } from "react-icons/fa";
 import Banner from "./Banner";
-import { fetchCategories } from "../services/api";
+import { fetchCategories, fetchCountries } from "../services/api";
 import { fetchJson } from "../services/api";
 
 function Header() {
@@ -11,7 +11,8 @@ function Header() {
   const [searchIcon, setSearchIcon] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [navOpen, setNavOpen] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [activeModal, setActiveModal] = useState(null);
 
   const navigate = useNavigate();
 
@@ -23,10 +24,8 @@ function Header() {
         `/api/movies/search?keyword=${encodeURIComponent(query)}`
       );
       if (!response.ok) throw new Error(response.statusText);
-
       const textResponse = await response.text();
       const data = textResponse ? JSON.parse(textResponse) : [];
-
       navigate("/search", { state: { movies: data } });
     } catch (error) {
       console.error("Error during fetch:", error);
@@ -44,11 +43,11 @@ function Header() {
     fetchCategories()
       .then(setCategories)
       .catch((error) => console.error("Error fetching categories:", error));
-
-    console.log("data: ", categories);
+    fetchCountries()
+      .then(setCountries)
+      .catch((error) => console.error("Error fetching countries:", error));
   }, []);
 
-  // Handle scroll for nav background change
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -57,101 +56,108 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const closeModal = () => setActiveModal(null);
+
   return (
     <header className="w-full bg-transparent">
-      {/* Navigation */}
       <div
         className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ${
-          isScrolled ? "bg-black/70 shadow-lg" : "opacity-100"
+          isScrolled ? "bg-black/80 shadow-lg" : "bg-transparent"
         } p-4 flex items-center justify-between text-white`}
+        onClick={closeModal}
       >
-        {/* Logo */}
-        <div className="text-2xl font-bold">
-          <a href="/">Wemovies</a>
-        </div>
-
-        {/* Mobile Search Icon */}
-        <button
-          onClick={() => setSearchIcon(true)}
-          className="md:hidden p-2 rounded-full bg-blue-500 text-white"
-          aria-label="Open search"
-        >
-          <FaSearch />
-        </button>
-
-        {/* Mobile Search Modal */}
-        {searchIcon && (
-          <div
-            className="fixed top-0 left-0 w-full h-full bg-black/80 flex justify-center items-center md:hidden z-10"
-            onClick={() => setSearchIcon(false)}
+        <div className="flex items-center space-x-4 w-full md:w-[70%]">
+          <a
+            href="/"
+            className="text-2xl font-bold hover:text-blue-300 transition-colors"
           >
+            Wemovies
+          </a>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSearchIcon(true);
+            }}
+            className="md:hidden p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            aria-label="Open search"
+          >
+            <FaSearch />
+          </button>
+
+          {searchIcon && (
             <div
-              className="bg-white p-4 rounded-lg shadow-lg w-3/4"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 bg-black/80 flex justify-center items-center z-40 md:hidden"
+              onClick={() => setSearchIcon(false)}
             >
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDownToSearch}
-                placeholder="Tìm kiếm phim..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none text-black"
-                autoFocus
-              />
-              <button
-                onClick={handleSearch}
-                className="w-full mt-2 bg-blue-500 text-white py-2 rounded-md"
-                disabled={loading}
+              <div
+                className="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md"
+                onClick={(e) => e.stopPropagation()}
               >
-                {loading ? "Đang tìm..." : "Tìm kiếm"}
-              </button>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDownToSearch}
+                  placeholder="Tìm kiếm phim..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSearch}
+                  className="w-full mt-3 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? "Đang tìm..." : "Tìm kiếm"}
+                </button>
+              </div>
             </div>
+          )}
+
+          <div className="hidden md:flex items-center w-full max-w-md">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDownToSearch}
+              placeholder="Tìm kiếm phim..."
+              className={`w-full px-4 py-2 rounded-lg text-white ${
+                isScrolled ? "bg-gray-800" : "bg-gray-900/50"
+              } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors`}
+            />
           </div>
-        )}
 
-        {/* Desktop Search Bar */}
-        <div className="hidden md:flex items-center w-1/3 group">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDownToSearch}
-            placeholder="Tìm kiếm phim..."
-            className={`w-full px-4 py-2 rounded-lg focus:outline-none text-white ${
-              isScrolled ? "bg-gray-800" : "bg-transparent"
-            } border-2 border-gray-600 outline-none
-            focus:border-blue-500 transition-all`}
-          />
-        </div>
-
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center space-x-4">
-          <div className="relative">
-            <button
-              onClick={() => setNavOpen((prev) => !prev)}
-              className="hover:text-blue-300 transition-colors"
-              aria-label="Thể loại"
-            >
-              Thể loại
-            </button>
-            {navOpen && (
-              <ul className="absolute left-0 mt-2 bg-black/80 text-white px-4 py-2 rounded shadow-lg w-48">
-                {Array.isArray(categories) &&
-                  categories.length > 0 &&
-                  categories.map((item) => (
-                    <li
-                      key={item.name}
-                      className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
-                    >
+          <div className="hidden md:flex items-center space-x-6 ml-6">
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveModal((prev) =>
+                    prev === "categories" ? null : "categories"
+                  );
+                }}
+                className="flex items-center hover:text-blue-300 transition-colors"
+                aria-label="Thể loại"
+              >
+                Thể loại
+                <FaCaretDown className="ml-1 text-lg" />
+              </button>
+              {activeModal === "categories" && (
+                <ul
+                  className="absolute top-10 left-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {Array.isArray(categories) &&
+                    categories.length > 0 &&
+                    categories.map((item) => (
                       <li
                         key={item.name}
-                        className="cursor-pointer hover:text-blue-400 transition mb-4 last:mb-0 text-sm"
+                        className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
                         onClick={async () => {
                           try {
                             const movies = await fetchJson(
                               `/api/movies/category/id/${item.id}`
                             );
-
                             navigate(`/movies/${item.name}`, {
                               state: {
                                 movies: Array.isArray(movies.data)
@@ -160,6 +166,7 @@ function Header() {
                                 title: item.name,
                               },
                             });
+                            closeModal();
                           } catch (error) {
                             console.error(
                               "Error fetching movies for category:",
@@ -170,25 +177,89 @@ function Header() {
                       >
                         {item.name}
                       </li>
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </div>
+                    ))}
+                </ul>
+              )}
+            </div>
 
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveModal((prev) =>
+                    prev === "countries" ? null : "countries"
+                  );
+                }}
+                className="flex items-center hover:text-blue-300 transition-colors"
+                aria-label="Quốc gia"
+              >
+                Quốc gia
+                <FaCaretDown className="ml-1 text-lg" />
+              </button>
+              {activeModal === "countries" && (
+                <ul
+                  className="absolute top-10 left-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {Array.isArray(countries) &&
+                    countries.length > 0 &&
+                    countries.map((item) => (
+                      <li
+                        key={item.name}
+                        className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
+                        onClick={async () => {
+                          try {
+                            const movies = await fetchJson(
+                              `/api/movies/country/${item.id}`
+                            );
+                            navigate(`/movies/${item.name}`, {
+                              state: {
+                                movies: Array.isArray(movies.data)
+                                  ? movies.data
+                                  : [],
+                                title: item.name,
+                              },
+                            });
+                            closeModal();
+                          } catch (error) {
+                            console.error(
+                              "Error fetching movies for country:",
+                              error
+                            );
+                          }
+                        }}
+                      >
+                        {item.name}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
+            <a
+              href="/dien-vien"
+              className="hover:text-blue-300 transition-colors"
+              aria-label="Diễn viên"
+            >
+              Diễn viên
+            </a>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4">
           <a
-            href="/quoc-gia"
+            href="/dang-ky"
             className="hover:text-blue-300 transition-colors"
-            aria-label="Quốc gia"
+            aria-label="Đăng ký"
           >
-            Quốc gia
+            Đăng ký
           </a>
           <a
-            href="/dien-vien"
+            href="/dang-nhap"
             className="hover:text-blue-300 transition-colors"
-            aria-label="Diễn viên"
+            aria-label="Đăng nhập"
           >
-            Diễn viên
+            Đăng nhập
           </a>
         </div>
       </div>
