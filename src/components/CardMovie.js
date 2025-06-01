@@ -11,6 +11,10 @@ function CardMovie({ movie }) {
     img.onload = () => setImageLoaded(true);
   }, [movie.thumb_url]);
 
+  console.log("====================================");
+  console.log("movie", movie);
+  console.log("====================================");
+
   return (
     <div className="relative rounded-lg w-45 h-80 cursor-pointer">
       <div
@@ -44,29 +48,55 @@ function CardMovie({ movie }) {
         {/* Expanded Overlay Card */}
         {isHovered && (
           <div
-            className="absolute top-[-100px] left-1/3 transform -translate-x-1/2 w-[400px] h-[500px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
+            className="absolute top-[-100px] left-1/3 transform -translate-x-1/2 w-[400px] h-[500px] text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
             style={{ opacity: isHovered ? 1 : 0 }}
           >
             <SkeletonWrapper loading={!imageLoaded} height={350}>
               <img
                 src={movie.thumb_url}
                 alt={movie.title}
-                className="rounded-lg w-full h-[70%] object-cover"
-                style={{ objectPosition: "top" }}
+                className="rounded-lg w-full object-cover h-full"
+                style={{ objectPosition: "top", objectFit: "cover", backgroundRepeat: "no-repeat" }}
               />
             </SkeletonWrapper>
-            <div className="px-6 py-2 flex justify-end flex-col">
-              <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
-                <h3 className="text-lg font-bold">{movie.title}</h3>
-              </SkeletonWrapper>
-              <SkeletonWrapper loading={!imageLoaded} height={20} width="60%">
-                <p>Release Year: {movie.release_year}</p>
-              </SkeletonWrapper>
-              <SkeletonWrapper loading={!imageLoaded} height={40}>
-                <button className="mt-2 bg-blue-500 text-white p-2 rounded">
-                  Watch Now
-                </button>
-              </SkeletonWrapper>
+            <div className="absolute inset-0 bottom-0 left-0 bg-gradient-to-t from-black via-black/80 to-black/10"></div>
+            <div className="absolute bottom-0 w-full">
+              <div className="px-6 py-2 flex flex-col">
+                <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
+                  <h3 className="text-lg font-bold">{movie.title}</h3>
+                </SkeletonWrapper>
+                <SkeletonWrapper loading={!imageLoaded} height={20} width="60%">
+                  <p>Năm phát hành: {movie.release_year}</p>
+                </SkeletonWrapper>
+                <div className="flex items-center justify-between space-x-2">
+                  <SkeletonWrapper loading={!imageLoaded} height={40}>
+                    <button className="mt-2 bg-blue-500 text-white p-2 rounded flex-1">
+                      Xem ngay
+                    </button>
+                  </SkeletonWrapper>
+                  <SkeletonWrapper loading={!imageLoaded} height={40}>
+                    <button className="mt-2 bg-transparent text-white p-2 rounded flex-1 border-[1px] border-gray-500">
+                      Thích
+                    </button>
+                  </SkeletonWrapper>
+                  <SkeletonWrapper loading={!imageLoaded} height={40}>
+                    <button className="mt-2 bg-transparent text-white p-2 rounded flex-1 border-[1px] border-gray-500">
+                      Chi tiết
+                    </button>
+                  </SkeletonWrapper>
+                </div>
+                <div className="my-3">
+                  <ul className="flex items-center space-x-2">
+                    <SkeletonWrapper loading={!imageLoaded} height={40}>
+                      {movie.movieTypes.map((movieType) => (
+                        <li className="text-white" key={movieType.id}>
+                          {movieType.name}
+                        </li>
+                      ))}
+                    </SkeletonWrapper>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         )}

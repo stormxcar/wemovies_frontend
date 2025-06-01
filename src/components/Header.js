@@ -2,7 +2,11 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaCaretDown, FaTimes } from "react-icons/fa";
 import Banner from "./Banner";
-import { fetchCategories, fetchCountries } from "../services/api";
+import {
+  fetchCategories,
+  fetchCountries,
+  fetchMovieType,
+} from "../services/api";
 import { fetchJson } from "../services/api";
 
 function Header() {
@@ -12,6 +16,7 @@ function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
+  const [types, setTypes] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [showRegister, setShowRegister] = useState(false); // Trạng thái popup đăng ký
   const [registerForm, setRegisterForm] = useState({
@@ -54,6 +59,9 @@ function Header() {
     fetchCountries()
       .then(setCountries)
       .catch((error) => console.error("Error fetching countries:", error));
+    fetchMovieType()
+      .then(setTypes)
+      .catch((error) => console.error("Error fetching movie types:", error));
   }, []);
 
   useEffect(() => {
@@ -92,7 +100,7 @@ function Header() {
         } p-4 flex items-center justify-between text-white`}
         onClick={closeModal}
       >
-        <div className="flex items-center space-x-4 w-full md:w-[70%]">
+        <div className="flex items-center space-x-4 w-full">
           <a
             href="/"
             className="text-2xl font-bold hover:text-blue-300 transition-colors"
@@ -158,9 +166,7 @@ function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveModal((prev) =>
-                    prev === "categories" ? null : "categories"
-                  );
+                  setActiveModal((prev) => (prev === "types" ? null : "types"));
                 }}
                 className="flex items-center hover:text-blue-300 transition-colors"
                 aria-label="Thể loại"
@@ -168,21 +174,21 @@ function Header() {
                 Thể loại
                 <FaCaretDown className="ml-1 text-lg" />
               </button>
-              {activeModal === "categories" && (
+              {activeModal === "types" && (
                 <ul
                   className="absolute top-10 left-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {Array.isArray(categories) &&
-                    categories.length > 0 &&
-                    categories.map((item) => (
+                  {Array.isArray(types) &&
+                    types.length > 0 &&
+                    types.map((item) => (
                       <li
                         key={item.name}
                         className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
                         onClick={async () => {
                           try {
                             const movies = await fetchJson(
-                              `/api/movies/category/id/${item.id}`
+                              `/api/movies/types/id/${item.id}`
                             );
                             navigate(`/movies/${item.name}`, {
                               state: {
@@ -206,6 +212,41 @@ function Header() {
                     ))}
                 </ul>
               )}
+            </div>
+
+            <div className="relative">
+              <div className="flex items-center gap-1">
+                {Array.isArray(categories) &&
+                  categories.length > 0 &&
+                  categories.map((item) => (
+                    <button
+                      key={item.name}
+                      className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
+                      onClick={async () => {
+                        try {
+                          const movies = await fetchJson(
+                            `/api/movies/category/id/${item.id}`
+                          );
+                          navigate(`/movies/${item.name}`, {
+                            state: {
+                              movies: Array.isArray(movies.data)
+                                ? movies.data
+                                : [],
+                              title: item.name,
+                            },
+                          });
+                        } catch (error) {
+                          console.error(
+                            "Error fetching movies for category:",
+                            error
+                          );
+                        }
+                      }}
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+              </div>
             </div>
 
             <div className="relative">
@@ -272,7 +313,7 @@ function Header() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center w-[30%] justify-end">
           <a
             href="#"
             onClick={(e) => {
@@ -282,6 +323,7 @@ function Header() {
             }}
             className="hover:text-blue-300 transition-colors"
             aria-label="Đăng ký"
+            hidden
           >
             Đăng ký
           </a>
@@ -292,7 +334,7 @@ function Header() {
               e.stopPropagation();
               setShowLogin(true);
             }}
-            className="hover:text-blue-300 transition-colors"
+            className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
             aria-label="Đăng nhập"
           >
             Đăng nhập
@@ -321,11 +363,18 @@ function Header() {
               Tạo tài khoản mới
             </h2>
             <p className="text-gray-300 mb-6">
-              Nếu bạn đã có tài khoản, <a href="#" onClick={(e) => {
-                e.preventDefault();
-                setShowLogin(true);
-                setShowRegister(false);
-              }} className="text-blue-300">đăng nhập</a>
+              Nếu bạn đã có tài khoản,{" "}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowLogin(true);
+                  setShowRegister(false);
+                }}
+                className="text-blue-300"
+              >
+                đăng nhập
+              </a>
             </p>
             <form onSubmit={handleRegisterSubmit}>
               <input
@@ -395,14 +444,21 @@ function Header() {
             </button>
             <div className="mb-8">
               <h2 className="text-xl text-white font-semibold mb-2">
-                Đăng nhập
+                Đăng nhập ngay
               </h2>
               <p className="text-gray-300 mb-6">
-                Nếu bạn chưa có tài khoản, <a href="#" onClick={(e) => {
-                e.preventDefault();
-                setShowRegister(true);
-                setShowLogin(false);
-              }} className="text-blue-300">đăng ký ngay</a>
+                Nếu bạn chưa có tài khoản,{" "}
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowRegister(true);
+                    setShowLogin(false);
+                  }}
+                  className="text-blue-300"
+                >
+                  đăng ký ngay
+                </a>
               </p>
             </div>
 

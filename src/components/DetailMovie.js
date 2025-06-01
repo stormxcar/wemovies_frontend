@@ -4,6 +4,7 @@ import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
 import MovieList from "./MovieList";
 import { ClipLoader } from "react-spinners";
+import { FaChevronRight } from "react-icons/fa";
 
 const DetailMovie = () => {
   const { id } = useParams();
@@ -80,9 +81,9 @@ const DetailMovie = () => {
     // Add navigation logic here
   };
 
-  console.log('====================================');
-  console.log("relatedMovies:", relatedMovies);
-  console.log('====================================');
+  // console.log('====================================');
+  // console.log("relatedMovies:", relatedMovies);
+  // console.log('====================================');
 
   return (
     <div className="bg-gray-800 w-full flex-1">
@@ -144,23 +145,23 @@ const DetailMovie = () => {
       </div>
 
       <div className="my-12 mx-4 sm:mx-8 md:mx:12 lg:mx-16 mb-8">
-        <nav className="mb-8">
-          <Link to="/" className="text-white">
+        <nav className="mb-8 flex items-center space-x-2">
+          <Link to="/" className="text-white text-xl font-semibold">
             Movies
           </Link>{" "}
-          <span className="text-white mx-2">{">"}</span>
+          <span className="text-white mx-2">{<FaChevronRight/>}</span>
           {category && (
             <>
               <Link
                 to={`/movies/${category.name.toLowerCase()}`}
-                className="text-white"
+                className="text-white text-xl font-semibold"
               >
                 {category.name.toLowerCase()}
               </Link>{" "}
-              <span className="text-white mx-2">{">"}</span>
+              <span className="text-white mx-2">{<FaChevronRight/>}</span>
             </>
           )}
-          <span className="text-blue-500">{movieDetail.data.title}</span>
+          <span className="text-blue-500 text-xl font-semibold">{movieDetail.data.title}</span>
         </nav>
 
         <div className="flex justify-between">

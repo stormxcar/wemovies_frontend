@@ -64,57 +64,74 @@ function HorizontalMovies({
         )}
       </div>
 
-      <div
-        className="relative"
-        style={{ width: "100%", maxWidth: "1400px", margin: "0 auto" }}
-      >
-        <div className="relative">
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
-            <button className="review-swiper-button-prev text-black bg-white rounded-full p-2">
-              <FaChevronLeft size={20} />
-            </button>
+      <div className="relative overflow-visible">
+        <div
+          className="relative"
+          style={{ width: "100%", maxWidth: "1400px", margin: "0 auto" }}
+        >
+          <div className="relative">
+            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
+              <button className="review-swiper-button-prev text-black bg-white rounded-full p-2">
+                <FaChevronLeft size={20} />
+              </button>
+            </div>
+            <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
+              <button className="review-swiper-button-next text-black bg-white rounded-full p-2">
+                <FaChevronRight size={20} />
+              </button>
+            </div>
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={20}
+              slidesPerView={4}
+              navigation={{
+                nextEl: ".review-swiper-button-prev",
+                prevEl: ".review-swiper-button-next",
+              }}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              breakpoints={{
+                1024: { slidesPerView: 4 },
+                768: { slidesPerView: 3 },
+                480: { slidesPerView: 2 },
+                350: { slidesPerView: 2 },
+              }}
+              className="p-4 overflow-visible"
+            >
+              {validMovies.length === 0
+                ? Array(4)
+                    .fill()
+                    .map((_, index) => (
+                      <SwiperSlide key={index}>
+                        <SkeletonWrapper
+                          loading={true}
+                          height={320}
+                          width={180}
+                        >
+                          <div className="w-45 h-80 rounded-lg skeleton-animation" />
+                        </SkeletonWrapper>
+                      </SwiperSlide>
+                    ))
+                : validMovies.map(
+                    ({ id, thumb_url, title, release_year, movieTypes }) => (
+                      <SwiperSlide
+                        key={id}
+                        onClick={() => handleClickToDetail(id)}
+                      >
+                        <CardMovie
+                          movie={{
+                            id,
+                            thumb_url,
+                            title,
+                            release_year,
+                            movieTypes,
+                          }}
+                          onMovieClick={onMovieClick}
+                        />
+                      </SwiperSlide>
+                    )
+                  )}
+            </Swiper>
           </div>
-          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
-            <button className="review-swiper-button-next text-black bg-white rounded-full p-2">
-              <FaChevronRight size={20} />
-            </button>
-          </div>
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={20}
-            slidesPerView={4}
-            navigation={{
-              nextEl: ".review-swiper-button-prev",
-              prevEl: ".review-swiper-button-next",
-            }}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            breakpoints={{
-              1024: { slidesPerView: 4 },
-              768: { slidesPerView: 3 },
-              480: { slidesPerView: 2 },
-              350: { slidesPerView: 2 },
-            }}
-            className="p-4 overflow-visible"
-          >
-            {validMovies.length === 0
-              ? Array(4)
-                  .fill()
-                  .map((_, index) => (
-                    <SwiperSlide key={index}>
-                      <SkeletonWrapper loading={true} height={320} width={180}>
-                        <div className="w-45 h-80 rounded-lg skeleton-animation" />
-                      </SkeletonWrapper>
-                    </SwiperSlide>
-                  ))
-              : validMovies.map(({ id, thumb_url, title, release_year }) => (
-                  <SwiperSlide key={id} onClick={() => handleClickToDetail(id)}>
-                    <CardMovie
-                      movie={{ id, thumb_url, title, release_year }}
-                      onMovieClick={onMovieClick}
-                    />
-                  </SwiperSlide>
-                ))}
-          </Swiper>
         </div>
       </div>
     </div>
