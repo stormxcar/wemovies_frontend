@@ -30,7 +30,7 @@ function GridMovies({ title, movies = [], moviesPerPage, loading = false }) {
       return setTimeout(() => {
         setImageLoadedMap((prev) => {
           if (!prev[movie.id]) {
-            console.log(`Timeout: Forcing image load for movie ${movie.id}`);
+            // console.log(`Timeout: Forcing image load for movie ${movie.id}`);
             return { ...prev, [movie.id]: true };
           }
           return prev;
@@ -72,7 +72,7 @@ function GridMovies({ title, movies = [], moviesPerPage, loading = false }) {
   const handleImageLoad = (movieId) => {
     setImageLoadedMap((prev) => {
       const newMap = { ...prev, [movieId]: true };
-      console.log(`Image loaded for movie ${movieId}:`, newMap);
+      // console.log(`Image loaded for movie ${movieId}:`, newMap);
       return newMap;
     });
   };
@@ -116,10 +116,10 @@ function GridMovies({ title, movies = [], moviesPerPage, loading = false }) {
           : currentMovies.map((movie) => (
               <div
                 key={movie.id}
-                className="w-30 h-64 group cursor-pointer overflow-hidden"
+                className="w-30 h-80 group cursor-pointer overflow-hidden"
                 onClick={() => handleClickToDetail(movie.id)}
               >
-                <div className="overflow-visible h-[70%] group-hover:overflow-visible">
+                <div className="overflow-visible h-[80%] group-hover:overflow-visible">
                   <SkeletonWrapper
                     loading={imageLoadedMap[movie.id] === undefined || !imageLoadedMap[movie.id]}
                     height={256}
@@ -128,7 +128,7 @@ function GridMovies({ title, movies = [], moviesPerPage, loading = false }) {
                     <img
                       src={movie.thumb_url}
                       alt={movie.title}
-                      className="rounded mb-2 w-full h-full flex-1 object-cover transition-transform group-hover:scale-105"
+                      className="rounded-xl mb-2 w-full h-full flex-1 object-cover transition-transform group-hover:scale-105"
                       style={{ objectPosition: "top" }}
                       onLoad={() => handleImageLoad(movie.id)}
                       onError={() => handleImageLoad(movie.id)}

@@ -149,7 +149,7 @@ const DetailMovie = () => {
           <Link to="/" className="text-white text-xl font-semibold">
             Movies
           </Link>{" "}
-          <span className="text-white mx-2">{<FaChevronRight/>}</span>
+          <span className="text-white mx-2">{<FaChevronRight />}</span>
           {category && (
             <>
               <Link
@@ -158,10 +158,12 @@ const DetailMovie = () => {
               >
                 {category.name.toLowerCase()}
               </Link>{" "}
-              <span className="text-white mx-2">{<FaChevronRight/>}</span>
+              <span className="text-white mx-2">{<FaChevronRight />}</span>
             </>
           )}
-          <span className="text-blue-500 text-xl font-semibold">{movieDetail.data.title}</span>
+          <span className="text-blue-500 text-xl font-semibold">
+            {movieDetail.data.title}
+          </span>
         </nav>
 
         <div className="flex justify-between">

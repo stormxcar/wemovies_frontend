@@ -21,7 +21,7 @@ function Banner() {
     setLoading(true); // Bắt đầu loading khi fetch
     fetchMovies()
       .then((movies) => {
-        console.log("Fetched movies:", movies); // Debug dữ liệu
+        // console.log("Fetched movies:", movies); // Debug dữ liệu
         const shuffled = movies.sort(() => 0.5 - Math.random());
         setMovies(shuffled.slice(0, 5));
       })

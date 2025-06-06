@@ -15,6 +15,7 @@
     "react": "^19.0.0",
     "react-ckeditor-component": "^1.1.0",
     "react-dom": "^19.0.0",
+    "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
     "react-loading-skeleton": "^3.5.0",
     "react-paginate": "^8.3.0",

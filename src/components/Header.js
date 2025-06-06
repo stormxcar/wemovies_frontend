@@ -1,13 +1,17 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSearch, FaCaretDown, FaTimes } from "react-icons/fa";
+import { FaSearch, FaCaretDown, FaTimes, FaUser } from "react-icons/fa";
+import { toast } from "react-toastify";
 import Banner from "./Banner";
+import RegisterForm from "../components/auth/RegisterForm";
+import VerifyOtpForm from "../components/auth/VerifyOtpForm";
+import LoginForm from "../components/auth/LoginForm";
 import {
   fetchCategories,
   fetchCountries,
   fetchMovieType,
+  fetchJson,
 } from "../services/api";
-import { fetchJson } from "../services/api";
 
 function Header() {
   const [query, setQuery] = useState("");
@@ -18,17 +22,53 @@ function Header() {
   const [countries, setCountries] = useState([]);
   const [types, setTypes] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
-  const [showRegister, setShowRegister] = useState(false); // Trạng thái popup đăng ký
-  const [registerForm, setRegisterForm] = useState({
-    displayName: "",
-    email: "",
-    password: "",
-  }); // Form đăng ký
-  const [showLogin, setShowLogin] = useState(false); // Trạng thái popup đăng nhập
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" }); // Form đăng nhập
+  const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showVerifyOtp, setShowVerifyOtp] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [user, setUser] = useState(null); // State lưu thông tin người dùng
+  const [showUserModal, setShowUserModal] = useState(false); // State cho modal người dùng
+  const [favorites, setFavorites] = useState([]); // State cho danh sách phim yêu thích
 
   const navigate = useNavigate();
 
+  // Kiểm tra trạng thái đăng nhập khi component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetchJson("/api/auth/verifyUser", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+        });
+        if (response?.displayName) {
+          setUser({
+            displayName: response.displayName,
+            avatarUrl: response.avatarUrl || "https://via.placeholder.com/40", // Avatar mặc định
+            role: response.role || response.data?.role?.roleName,
+          });
+          // Lấy danh sách phim yêu thích
+          // const favoritesResponse = await fetchJson("/api/user/favorites", {
+          //   method: "GET",
+          //   headers: {
+          //     "Content-Type": "application/json",
+          //     Accept: "application/json",
+          //   },
+          //   credentials: "include",
+          // });
+          // setFavorites(Array.isArray(favoritesResponse.data) ? favoritesResponse.data : []);
+        }
+      } catch (error) {
+        console.log("Chưa đăng nhập");
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // Handle search
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
     setLoading(true);
@@ -36,12 +76,10 @@ function Header() {
       const response = await fetchJson(
         `/api/movies/search?keyword=${encodeURIComponent(query)}`
       );
-      if (!response.ok) throw new Error(response.statusText);
-      const textResponse = await response.text();
-      const data = textResponse ? JSON.parse(textResponse) : [];
+      const data = Array.isArray(response) ? response : [];
       navigate("/search", { state: { movies: data } });
     } catch (error) {
-      console.error("Error during fetch:", error);
+      toast.error("Lỗi khi tìm kiếm phim: " + error.message);
     } finally {
       setLoading(false);
       setSearchIcon(false);
@@ -52,44 +90,95 @@ function Header() {
     if (event.key === "Enter") handleSearch();
   };
 
+  // Fetch categories, countries, types
   useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch((error) => console.error("Error fetching categories:", error));
-    fetchCountries()
-      .then(setCountries)
-      .catch((error) => console.error("Error fetching countries:", error));
-    fetchMovieType()
-      .then(setTypes)
-      .catch((error) => console.error("Error fetching movie types:", error));
+    Promise.all([
+      fetchCategories().then(setCategories),
+      fetchCountries().then(setCountries),
+      fetchMovieType().then(setTypes),
+    ]).catch((error) => toast.error("Lỗi khi tải dữ liệu: " + error.message));
+
+    // console.log('====================================');
+    // console.log("Categories:", categories);
+    // console.log("Countries:", countries);
+    // console.log("Types:", types);
+    // console.log('====================================');
   }, []);
 
+  // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close modals
   const closeModal = () => {
     setActiveModal(null);
     setShowRegister(false);
     setShowLogin(false);
+    setShowVerifyOtp(false);
+    setShowUserModal(false);
   };
 
-  const handleRegisterSubmit = (e) => {
-    e.preventDefault();
-    console.log("Register:", registerForm);
-    // Thêm logic đăng ký (gọi API) ở đây
+  // Handle register success
+  const handleRegisterSuccess = (email) => {
+    console.log("Header nhận được email từ RegisterForm:", email);
+    setVerifyEmail(email);
     setShowRegister(false);
+    setShowVerifyOtp(true);
+    console.log("Đã set showVerifyOtp:", true, "verifyEmail:", email);
   };
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login:", loginForm);
-    // Thêm logic đăng nhập (gọi API) ở đây
+  // Handle OTP verification success
+  const handleVerifyOtpSuccess = () => {
+    setShowVerifyOtp(false);
+    // setShowLogin(true);
+  };
+
+  // Handle login success
+  const handleLoginSuccess = (userData) => {
+    setUser({
+      displayName: userData.displayName,
+      avatarUrl: userData.avatarUrl || "https://via.placeholder.com/40",
+      role: userData.role,
+    });
     setShowLogin(false);
+    // Lấy danh sách phim yêu thích
+    fetchJson("/api/user/favorites", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      credentials: "include",
+    })
+      .then((response) => {
+        setFavorites(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy phim yêu thích:", error);
+      });
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await fetchJson("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+      setUser(null);
+      setFavorites([]);
+      setShowUserModal(false);
+      toast.success("Đăng xuất thành công!");
+    } catch (error) {
+      toast.error("Lỗi khi đăng xuất: " + error.message);
+    }
   };
 
   return (
@@ -302,194 +391,126 @@ function Header() {
                 </ul>
               )}
             </div>
-
-            {/* <a
-              href="/dien-vien"
-              className="hover:text-blue-300 transition-colors"
-              aria-label="Diễn viên"
-            >
-              Diễn viên
-            </a> */}
           </div>
         </div>
 
         <div className="flex items-center w-[30%] justify-end">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setShowRegister(true);
-            }}
-            className="hover:text-blue-300 transition-colors"
-            aria-label="Đăng ký"
-            hidden
-          >
-            Đăng ký
-          </a>
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setShowLogin(true);
-            }}
-            className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
-            aria-label="Đăng nhập"
-          >
-            Đăng nhập
-          </a>
-        </div>
-      </div>
-
-      {window.location.pathname === "/" && <Banner />}
-
-      {showRegister && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-2 right-2 text-white hover:text-gray-300"
-              onClick={closeModal}
-            >
-              <FaTimes />
-            </button>
-            <h2 className="text-xl text-white font-semibold mb-4">
-              Tạo tài khoản mới
-            </h2>
-            <p className="text-gray-300 mb-6">
-              Nếu bạn đã có tài khoản,{" "}
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowUserModal(!showUserModal);
+                }}
+                className="flex items-center space-x-2"
+              >
+                <img
+                  src={user.avatarUrl}
+                  alt="Avatar"
+                  className="w-10 h-10 rounded-full border-2 border-blue-300"
+                />
+                <span className="text-white">{user.displayName}</span>
+              </button>
+              {showUserModal && (
+                <div
+                  className="absolute top-12 right-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-64 z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold">
+                      {user.displayName}
+                    </h3>
+                    <p className="text-sm text-gray-300">{user.role}</p>
+                  </div>
+                  <div className="mb-4">
+                    <h4 className="text-md font-semibold">Phim yêu thích</h4>
+                    {favorites.length > 0 ? (
+                      <ul className="max-h-40 overflow-y-auto">
+                        {favorites.map((movie) => (
+                          <li
+                            key={movie.id}
+                            className="text-sm py-1 hover:text-blue-300 cursor-pointer"
+                            onClick={() => navigate(`/movies/${movie.id}`)}
+                          >
+                            {movie.title}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-400">
+                        Chưa có phim yêu thích
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowRegister(true);
+                }}
+                className="hover:text-blue-300 transition-colors"
+                aria-label="Đăng ký"
+              >
+                Đăng ký
+              </a> */}
               <a
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   setShowLogin(true);
-                  setShowRegister(false);
                 }}
-                className="text-blue-300"
-              >
-                đăng nhập
-              </a>
-            </p>
-            <form onSubmit={handleRegisterSubmit}>
-              <input
-                type="text"
-                value={registerForm.displayName}
-                onChange={(e) =>
-                  setRegisterForm({
-                    ...registerForm,
-                    displayName: e.target.value,
-                  })
-                }
-                placeholder="Tên hiển thị"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <input
-                type="email"
-                value={registerForm.email}
-                onChange={(e) =>
-                  setRegisterForm({ ...registerForm, email: e.target.value })
-                }
-                placeholder="Email"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <input
-                type="password"
-                value={registerForm.password}
-                onChange={(e) =>
-                  setRegisterForm({ ...registerForm, password: e.target.value })
-                }
-                placeholder="Mật khẩu"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <input
-                type="confirmPassword"
-                value={registerForm.confirmPassword}
-                onChange={(e) =>
-                  setRegisterForm({ ...registerForm, password: e.target.value })
-                }
-                placeholder="Nhập lại mật khẩu"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <button
-                type="submit"
-                className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
-              >
-                Đăng ký
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showLogin && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-2 right-2 text-white hover:text-gray-300"
-              onClick={closeModal}
-            >
-              <FaTimes />
-            </button>
-            <div className="mb-8">
-              <h2 className="text-xl text-white font-semibold mb-2">
-                Đăng nhập ngay
-              </h2>
-              <p className="text-gray-300 mb-6">
-                Nếu bạn chưa có tài khoản,{" "}
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowRegister(true);
-                    setShowLogin(false);
-                  }}
-                  className="text-blue-300"
-                >
-                  đăng ký ngay
-                </a>
-              </p>
-            </div>
-
-            <form onSubmit={handleLoginSubmit}>
-              <input
-                type="email"
-                value={loginForm.email}
-                onChange={(e) =>
-                  setLoginForm({ ...loginForm, email: e.target.value })
-                }
-                placeholder="Email"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 border-[1px] border-gray-700"
-              />
-              <input
-                type="password"
-                value={loginForm.password}
-                onChange={(e) =>
-                  setLoginForm({ ...loginForm, password: e.target.value })
-                }
-                placeholder="Mật khẩu"
-                className="w-full px-4 py-2 mb-4 bg-gray-900/10 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 border-[1px] border-gray-700"
-              />
-              <button
-                type="submit"
-                className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+                className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
+                aria-label="Đăng nhập"
               >
                 Đăng nhập
-              </button>
-            </form>
-          </div>
+              </a>
+            </>
+          )}
         </div>
+      </div>
+
+      {window.location.pathname === "/" && <Banner />}
+      {showRegister && (
+        <RegisterForm
+          onClose={closeModal}
+          onSwitchToLogin={() => {
+            setShowRegister(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+      {/* {showVerifyOtp && (
+        <>
+          {console.log("Render VerifyOtpForm với email:", verifyEmail)}
+          <VerifyOtpForm
+            email={verifyEmail}
+            onClose={closeModal}
+            onVerifySuccess={handleVerifyOtpSuccess}
+          />
+        </>
+      )} */}
+      {showLogin && (
+        <LoginForm
+          onClose={closeModal}
+          onSwitchToRegister={() => {
+            setShowLogin(false);
+            setShowRegister(true);
+          }}
+          onLoginSuccess={handleLoginSuccess}
+        />
       )}
     </header>
   );

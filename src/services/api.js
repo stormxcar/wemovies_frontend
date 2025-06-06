@@ -10,16 +10,42 @@ export const tryRequest = async (
   baseUrl,
   endpoint,
   options = {},
-  retries = 2, // Giảm từ 3 xuống 2
+  retries = 2,
   retryDelay = 1000
 ) => {
   const fullUrl = `${baseUrl}${endpoint}`;
+  const method = (options.method || "GET").toLowerCase();
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await axios.get(fullUrl, {
-        ...options,
-        timeout: 5000, // Giảm timeout từ 10000ms xuống 5000ms
-      });
+      let response;
+      if (method === "get") {
+        response = await axios.get(fullUrl, {
+          ...options,
+          withCredentials: true,
+          timeout: 5000,
+        });
+      } else if (method === "post") {
+        response = await axios.post(fullUrl, options.body, {
+          ...options,
+          withCredentials: true,
+          timeout: 5000,
+        });
+      } else if (method === "put") {
+        response = await axios.put(fullUrl, options.body, {
+          ...options,
+          withCredentials: true,
+          timeout: 5000,
+        });
+      } else if (method === "delete") {
+        response = await axios.delete(fullUrl, {
+          ...options,
+          withCredentials: true,
+          timeout: 5000,
+        });
+      } else {
+        // fallback
+        response = await axios({ url: fullUrl, ...options, timeout: 5000 });
+      }
       if (!response.data) {
         throw new Error(`No data returned from ${fullUrl}`);
       }
@@ -32,6 +58,7 @@ export const tryRequest = async (
       await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
+  return { success: false, error: new Error(`Failed after ${retries} attempts`) };
 };
 
 export const fetchJson = async (
@@ -63,7 +90,7 @@ export const fetchJson = async (
     console.error(`All attempts failed for both URLs`);
     throw result.error;
   }
-  return result.data;
+  return result.data !== undefined ? result.data : result;
 };
 
 // Các hàm fetch khác giữ nguyên
@@ -85,6 +112,10 @@ export const fetchCategories = async () => {
   try {
     const data = await fetchJson("/api/categories");
     return Array.isArray(data.data) ? data.data : [];
+
+    console.log('====================================');
+    console.log("Fetched categories:", data.data);
+    console.log('====================================');
   } catch (error) {
     console.error("Fetch categories failed:", error);
     return [];

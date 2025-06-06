@@ -11,9 +11,9 @@ function CardMovie({ movie }) {
     img.onload = () => setImageLoaded(true);
   }, [movie.thumb_url]);
 
-  console.log("====================================");
-  console.log("movie", movie);
-  console.log("====================================");
+  // console.log("====================================");
+  // console.log("movie", movie);
+  // console.log("====================================");
 
   return (
     <div className="relative rounded-lg w-45 h-80 cursor-pointer">
