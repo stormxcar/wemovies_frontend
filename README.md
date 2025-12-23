@@ -1,70 +1,73 @@
-# Getting Started with Create React App
+# WeMovies - Movie Streaming Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+WeMovies là một nền tảng xem phim trực tuyến hiện đại, cung cấp trải nghiệm giải trí tuyệt vời với giao diện thân thiện, kho phim phong phú và tốc độ tải nhanh.
 
-## Available Scripts
+## 🚀 Tính năng chính
 
-In the project directory, you can run:
+### 👤 Người dùng
 
-### `npm start`
+- **Xem phim**: Duyệt và xem hàng nghìn bộ phim với chất lượng cao
+- **Tìm kiếm**: Tìm phim theo tên, thể loại, quốc gia
+- **Danh mục phim**: Phân loại phim theo thể loại, quốc gia, năm phát hành
+- **Responsive**: Hoạt động mượt mà trên mọi thiết bị
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 👨‍💼 Admin Panel
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Quản lý phim**: Thêm, sửa, xóa phim với thông tin chi tiết
+- **Quản lý danh mục**: CRUD operations cho categories, countries, types
+- **Quản lý người dùng**: Xem và quản lý tài khoản người dùng
 
-### `npm test`
+## 🛠️ Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 📦 Cài đặt và chạy
 
-### `npm run build`
+### Yêu cầu hệ thống
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Node.js >= 18
+- npm hoặc yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Cài đặt dependencies
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm install
+```
 
-### `npm run eject`
+### Cấu hình environment
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 📁 Cấu trúc dự án
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+├── components/          # UI components
+│   ├── auth/           # Authentication components
+│   ├── Banner.jsx      # Hero banner
+│   ├── CardMovie.jsx   # Movie card
+│   └── ...
+├── admin/              # Admin panel
+│   ├── api/           # Admin API calls
+│   ├── components/    # Admin components
+│   └── pages/         # Admin pages
+├── services/          # API services
+├── utils/             # Utilities
+├── App.jsx            # Main app component
+└── main.jsx           # Entry point
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔧 Scripts
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- `npm run dev` - Chạy development server
+- `npm run build` - Build production
+- `npm run preview` - Preview production build
+- `npm run lint` - Chạy ESLint
 
-## Learn More
+## 🤝 Đóng góp
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Fork dự án
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📄 License
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Distributed under the MIT License. See `LICENSE` for more information.
