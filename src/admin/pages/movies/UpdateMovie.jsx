@@ -4,10 +4,12 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { fetchJson } from "../../api/fetch.api";
-import { getTypes } from "../../api/Type.api";
-import { getCategories } from "../../api/Category.api";
-import { getCountries } from "../../api/Country.api";
+import {
+  fetchJson,
+  fetchMovieType as getTypes,
+  fetchCategories as getCategories,
+  fetchCountries as getCountries,
+} from "../../../services/api";
 
 // Reducer for formData state management
 const formReducer = (state, action) => {

@@ -4,10 +4,12 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { getTypes } from "../../api/Type.api";
-import { getCategories } from "../../api/Category.api";
-import { getCountries } from "../../api/Country.api";
-import { fetchJson } from "../../api/fetch.api";
+import {
+  fetchMovieType as getTypes,
+  fetchCategories as getCategories,
+  fetchCountries as getCountries,
+  fetchJson,
+} from "../../../services/api";
 
 const AddMovie = () => {
   const navigate = useNavigate();

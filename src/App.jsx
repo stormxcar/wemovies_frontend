@@ -12,14 +12,15 @@ import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
+import { LoadingProvider, useLoading } from "./utils/LoadingContext";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import PageLoader from "./components/loading/PageLoader";
+import "./components/loading/animations.css";
 
 // Lazy load components
 const ShowMovies = lazy(() => import("./components/ShowMovies.jsx"));
 const DetailMovie = lazy(() => import("./components/DetailMovie.jsx"));
 const CategoryMovies = lazy(() => import("./components/CategoryMovies.jsx"));
-const Header = lazy(() => import("./components/Header.jsx"));
-const Footer = lazy(() => import("./components/Footer.jsx"));
 const Search = lazy(() => import("./components/Search.jsx"));
 const EpisodeDetail = lazy(() => import("./components/EpisodeDetail.jsx"));
 const MovieList = lazy(() => import("./components/MovieList.jsx"));
@@ -27,7 +28,6 @@ const Watch = lazy(() => import("./components/Watch.jsx"));
 const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
 
 // Admin components
-const Dashboard = lazy(() => import("./admin/pages/Dashboard"));
 const Home = lazy(() => import("./admin/pages/Home"));
 const List = lazy(() => import("./admin/components/List"));
 const Add = lazy(() => import("./admin/components/Add"));
@@ -44,94 +44,29 @@ const AddMovie = lazy(() => import("./admin/pages/movies/AddMovie"));
 const UpdateMovie = lazy(() => import("./admin/pages/movies/UpdateMovie"));
 
 // API functions
-import { getCategories } from "./admin/api/Category.api";
-import { getCountries } from "./admin/api/Country.api";
-import { getMovies } from "./admin/api/Movie.api";
-import { getTypes } from "./admin/api/Type.api";
-import { getUsers } from "./admin/api/User.api";
+import {
+  fetchCategories as getCategories,
+  fetchCountries as getCountries,
+  fetchMovies as getMovies,
+  fetchMovieType as getTypes,
+  fetchUsers as getUsers,
+} from "./services/api";
 
 import ProtectedRoute from "./ProtectRoute";
+import { UserLayout, AdminLayout } from "./layout";
 
 // Loading component for lazy loading
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-  </div>
-);
+const LazyLoadingFallback = () => {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <PageLoader message="Đang tải component..." />
+    </div>
+  );
+};
 
-const UserLayout = () => (
-  <div className="flex flex-col items-center justify-center w-full min-h-screen">
-    <Header />
-    <Outlet />
-    <Footer />
-  </div>
-);
-
-const AdminLayout = ({
-  movies,
-  setMovies,
-  categories,
-  setCategories,
-  countries,
-  setCountries,
-  types,
-  setTypes,
-  users,
-  setUsers,
-  user,
-  handleEditMovie,
-  handleDeleteMovie,
-  handleAddMovie,
-  handleUpdateMovie,
-  handleEditCategory,
-  handleDeleteCategory,
-  handleAddCategory,
-  handleUpdateCategory,
-  handleEditCountry,
-  handleDeleteCountry,
-  handleAddCountry,
-  handleUpdateCountry,
-  handleEditType,
-  handleAddType,
-  handleEditUser,
-  handleDeleteUser,
-  handleAddUser,
-  handleUpdateUser,
-}) => (
-  <Dashboard
-    movies={movies}
-    setMovies={setMovies}
-    categories={categories}
-    setCategories={setCategories}
-    countries={countries}
-    setCountries={setCountries}
-    types={types}
-    setTypes={setTypes}
-    users={users}
-    setUsers={setUsers}
-    user={user}
-    handleEditMovie={handleEditMovie}
-    handleDeleteMovie={handleDeleteMovie}
-    handleAddMovie={handleAddMovie}
-    handleUpdateMovie={handleUpdateMovie}
-    handleEditCategory={handleEditCategory}
-    handleDeleteCategory={handleDeleteCategory}
-    handleAddCategory={handleAddCategory}
-    handleUpdateCategory={handleUpdateCategory}
-    handleEditCountry={handleEditCountry}
-    handleDeleteCountry={handleDeleteCountry}
-    handleAddCountry={handleAddCountry}
-    handleUpdateCountry={handleUpdateCountry}
-    handleEditType={handleEditType}
-    handleAddType={handleAddType}
-    handleEditUser={handleEditUser}
-    handleDeleteUser={handleDeleteUser}
-    handleAddUser={handleAddUser}
-    handleUpdateUser={handleUpdateUser}
-  />
-);
-
-const MainApp = () => {
+const AppContent = () => {
+  const { pageLoading, pageLoadingMessage, showPageLoading, hidePageLoading } =
+    useLoading();
   const [movies, setMovies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -288,12 +223,24 @@ const MainApp = () => {
     };
   }, []);
 
+  // Handle page loading on route changes
+  useEffect(() => {
+    showPageLoading("Đang chuyển trang...");
+    const timer = setTimeout(() => {
+      hidePageLoading();
+    }, 300); // Quick transition for better UX
+
+    return () => clearTimeout(timer);
+  }, [location.pathname, showPageLoading, hidePageLoading]);
+
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
         if (location.pathname.startsWith("/admin/")) {
+          showPageLoading("Đang tải dữ liệu...");
+
           if (location.pathname === "/admin/categories") {
             const categoriesData = await getCategories();
             if (isMounted)
@@ -315,9 +262,12 @@ const MainApp = () => {
             const usersData = await getUsers();
             if (isMounted) setUsers(Array.isArray(usersData) ? usersData : []);
           }
+
+          hidePageLoading();
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        hidePageLoading();
       }
     };
 
@@ -326,204 +276,183 @@ const MainApp = () => {
     return () => {
       isMounted = false;
     };
-  }, [location.pathname]);
+  }, [location.pathname, showPageLoading, hidePageLoading]);
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ToastContainer />
-      <Routes>
-        {/* User Routes */}
-        {/* <Route path="/auth" element={<AuthPage />} /> */}
-        <Route element={<UserLayout />}>
-          <Route path="/" element={<ShowMovies />} />
-          <Route path="/category/:categoryName" element={<CategoryMovies />} />
-          <Route path="/country/:countryName" element={<CategoryMovies />} />
-          <Route path="/movie/:id" element={<DetailMovie />} />
-          <Route
-            path="/movie/:id/episode/:episodeIndex"
-            element={<EpisodeDetail />}
-          />
-          <Route path="/movies/:categoryName" element={<MovieList />} />
-          <Route path="/movies/:countryName" element={<MovieList />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/allmovies" element={<MovieList />} />
-          <Route path="/allmovies/:categoryName" element={<MovieList />} />
-          <Route path="/movie/watch/:id" element={<Watch />} />
-          <Route path="/movie/:id/episode/:episodeIndex" element={<Watch />} />
-          <Route path="/moviepage" element={<MoviePage />} />
-        </Route>
+    <>
+      {pageLoading && <PageLoader message={pageLoadingMessage} />}
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Suspense fallback={<LazyLoadingFallback />}>
+        <Routes>
+          {/* User Routes */}
+          {/* <Route path="/auth" element={<AuthPage />} /> */}
+          <Route element={<UserLayout />}>
+            <Route path="/" element={<ShowMovies />} />
+            <Route
+              path="/category/:categoryName"
+              element={<CategoryMovies />}
+            />
+            <Route path="/country/:countryName" element={<CategoryMovies />} />
+            <Route path="/movie/:id" element={<DetailMovie />} />
+            <Route
+              path="/movie/:id/episode/:episodeIndex"
+              element={<EpisodeDetail />}
+            />
+            <Route path="/movies/:categoryName" element={<MovieList />} />
+            <Route path="/movies/:countryName" element={<MovieList />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/allmovies" element={<MovieList />} />
+            <Route path="/allmovies/:categoryName" element={<MovieList />} />
+            <Route path="/movie/watch/:id" element={<Watch />} />
+            <Route
+              path="/movie/:id/episode/:episodeIndex"
+              element={<Watch />}
+            />
+            <Route path="/moviepage" element={<MoviePage />} />
+          </Route>
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute>
-              <AdminLayout
-                movies={movies}
-                setMovies={setMovies}
-                categories={categories}
-                setCategories={setCategories}
-                countries={countries}
-                setCountries={setCountries}
-                types={types}
-                setTypes={setTypes}
-                users={users}
-                setUsers={setUsers}
-                user={user}
-                handleEditMovie={handleEditMovie}
-                handleDeleteMovie={handleDeleteMovie}
-                handleAddMovie={handleAddMovie}
-                handleUpdateMovie={handleUpdateMovie}
-                handleEditCategory={handleEditCategory}
-                handleDeleteCategory={handleDeleteCategory}
-                handleAddCategory={handleAddCategory}
-                handleUpdateCategory={handleUpdateCategory}
-                handleEditCountry={handleEditCountry}
-                handleDeleteCountry={handleDeleteCountry}
-                handleAddCountry={handleAddCountry}
-                handleUpdateCountry={handleUpdateCountry}
-                handleEditType={handleEditType}
-                handleAddType={handleAddType}
-                handleEditUser={handleEditUser}
-                handleDeleteUser={handleDeleteUser}
-                handleAddUser={handleAddUser}
-                handleUpdateUser={handleUpdateUser}
-              />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Home />} />
+          {/* Admin Routes */}
           <Route
-            path="movies"
+            path="/admin/*"
             element={
-              <List
-                title="Phim"
-                items={movies}
-                onEdit={handleEditMovie}
-                onDelete={handleDeleteMovie}
-                onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
-                searchFields={["title", "category", "country"]}
-                displayFields={movieDisplayFields}
-                keyField="id"
-              />
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
             }
-          />
-          <Route path="movies/add" element={<AddMovie />} />
-          <Route
-            path="movies/update"
-            element={
-              <UpdateMovie
-                title="Phim"
-                items={movies}
-                updateEndpoint={`/api/movies/update`}
-              />
-            }
-          />
-          <Route path="movies/:id" element={<MovieDetail />} />
-          <Route
-            path="categories"
-            element={
-              <List
-                title="Danh mục"
-                items={categories}
-                onEdit={handleEditCategory}
-                onDelete={handleDeleteCategory}
-                searchFields={["name"]}
-                displayFields={categoryDisplayFields}
-                keyField="id"
-              />
-            }
-          />
-          <Route path="categories/add" element={<AddCategory />} />
-          <Route
-            path="categories/update"
-            element={
-              <Update
-                title="Danh mục"
-                items={categories}
-                fields={categoryFields}
-                updateEndpoint={`${
-                  import.meta.env.VITE_API_URL
-                }/api/categories/update`}
-                onUpdate={handleUpdateCategory}
-              />
-            }
-          />
-          <Route
-            path="countries"
-            element={
-              <List
-                title="Quốc gia"
-                items={countries}
-                onEdit={handleEditCountry}
-                onDelete={handleDeleteCountry}
-                searchFields={["name"]}
-                displayFields={countryDisplayFields}
-                keyField="id"
-              />
-            }
-          />
-          <Route path="countries/add" element={<AddCountry />} />
-          <Route
-            path="countries/update"
-            element={
-              <Update
-                title="Quốc gia"
-                items={countries}
-                fields={countryFields}
-                updateEndpoint={`${
-                  import.meta.env.VITE_API_URL
-                }/api/countries/update`}
-                onUpdate={handleUpdateCountry}
-              />
-            }
-          />
-          <Route
-            path="types"
-            element={
-              <TypeList
-                types={types}
-                onEdit={handleEditType}
-                onAdd={handleAddType}
-              />
-            }
-          />
-          <Route path="types/add" element={<AddType />} />
-          <Route
-            path="users"
-            element={
-              <List
-                title="Người dùng"
-                items={users}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                searchFields={["username", "email"]}
-                displayFields={userDisplayFields}
-                keyField="id"
-              />
-            }
-          />
-          <Route
-            path="users/add"
-            element={<Add title="Người dùng" onAdd={handleAddUser} />}
-          />
-          <Route
-            path="users/update"
-            element={
-              <Update
-                title="Người dùng"
-                items={users}
-                onUpdate={handleUpdateUser}
-                updateEndpoint={`${
-                  import.meta.env.VITE_API_URL
-                }/api/users/update`}
-              />
-            }
-          />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </Suspense>
+          >
+            <Route index element={<Home />} />
+            <Route
+              path="movies"
+              element={
+                <List
+                  title="Phim"
+                  items={movies}
+                  onEdit={handleEditMovie}
+                  onDelete={handleDeleteMovie}
+                  onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
+                  searchFields={["title", "category", "country"]}
+                  displayFields={movieDisplayFields}
+                  keyField="id"
+                />
+              }
+            />
+            <Route path="movies/add" element={<AddMovie />} />
+            <Route
+              path="movies/update"
+              element={
+                <UpdateMovie
+                  title="Phim"
+                  items={movies}
+                  updateEndpoint={`/api/movies/update`}
+                />
+              }
+            />
+            <Route path="movies/:id" element={<MovieDetail />} />
+            <Route
+              path="categories"
+              element={
+                <List
+                  title="Danh mục"
+                  items={categories}
+                  onEdit={handleEditCategory}
+                  onDelete={handleDeleteCategory}
+                  searchFields={["name"]}
+                  displayFields={categoryDisplayFields}
+                  keyField="id"
+                />
+              }
+            />
+            <Route path="categories/add" element={<AddCategory />} />
+            <Route
+              path="categories/update"
+              element={
+                <Update
+                  title="Danh mục"
+                  items={categories}
+                  fields={categoryFields}
+                  updateEndpoint={`${
+                    import.meta.env.VITE_API_URL
+                  }/api/categories/update`}
+                  onUpdate={handleUpdateCategory}
+                />
+              }
+            />
+            <Route
+              path="countries"
+              element={
+                <List
+                  title="Quốc gia"
+                  items={countries}
+                  onEdit={handleEditCountry}
+                  onDelete={handleDeleteCountry}
+                  searchFields={["name"]}
+                  displayFields={countryDisplayFields}
+                  keyField="id"
+                />
+              }
+            />
+            <Route path="countries/add" element={<AddCountry />} />
+            <Route
+              path="countries/update"
+              element={
+                <Update
+                  title="Quốc gia"
+                  items={countries}
+                  fields={countryFields}
+                  updateEndpoint={`${
+                    import.meta.env.VITE_API_URL
+                  }/api/countries/update`}
+                  onUpdate={handleUpdateCountry}
+                />
+              }
+            />
+            <Route
+              path="types"
+              element={
+                <TypeList
+                  types={types}
+                  onEdit={handleEditType}
+                  onAdd={handleAddType}
+                />
+              }
+            />
+            <Route path="types/add" element={<AddType />} />
+            <Route
+              path="users"
+              element={
+                <List
+                  title="Người dùng"
+                  items={users}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  searchFields={["username", "email"]}
+                  displayFields={userDisplayFields}
+                  keyField="id"
+                />
+              }
+            />
+            <Route
+              path="users/add"
+              element={<Add title="Người dùng" onAdd={handleAddUser} />}
+            />
+            <Route
+              path="users/update"
+              element={
+                <Update
+                  title="Người dùng"
+                  items={users}
+                  onUpdate={handleUpdateUser}
+                  updateEndpoint={`${
+                    import.meta.env.VITE_API_URL
+                  }/api/users/update`}
+                />
+              }
+            />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
   );
 };
 
@@ -531,10 +460,12 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-          <MainApp />
-          <CookieConsentBanner />
-        </GoogleOAuthProvider>
+        <LoadingProvider>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+            <AppContent />
+            <CookieConsentBanner />
+          </GoogleOAuthProvider>
+        </LoadingProvider>
       </AuthProvider>
     </Router>
   );

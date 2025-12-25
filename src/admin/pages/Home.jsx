@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-import { getCategories } from "../api/Category.api";
-import { getMovies } from "../api/Movie.api";
-import { getUsers } from "../api/User.api";
+import {
+  fetchCategories as getCategories,
+  fetchMovies as getMovies,
+  fetchUsers as getUsers,
+} from "../../services/api";
 
 // Home Component
 const Home = () => {

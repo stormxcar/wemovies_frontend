@@ -1,52 +1,43 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 // Header Component
-const Header = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const verifyResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/auth/verifyUser`,
-          { withCredentials: true }
-        );
-        // console.log("Verify User Response:", verifyResponse.data);
-        setUser(verifyResponse.data);
-        // console.log("User state updated:", verifyResponse.data);
-      } catch (error) {
-        console.error(
-          "Error verifying user:",
-          error.response?.data || error.message
-        );
-        console.log("Error Response Headers:", error.response?.headers);
-        console.log("Request Headers:", error.response?.config.headers);
-      }
-    };
-
-    fetchUser();
-  }, []);
+const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
+  const { user, logout } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
-      setUser(null);
+      await logout();
       window.location.reload();
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   return (
     <header className="fixed top-0 w-full bg-gray-800 text-white p-4 flex justify-between items-center z-50">
-      <div className="text-xl font-bold">Movie Admin</div>
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-1 hover:bg-gray-700 rounded"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+        <div className="text-xl font-bold">Movie Admin</div>
+      </div>
       <div className="flex items-center space-x-4">
         <div className="relative">
           {/* <button className="focus:outline-none">
@@ -77,12 +68,14 @@ const Header = () => {
           >
             {user ? (
               <img
-                src={user.avatar || "https://via.placeholder.com/40"}
+                src={user.avatarUrl || "https://via.placeholder.com/40"}
                 alt="Avatar"
                 className="w-10 h-10 rounded-full border-2 border-white"
               />
             ) : (
-              <span>Loading...</span>
+              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center">
+                <span className="text-xs">?</span>
+              </div>
             )}
           </button>
           {isDropdownOpen && (
@@ -90,8 +83,8 @@ const Header = () => {
               <div className="px-4 py-2">
                 {user && (
                   <>
-                    <p className="font-bold">{user.username}</p>
-                    <p className="text-sm">{user.email}</p>
+                    <p className="font-bold">{user.displayName}</p>
+                    <p className="text-sm">{user.role?.roleName || 'User'}</p>
                   </>
                 )}
               </div>

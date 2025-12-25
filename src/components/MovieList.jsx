@@ -3,7 +3,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
-import { fetchJson } from "../admin/api/fetch.api";
+import { fetchJson } from "../services/api";
 import { fetchMovieType } from "../services/api";
 
 function MovieList({ movies = [], onMovieClick }) {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { fetchJson } from "./admin/api/fetch.api";
+import { fetchJson } from "./services/api";
 
 const RegisterForm = ({ setStep, setEmail }) => {
   const [formData, setFormData] = useState({

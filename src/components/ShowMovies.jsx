@@ -4,17 +4,26 @@ import GridMovies from "./GridMovies";
 import { fetchMovieByHot, fetchMovies } from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa";
+import { SkeletonMovieSlider, SkeletonBanner } from "./loading/SkeletonLoaders";
+import { useLoading } from "../utils/LoadingContext";
 
 const ShowMovies = () => {
   const navigate = useNavigate();
+  const { setLoading, isLoading } = useLoading();
   const [movieList, setMovieList] = useState([]);
   const [movieHot, setMovieHot] = useState([]);
+
+  const isLoadingMovies = isLoading("showMovies");
+  const isLoadingHot = isLoading("hotMovies");
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchAll = async () => {
       try {
+        setLoading("showMovies", true, "Đang tải danh sách phim...");
+        setLoading("hotMovies", true);
+
         const [movies, hot] = await Promise.all([
           fetchMovies(),
           fetchMovieByHot(),
@@ -30,6 +39,11 @@ const ShowMovies = () => {
           setMovieList([]);
           setMovieHot([]);
         }
+      } finally {
+        if (isMounted) {
+          setLoading("showMovies", false);
+          setLoading("hotMovies", false);
+        }
       }
     };
 
@@ -38,7 +52,7 @@ const ShowMovies = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [setLoading]);
 
   const handleMovieClick = (movieId) => {
     navigate(`/movie/${movieId}`);
@@ -56,33 +70,53 @@ const ShowMovies = () => {
         </span>
       </nav>
 
-      {/* <SkeletonWrapper loading={loading.hot} height={320}> */}
-      <HorizontalMovies
-        title="Phim hot"
-        movies={movieHot}
-        to="/allmovies"
-        onMovieClick={handleMovieClick}
-        categoryId={null}
-      />
-      {/* </SkeletonWrapper> */}
+      {/* Hot Movies Section */}
+      {isLoadingHot ? (
+        <SkeletonMovieSlider title="Phim hot" />
+      ) : (
+        <HorizontalMovies
+          title="Phim hot"
+          movies={movieHot}
+          to="/allmovies"
+          onMovieClick={handleMovieClick}
+          categoryId={null}
+        />
+      )}
 
-      {/* <SkeletonWrapper loading={loading.movies} height={320}> */}
-      <HorizontalMovies
-        title="Phim thịnh hành | đề xuất"
-        movies={movieList}
-        to="/allmovies"
-        onMovieClick={handleMovieClick}
-        categoryId={null}
-      />
-      {/* </SkeletonWrapper> */}
+      {/* Popular Movies Section */}
+      {isLoadingMovies ? (
+        <SkeletonMovieSlider title="Phim thịnh hành | đề xuất" />
+      ) : (
+        <HorizontalMovies
+          title="Phim thịnh hành | đề xuất"
+          movies={movieList}
+          to="/allmovies"
+          onMovieClick={handleMovieClick}
+          categoryId={null}
+        />
+      )}
 
-      {/* <SkeletonWrapper loading={loading.movies} height={600}> */}
-      <GridMovies
-        title="Phim mới | Phim lẻ"
-        movies={movieList}
-        moviesPerPage={6}
-      />
-      {/* </SkeletonWrapper> */}
+      {/* Grid Movies Section */}
+      {isLoadingMovies ? (
+        <div className="space-y-4">
+          <div className="h-6 bg-gray-700 rounded w-48"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-[2/3] bg-gray-700 rounded-lg mb-2"></div>
+                <div className="h-4 bg-gray-700 rounded mb-1"></div>
+                <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <GridMovies
+          title="Phim mới | Phim lẻ"
+          movies={movieList}
+          moviesPerPage={6}
+        />
+      )}
     </div>
   );
 };

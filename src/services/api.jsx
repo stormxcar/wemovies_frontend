@@ -260,6 +260,20 @@ export const fetchMoviesByName = async (name) => {
   }
 };
 
+export const fetchUsers = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetchJson("/api/user");
+    return Array.isArray(response) ? response : [];
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const logout = async () => {
   try {
     const response = await axios.post(

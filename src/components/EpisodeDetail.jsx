@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react"; // Import added
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { fetchJson } from "../admin/api/fetch.api";
+import { fetchJson } from "../services/api";
 import HorizontalMovies from "./HorizontalMovies";
 import { FaChevronLeft } from "react-icons/fa";
 
