@@ -84,7 +84,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 {user && (
                   <>
                     <p className="font-bold">{user.displayName}</p>
-                    <p className="text-sm">{user.role?.roleName || 'User'}</p>
+                    <p className="text-sm">{user.role?.roleName || "User"}</p>
                   </>
                 )}
               </div>

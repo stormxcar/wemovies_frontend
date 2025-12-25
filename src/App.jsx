@@ -26,6 +26,7 @@ const EpisodeDetail = lazy(() => import("./components/EpisodeDetail.jsx"));
 const MovieList = lazy(() => import("./components/MovieList.jsx"));
 const Watch = lazy(() => import("./components/Watch.jsx"));
 const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
+const Profile = lazy(() => import("./pages/Profile.jsx"));
 
 // Admin components
 const Home = lazy(() => import("./admin/pages/Home"));
@@ -309,6 +310,7 @@ const AppContent = () => {
               element={<Watch />}
             />
             <Route path="/moviepage" element={<MoviePage />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Admin Routes */}

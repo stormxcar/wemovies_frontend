@@ -4,6 +4,7 @@ import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
 import { ClipLoader } from "react-spinners";
 import { FaChevronRight } from "react-icons/fa";
+import WatchlistButton from "./WatchlistButton";
 
 const DetailMovie = () => {
   const { id } = useParams();
@@ -101,21 +102,24 @@ const DetailMovie = () => {
               </span>
             </div>
           )}
-          <Link
-            to={"/movie/watch/" + movieDetail.data.id}
-            state={{ movieDetail: movieDetail.data }}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
-          >
-            Xem phim
-          </Link>
-          {movieDetail.data.trailer && (
-            <>
+          <div className="flex items-center space-x-4 mt-4">
+            <Link
+              to={"/movie/watch/" + movieDetail.data.id}
+              state={{ movieDetail: movieDetail.data }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Xem phim
+            </Link>
+            <WatchlistButton movieId={movieDetail.data.id} size="large" />
+            {movieDetail.data.trailer && (
               <button
                 onClick={() => setShowModal(true)}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg mt-4 ml-4"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
                 Trailer
               </button>
+            )}
+          </div>
               {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                   <div className="bg-black/50 border-2 border-white rounded-lg shadow-lg p-2 w-3/4 max-w-2xl">

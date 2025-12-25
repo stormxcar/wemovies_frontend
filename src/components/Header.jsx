@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSearch, FaCaretDown } from "react-icons/fa";
+import { Search, ChevronDown, User, LogOut, UserCircle, Heart, Settings } from "lucide-react";
 import { toast } from "react-toastify";
 import Banner from "./Banner";
 import RegisterForm from "../components/auth/RegisterForm";
 import LoginForm from "../components/auth/LoginForm";
+import MobileMenu from "./MobileMenu";
 import {
   fetchCategories,
   fetchCountries,
@@ -236,6 +237,13 @@ function Header() {
             Wemovies
           </a>
 
+          <MobileMenu
+            categories={categories}
+            types={types}
+            countries={countries}
+            navigateToMovies={navigateToMovies}
+          />
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -244,7 +252,7 @@ function Header() {
             className="md:hidden p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
             aria-label="Open search"
           >
-            <FaSearch />
+            <Search className="h-5 w-5" />
           </button>
 
           {isSearchOpen && (
@@ -300,7 +308,7 @@ function Header() {
                 aria-label="Thể loại"
               >
                 Thể loại
-                <FaCaretDown className="ml-1 text-lg" />
+                <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {activeModal === "types" && (
                 <ul
@@ -356,7 +364,7 @@ function Header() {
                 aria-label="Quốc gia"
               >
                 Quốc gia
-                <FaCaretDown className="ml-1 text-lg" />
+                <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {activeModal === "countries" && (
                 <ul
@@ -406,20 +414,58 @@ function Header() {
               </button>
               {showUserModal && (
                 <div
-                  className="absolute top-12 right-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-64 z-50"
+                  className="absolute top-12 right-0 bg-white text-gray-800 rounded-lg shadow-xl w-64 z-50 border overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold">
+                  <div className="px-4 py-3 border-b bg-gray-50">
+                    <h3 className="font-semibold text-gray-900">
                       {user.displayName}
                     </h3>
+                    <p className="text-sm text-gray-600">
+                      {user.role?.roleName || "User"}
+                    </p>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
-                  >
-                    Đăng xuất
-                  </button>
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        navigate("/profile");
+                        setShowUserModal(false);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                    >
+                      <UserCircle className="w-5 h-5 text-gray-600" />
+                      <span>Trang cá nhân</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/profile?tab=watchlist");
+                        setShowUserModal(false);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                    >
+                      <Heart className="w-5 h-5 text-gray-600" />
+                      <span>Phim yêu thích</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/profile?tab=watching");
+                        setShowUserModal(false);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                    >
+                      <Settings className="w-5 h-5 text-gray-600" />
+                      <span>Phim đang xem</span>
+                    </button>
+                  </div>
+                  <div className="border-t">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 transition-colors flex items-center space-x-3"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

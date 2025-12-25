@@ -287,3 +287,44 @@ export const logout = async () => {
     throw error;
   }
 };
+
+// Watchlist API functions
+export const addToWatchlist = async (movieId) => {
+  try {
+    const response = await api.post(`/api/watchlist/add/${movieId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Add to watchlist failed:", error);
+    throw error;
+  }
+};
+
+export const removeFromWatchlist = async (movieId) => {
+  try {
+    const response = await api.delete(`/api/watchlist/remove/${movieId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Remove from watchlist failed:", error);
+    throw error;
+  }
+};
+
+export const getWatchlist = async () => {
+  try {
+    const response = await api.get("/api/watchlist");
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error("Get watchlist failed:", error);
+    return [];
+  }
+};
+
+export const checkIsInWatchlist = async (movieId) => {
+  try {
+    const response = await api.get(`/api/watchlist/check/${movieId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Check watchlist failed:", error);
+    return false;
+  }
+};
