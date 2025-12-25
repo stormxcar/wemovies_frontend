@@ -3,72 +3,47 @@ import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
-import { fetchJson } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { ClipLoader } from "react-spinners";
 import axios from "axios";
 
 function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const { login, isAuthenticated } = useAuth();
+  const [loginForm, setLoginForm] = useState({ email: "", passWord: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent multiple submissions
+
+    setIsSubmitting(true);
     try {
-      const response = await fetchJson("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          email: loginForm.email,
-          passWord: loginForm.password,
-        }),
-        credentials: "include",
-      });
-      if (!response) throw new Error("Login failed: No response data");
+      const result = await login(loginForm.email, loginForm.passWord);
 
-      const verifyResponse = await fetchJson("/api/auth/verifyUser", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-      });
-
-      const role = verifyResponse?.role || verifyResponse?.data?.role?.roleName;
-      if (role === "ADMIN") {
-        toast.success("Đăng nhập Admin thành công!");
-        onLoginSuccess({
-          displayName: verifyResponse.fullName || loginForm.email.split("@")[0],
-          avatarUrl: verifyResponse.avatar || "https://via.placeholder.com/40",
-          role,
-          email: verifyResponse.email,
-        });
-        navigate("/admin");
-      } else if (role === "USER") {
+      if (result.success) {
         toast.success("Đăng nhập thành công!");
-        onLoginSuccess({
-          displayName: verifyResponse.fullName || loginForm.email.split("@")[0],
-          avatarUrl: verifyResponse.avatar || "https://via.placeholder.com/40",
-          role,
-          email: verifyResponse.email,
-        });
-        navigate("/");
+        if (onLoginSuccess) {
+          onLoginSuccess(result.user);
+        }
+        // Always check user role and navigate accordingly
+        const userRole =
+          result.user?.role?.roleName ||
+          result.user?.roleName ||
+          result.user?.role;
+        console.log("User role:", userRole, "Full user:", result.user);
+        if (userRole === "ADMIN") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        toast.error("Tài khoản không hợp lệ hoặc chưa được xác thực");
-        await fetchJson("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
-        onClose();
+        toast.error(result.message || "Đăng nhập thất bại");
       }
     } catch (error) {
-      toast.error(error.message || "Đăng nhập thất bại");
+      toast.error("Có lỗi xảy ra khi đăng nhập");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -203,24 +178,34 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               setLoginForm({ ...loginForm, email: e.target.value })
             }
             placeholder="Email"
-            className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
           />
           <input
             type="password"
-            value={loginForm.password}
+            value={loginForm.passWord}
             onChange={(e) =>
-              setLoginForm({ ...loginForm, password: e.target.value })
+              setLoginForm({ ...loginForm, passWord: e.target.value })
             }
             placeholder="Mật khẩu"
-            className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
           />
           <button
             type="submit"
-            className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+            disabled={isSubmitting}
+            className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            Đăng nhập
+            {isSubmitting ? (
+              <>
+                <ClipLoader size={20} color="#000000" className="mr-2" />
+                Đang xử lý...
+              </>
+            ) : (
+              "Đăng nhập"
+            )}
           </button>
         </form>
         <div className="mt-4">

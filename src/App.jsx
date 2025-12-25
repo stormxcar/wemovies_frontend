@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -11,25 +11,39 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import ShowMovies from "./components/ShowMovies.jsx";
-import DetailMovie from "./components/DetailMovie.jsx";
-import CategoryMovies from "./components/CategoryMovies.jsx";
-import Header from "./components/Header.jsx";
-import Footer from "./components/Footer.jsx";
-import Search from "./components/Search.jsx";
-import EpisodeDetail from "./components/EpisodeDetail.jsx";
-import MovieList from "./components/MovieList.jsx";
-import Watch from "./components/Watch.jsx";
-import MoviePage from "./components/MoviePage.jsx";
-import Dashboard from "./admin/pages/Dashboard";
-import Home from "./admin/pages/Home";
-import List from "./admin/components/List";
-import Add from "./admin/components/Add";
-import Update from "./admin/components/Update";
-import MovieDetail from "./admin/pages/movies/Detail";
-import Settings from "./admin/pages/Settings";
-import TypeList from "./admin/pages/types/TypeList";
+import { AuthProvider } from "./context/AuthContext";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
+// Lazy load components
+const ShowMovies = lazy(() => import("./components/ShowMovies.jsx"));
+const DetailMovie = lazy(() => import("./components/DetailMovie.jsx"));
+const CategoryMovies = lazy(() => import("./components/CategoryMovies.jsx"));
+const Header = lazy(() => import("./components/Header.jsx"));
+const Footer = lazy(() => import("./components/Footer.jsx"));
+const Search = lazy(() => import("./components/Search.jsx"));
+const EpisodeDetail = lazy(() => import("./components/EpisodeDetail.jsx"));
+const MovieList = lazy(() => import("./components/MovieList.jsx"));
+const Watch = lazy(() => import("./components/Watch.jsx"));
+const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
+
+// Admin components
+const Dashboard = lazy(() => import("./admin/pages/Dashboard"));
+const Home = lazy(() => import("./admin/pages/Home"));
+const List = lazy(() => import("./admin/components/List"));
+const Add = lazy(() => import("./admin/components/Add"));
+const Update = lazy(() => import("./admin/components/Update"));
+const MovieDetail = lazy(() => import("./admin/pages/movies/Detail"));
+const Settings = lazy(() => import("./admin/pages/Settings"));
+const TypeList = lazy(() => import("./admin/pages/types/TypeList"));
+
+// Admin pages
+const AddCategory = lazy(() => import("./admin/pages/categories/AddCategory"));
+const AddCountry = lazy(() => import("./admin/pages/countries/AddCountry"));
+const AddType = lazy(() => import("./admin/pages/types/AddType"));
+const AddMovie = lazy(() => import("./admin/pages/movies/AddMovie"));
+const UpdateMovie = lazy(() => import("./admin/pages/movies/UpdateMovie"));
+
+// API functions
 import { getCategories } from "./admin/api/Category.api";
 import { getCountries } from "./admin/api/Country.api";
 import { getMovies } from "./admin/api/Movie.api";
@@ -37,11 +51,13 @@ import { getTypes } from "./admin/api/Type.api";
 import { getUsers } from "./admin/api/User.api";
 
 import ProtectedRoute from "./ProtectRoute";
-import AddCategory from "./admin/pages/categories/AddCategory";
-import AddCountry from "./admin/pages/countries/AddCountry";
-import AddType from "./admin/pages/types/AddType";
-import AddMovie from "./admin/pages/movies/AddMovie";
-import UpdateMovie from "./admin/pages/movies/UpdateMovie";
+
+// Loading component for lazy loading
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 const UserLayout = () => (
   <div className="flex flex-col items-center justify-center w-full min-h-screen">
@@ -313,7 +329,7 @@ const MainApp = () => {
   }, [location.pathname]);
 
   return (
-    <>
+    <Suspense fallback={<LoadingSpinner />}>
       <ToastContainer />
       <Routes>
         {/* User Routes */}
@@ -507,16 +523,19 @@ const MainApp = () => {
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
-    </>
+    </Suspense>
   );
 };
 
 function App() {
   return (
     <Router>
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-        <MainApp />
-      </GoogleOAuthProvider>
+      <AuthProvider>
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <MainApp />
+          <CookieConsentBanner />
+        </GoogleOAuthProvider>
+      </AuthProvider>
     </Router>
   );
 }

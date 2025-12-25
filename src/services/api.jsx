@@ -1,81 +1,159 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.DEV
+  ? "https://wemovies-backend.onrender.com"
+  : import.meta.env.VITE_API_URL;
+
+// Tạo axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // Quan trọng: gửi cookies
+});
+
+// Interceptor để tự động thêm Authorization header
+api.interceptors.request.use((config) => {
+  // Không thêm header cho login và một số endpoints public
+  const publicEndpoints = [
+    "/api/auth/login",
+    "/api/auth/logout",
+    "/api/auth/google",
+    "/api/auth/request-otp",
+    "/api/auth/verify-otp",
+  ];
+
+  if (!publicEndpoints.some((endpoint) => config.url.includes(endpoint))) {
+    const token = localStorage.getItem("jwtToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  return config;
+});
+
+// Interceptor để handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Token expired, thử refresh
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (refreshToken) {
+        try {
+          const refreshResponse = await axios.post(
+            `${API_BASE_URL}/api/auth/refresh`,
+            {
+              refreshToken,
+            },
+            { withCredentials: true }
+          );
+
+          if (refreshResponse.data.accessToken) {
+            localStorage.setItem("jwtToken", refreshResponse.data.accessToken);
+            // Retry original request
+            error.config.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
+            return api.request(error.config);
+          }
+        } catch (refreshError) {
+          // Refresh failed, logout
+          localStorage.removeItem("jwtToken");
+          localStorage.removeItem("refreshToken");
+          window.location.href = "/auth";
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
 
 export const tryRequest = async (
   baseUrl,
   endpoint,
   options = {},
-  retries = 2,
-  retryDelay = 1000
+  maxRetries = 3
 ) => {
   const fullUrl = `${baseUrl}${endpoint}`;
   const method = (options.method || "GET").toLowerCase();
-  for (let attempt = 1; attempt <= retries; attempt++) {
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`Attempt ${attempt}/${maxRetries} for ${fullUrl}`);
+
       let response;
       if (method === "get") {
         response = await axios.get(fullUrl, {
           ...options,
           withCredentials: true,
-          timeout: 15000,
+          timeout: 120000,
         });
       } else if (method === "post") {
         const { body, ...config } = options;
         response = await axios.post(fullUrl, body, {
           ...config,
           withCredentials: true,
-          timeout: 15000,
+          timeout: 120000,
         });
       } else if (method === "put") {
         response = await axios.put(fullUrl, options.body, {
           ...options,
           withCredentials: true,
-          timeout: 15000,
+          timeout: 120000,
         });
       } else if (method === "delete") {
         response = await axios.delete(fullUrl, {
           ...options,
           withCredentials: true,
-          timeout: 15000,
+          timeout: 120000,
         });
       } else {
         // fallback
-        response = await axios({ url: fullUrl, ...options, timeout: 15000 });
+        response = await axios({ url: fullUrl, ...options, timeout: 120000 });
       }
+
       if (!response.data) {
         throw new Error(`No data returned from ${fullUrl}`);
       }
+
+      console.log(`✅ Success on attempt ${attempt} for ${fullUrl}`);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error(`Attempt ${attempt} failed for ${fullUrl}:`, error.message);
-      if (attempt === retries) {
-        return { success: false, error };
+      const isTimeout =
+        error.code === "ECONNABORTED" && error.message.includes("timeout");
+      const isLastAttempt = attempt === maxRetries;
+
+      console.log(
+        `❌ Attempt ${attempt} failed for ${fullUrl}:`,
+        error.message
+      );
+
+      if (isTimeout && !isLastAttempt) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Exponential backoff, max 10s
+        console.log(
+          `⏳ Retrying in ${delay / 1000}s... (Server might be sleeping)`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
       }
-      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+
+      if (isLastAttempt) {
+        console.log(`💥 All ${maxRetries} attempts failed for ${fullUrl}`);
+      }
+
+      return { success: false, error };
     }
   }
-  return {
-    success: false,
-    error: new Error(`Failed after ${retries} attempts`),
-  };
 };
 
 export const fetchJson = async (
   endpoint,
   options = {},
-  retries = 2,
-  retryDelay = 1000
+  showRetryToast = false
 ) => {
-  let result = await tryRequest(
-    API_BASE_URL,
-    endpoint,
-    options,
-    retries,
-    retryDelay
-  );
+  let result = await tryRequest(API_BASE_URL, endpoint, options);
   if (!result.success) {
-    console.error(`All attempts failed`);
+    console.error(`Request failed`);
     throw result.error;
   }
   return result.data !== undefined ? result.data : result;
@@ -185,7 +263,7 @@ export const fetchMoviesByName = async (name) => {
 export const logout = async () => {
   try {
     const response = await axios.post(
-      `${LOCAL_API_URL}/api/auth/logout`,
+      `${API_BASE_URL}/api/auth/logout`,
       {},
       { withCredentials: true }
     );

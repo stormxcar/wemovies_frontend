@@ -1,46 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
-
-const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_URL;
+import { useAuth } from "./context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(null);
+  const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyUser = async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/auth/verifyUser`,
-          {
-            withCredentials: true,
-          }
-        );
-        if (response.data.role === "ADMIN") {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-          toast.error("Chỉ admin mới có quyền truy cập!");
-          navigate("/");
-        }
-      } catch (error) {
-        setIsAdmin(false);
+    if (!loading) {
+      if (!isAuthenticated || !user) {
         toast.error("Vui lòng đăng nhập!");
         navigate("/");
+        return;
       }
-    };
-    verifyUser();
-  }, [navigate]);
 
-  if (isAdmin === null)
+      const userRole = user?.role?.roleName || user?.roleName || user?.role;
+      console.log("ProtectedRoute - User role:", userRole, "Full user:", user);
+
+      if (userRole !== "ADMIN") {
+        toast.error("Chỉ admin mới có quyền truy cập!");
+        navigate("/");
+      }
+    }
+  }, [user, isAuthenticated, loading, navigate]);
+
+  if (loading)
     return (
       <div className="flex justify-center items-center">
         <ClipLoader color="#ffffff" size={50} />
       </div>
     );
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/" />;
+  }
+
+  const userRole = user?.role?.roleName || user?.roleName || user?.role;
+  const isAdmin = userRole === "ADMIN";
+
   return isAdmin ? children : <Navigate to="/" />;
 };
 

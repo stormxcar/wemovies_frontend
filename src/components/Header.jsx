@@ -10,10 +10,10 @@ import {
   fetchCountries,
   fetchMovieType,
   fetchJson,
-  logout,
 } from "../services/api";
 import { ClipLoader } from "react-spinners";
 import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../context/AuthContext";
 
 function Header() {
   const [query, setQuery] = useState("");
@@ -26,97 +26,16 @@ function Header() {
   const [activeModal, setActiveModal] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [user, setUser] = useState(() =>
-    JSON.parse(localStorage.getItem("user") || null)
-  );
   const [showUserModal, setShowUserModal] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const navigate = useNavigate();
+  const { user, setUser, logout, isAuthenticated, loading } = useAuth();
 
   // Centralized API error handler
   const handleApiError = useCallback((error, message) => {
     console.error(message, error);
     toast.error(`${message}`);
   }, []);
-
-  // Authentication check and token refresh
-  useEffect(() => {
-    const checkAuth = async () => {
-      setIsAuthLoading(true);
-      try {
-        const response = await fetchJson("/api/auth/verifyUser", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (response?.username) {
-          const userData = {
-            displayName: response.fullName || response.username,
-            avatarUrl: response.avatar || "https://via.placeholder.com/40",
-            role: response.role,
-            email: response.email,
-          };
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
-        } else {
-          await handleTokenRefresh();
-        }
-      } catch (error) {
-        if (
-          error.message.includes("401") ||
-          error.message.includes("token expired")
-        ) {
-          await handleTokenRefresh();
-        } else {
-          handleApiError(error, "Lỗi xác thực");
-          navigate("/");
-        }
-      } finally {
-        setIsAuthLoading(false);
-      }
-    };
-
-    const handleTokenRefresh = async () => {
-      try {
-        const refreshResponse = await fetchJson("/api/auth/refresh", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (refreshResponse?.displayName) {
-          const userData = {
-            displayName: refreshResponse.displayName,
-            avatarUrl:
-              refreshResponse.avatar || "https://via.placeholder.com/40",
-            role: refreshResponse.role || refreshResponse.data?.role?.roleName,
-          };
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
-        } else {
-          throw new Error("Invalid refresh response");
-        }
-      } catch (error) {
-        handleApiError(
-          error,
-          "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
-        );
-        setUser(null);
-        localStorage.removeItem("user");
-        navigate("/");
-      }
-    };
-
-    checkAuth();
-  }, [navigate, handleApiError]);
 
   // Fetch categories, countries, and types
   useEffect(() => {
@@ -177,14 +96,32 @@ function Header() {
 
   const handleLoginSuccess = useCallback(
     async (userData) => {
+      if (!userData) {
+        console.error("userData is undefined in handleLoginSuccess");
+        return;
+      }
+
       const userInfo = {
-        displayName: userData.displayName,
-        avatarUrl: userData.avatarUrl || "https://via.placeholder.com/40",
-        role: userData.role,
+        displayName:
+          userData.displayName || userData.fullName || userData.email || "User",
+        avatarUrl:
+          userData.avatarUrl ||
+          userData.avatar ||
+          "https://via.placeholder.com/40",
+        role: userData.role || userData.roleName || "USER",
       };
       setUser(userInfo);
       localStorage.setItem("user", JSON.stringify(userInfo));
       setShowLogin(false);
+
+      // Navigate based on user role
+      const userRole =
+        userData.role?.roleName || userData.roleName || userData.role || "USER";
+      if (userRole === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
 
       try {
         await fetchJson("/api/user/favorites", {
@@ -251,18 +188,18 @@ function Header() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await logout();
-      setUser(null);
+      await logout(); // Sử dụng AuthContext logout
       setShowUserModal(false);
-      localStorage.removeItem("user");
       toast.success("Đăng xuất thành công!");
+      navigate("/");
     } catch (error) {
-      handleApiError(error, "Lỗi khi đăng xuất");
-      setUser(null);
+      console.error("Logout error:", error);
+      // Vẫn logout ngay cả khi có lỗi
+      logout();
       setShowUserModal(false);
-      localStorage.removeItem("user");
+      navigate("/");
     }
-  }, [handleApiError]);
+  }, [logout, navigate]);
 
   // Navigate to movies by category, country, or type
   const navigateToMovies = useCallback(
@@ -447,7 +384,7 @@ function Header() {
         </div>
 
         <div className="flex items-center w-[30%] justify-end">
-          {isAuthLoading ? (
+          {loading ? (
             <div>
               <ClipLoader color="#ffffff" size={30} />
             </div>
