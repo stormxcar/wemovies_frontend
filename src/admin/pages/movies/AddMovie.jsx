@@ -10,6 +10,8 @@ import {
   fetchCountries as getCountries,
   fetchJson,
 } from "../../../services/api";
+import api from "../../../services/api";
+import ImageUpload from "../../../components/ui/ImageUpload";
 
 const AddMovie = () => {
   const navigate = useNavigate();
@@ -30,10 +32,13 @@ const AddMovie = () => {
     categoryIds: [], // Initialized as empty array
     countryId: null, // Initialized as null for single select
     hot: "",
-    thumb_url: "",
     trailer: "",
     link: "",
     episodeLinks: null,
+  });
+  const [thumbnailData, setThumbnailData] = useState({
+    type: "url",
+    value: "",
   });
   const [movieTypes, setMovieTypes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -136,6 +141,13 @@ const AddMovie = () => {
     setFormData((prev) => ({ ...prev, episodeLinks: newEpisodeLinks }));
   };
 
+  // Function to strip HTML tags from description
+  const stripHtmlTags = (html) => {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,52 +155,85 @@ const AddMovie = () => {
     setError(null);
 
     try {
-      const payload = {
-        title: formData.title,
-        titleByLanguage: formData.titleByLanguage,
-        status: formData.status,
-        totalEpisodes: formData.totalEpisodes || null,
-        director: formData.director,
-        duration: formData.duration,
-        quality: formData.quality,
-        vietSub: formData.vietSub,
-        description: formData.description,
-        release_year: formData.release_year,
-        hot: formData.hot,
-        thumb_url: formData.thumb_url,
-        trailer: formData.trailer,
-        link: formData.link,
-      };
+      const formDataToSend = new FormData();
 
-      const params = new URLSearchParams();
-      formData.actors
-        .filter((actor) => actor.trim())
-        .forEach((actor) => params.append("actors", actor));
+      // Add basic fields
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description); // Keep HTML for backend to handle
+      formDataToSend.append("director", formData.director);
+      formDataToSend.append("duration", parseInt(formData.duration) || 0);
+      formDataToSend.append(
+        "hot",
+        formData.hot === "true" || formData.hot === true
+      );
+      formDataToSend.append("link", formData.link);
+      formDataToSend.append("quality", formData.quality);
+      formDataToSend.append(
+        "release_year",
+        parseInt(formData.release_year) || 2000
+      );
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("titleByLanguage", formData.titleByLanguage);
+      formDataToSend.append("trailer", formData.trailer);
+      formDataToSend.append(
+        "vietSub",
+        formData.vietSub === "true" || formData.vietSub === true
+      );
+
+      // Handle totalEpisodes
+      if (formData.totalEpisodes && formData.totalEpisodes.trim() !== "") {
+        formDataToSend.append(
+          "totalEpisodes",
+          parseInt(formData.totalEpisodes)
+        );
+      }
+
+      // Handle thumbnail
+      if (thumbnailData.type === "url" && thumbnailData.value) {
+        formDataToSend.append("thumb_url", thumbnailData.value);
+      } else if (thumbnailData.type === "file" && thumbnailData.value) {
+        formDataToSend.append("thumbnailFile", thumbnailData.value);
+      }
+
+      // Handle actors
+      const filteredActors = formData.actors.filter((actor) => actor.trim());
+      if (filteredActors.length === 0) {
+        formDataToSend.append("actors", ""); // Send at least one empty actor
+      } else {
+        filteredActors.forEach((actor) =>
+          formDataToSend.append("actors", actor)
+        );
+      }
+
+      // Handle episode links
       if (formData.episodeLinks && formData.episodeLinks.length > 0) {
         formData.episodeLinks
           .filter((link) => link.trim())
-          .forEach((link) => params.append("episodeLinks", link));
+          .forEach((link) => formDataToSend.append("episodeLinks", link));
       }
-      params.append("countryId", formData.countryId || "");
-      formData.movieTypeIds.forEach((id) => params.append("movieTypeIds", id));
-      formData.categoryIds.forEach((id) => params.append("categoryIds", id));
 
-      const queryString = params.toString();
-      const url = `/api/movies/add${queryString ? `?${queryString}` : ""}`; // Ensure correct path
+      // Handle country, movie types, and categories
+      if (formData.countryId) {
+        formDataToSend.append("countryId", formData.countryId);
+      }
+      formData.movieTypeIds.forEach((id) =>
+        formDataToSend.append("movieTypeIds", id)
+      );
+      formData.categoryIds.forEach((id) =>
+        formDataToSend.append("categoryIds", id)
+      );
 
-      console.log("Request URL:", url); // Debug the exact URL
+      console.log("FormData contents:");
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(key, value);
+      }
 
-      const options = {
-        method: "POST",
+      const response = await api.post("/api/movies/add", formDataToSend, {
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify(payload),
-      };
+      });
 
-      await fetchJson(url, options);
-      // console.log("Response:", response);
       toast.success("Phim đã được thêm thành công!");
       setLoading(false);
       setError(null);
@@ -205,15 +250,15 @@ const AddMovie = () => {
         vietSub: "",
         description: "",
         release_year: 2000,
-        movieTypeIds: [], // Initialized as empty array
-        categoryIds: [], // Initialized as empty array
-        countryId: null, // Initialized as null for single select
+        movieTypeIds: [],
+        categoryIds: [],
+        countryId: null,
         hot: "",
-        thumb_url: "",
         trailer: "",
         link: "",
         episodeLinks: null,
       });
+      setThumbnailData({ type: "url", value: "" });
       navigate("/admin/movies");
     } catch (err) {
       console.error("Error adding movie:", err);
@@ -238,7 +283,8 @@ const AddMovie = () => {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -254,7 +300,8 @@ const AddMovie = () => {
             name="titleByLanguage"
             value={formData.titleByLanguage}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -268,7 +315,8 @@ const AddMovie = () => {
             value={formData.status}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -282,8 +330,8 @@ const AddMovie = () => {
             value={formData.totalEpisodes}
             onChange={handleChange}
             min="1"
-            disabled={formData.status.toLowerCase() === "full"}
-            className="w-full p-2 border rounded"
+            disabled={loading || formData.status.toLowerCase() === "full"}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -296,7 +344,8 @@ const AddMovie = () => {
             name="director"
             value={formData.director}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -308,14 +357,16 @@ const AddMovie = () => {
                 type="text"
                 value={actor}
                 onChange={(e) => handleActorChange(index, e)}
-                className="w-full p-2 border rounded"
+                disabled={loading}
+                className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             ))}
           </div>
           <button
             type="button"
             onClick={addActor}
-            className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            disabled={loading}
+            className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Thêm diễn viên
           </button>
@@ -330,7 +381,8 @@ const AddMovie = () => {
             name="duration"
             value={formData.duration}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -342,7 +394,8 @@ const AddMovie = () => {
             name="quality"
             value={formData.quality}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Chọn chất lượng</option>
             <option value="SD">SD</option>
@@ -360,7 +413,8 @@ const AddMovie = () => {
             name="vietSub"
             value={formData.vietSub}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Chọn</option>
             <option value="true">Có</option>
@@ -371,12 +425,14 @@ const AddMovie = () => {
           <label htmlFor="description" className="block text-sm font-medium">
             Mô tả:
           </label>
-          <CKEditor
-            editor={ClassicEditor}
-            data={formData.description}
-            onChange={handleEditorChange}
-            className="w-full"
-          />
+          <div className={loading ? "pointer-events-none opacity-50" : ""}>
+            <CKEditor
+              editor={ClassicEditor}
+              data={formData.description}
+              onChange={handleEditorChange}
+              className="w-full"
+            />
+          </div>
         </div>
         <div>
           <label htmlFor="release_year" className="block text-sm font-medium">
@@ -390,7 +446,8 @@ const AddMovie = () => {
             onChange={handleChange}
             min="1900"
             max="2100"
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -411,6 +468,7 @@ const AddMovie = () => {
                 formData.movieTypeIds.includes(opt.value)
               ) || []
             }
+            isDisabled={loading}
           />
         </div>
         <div>
@@ -429,6 +487,7 @@ const AddMovie = () => {
                 formData.categoryIds.includes(opt.value)
               ) || []
             }
+            isDisabled={loading}
           />
         </div>
         <div>
@@ -444,6 +503,7 @@ const AddMovie = () => {
             value={
               countries.find((opt) => opt.value === formData.countryId) || null
             }
+            isDisabled={loading}
           />
         </div>
         <div>
@@ -455,26 +515,22 @@ const AddMovie = () => {
             name="hot"
             value={formData.hot}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Chọn</option>
             <option value="true">Có</option>
             <option value="false">Không</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="thumb_url" className="block text-sm font-medium">
-            Ảnh bìa:
-          </label>
-          <input
-            type="text"
-            id="thumb_url"
-            name="thumb_url"
-            value={formData.thumb_url}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-        </div>
+        <ImageUpload
+          onImageChange={setThumbnailData}
+          currentImageUrl={
+            thumbnailData.type === "url" ? thumbnailData.value : ""
+          }
+          label="Ảnh bìa:"
+          className={loading ? "pointer-events-none opacity-50" : ""}
+        />
         <div>
           <label htmlFor="trailer" className="block text-sm font-medium">
             Đường dẫn (trailer):
@@ -485,7 +541,8 @@ const AddMovie = () => {
             name="trailer"
             value={formData.trailer}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            disabled={loading}
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -498,8 +555,11 @@ const AddMovie = () => {
             name="link"
             value={formData.link}
             onChange={handleChange}
-            disabled={formData.episodeLinks && formData.episodeLinks.length > 0}
-            className="w-full p-2 border rounded"
+            disabled={
+              loading ||
+              (formData.episodeLinks && formData.episodeLinks.length > 0)
+            }
+            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         {formData.episodeLinks && formData.episodeLinks.length > 0 && (
@@ -528,7 +588,8 @@ const AddMovie = () => {
                   value={link}
                   onChange={(e) => handleEpisodeLinkChange(index, e)}
                   required
-                  className="flex-1 p-2 border rounded"
+                  disabled={loading}
+                  className="flex-1 p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
             ))}

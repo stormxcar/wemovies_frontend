@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import api from "../../../services/api";
 
 const AddCategory = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -13,17 +14,12 @@ const AddCategory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent multiple submissions
+
+    setLoading(true);
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/categories/add`,
-        formData,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      await api.post("/api/categories/add", formData);
       toast.success("Danh mục đã được thêm");
-      //   console.log("Added Category:", response.data);
       setFormData({ name: "" });
       navigate("/admin/categories");
     } catch (error) {
@@ -31,7 +27,9 @@ const AddCategory = () => {
         "Error adding category:",
         error.response?.data || error.message
       );
-      toast.error(error.response?.data || "Lỗi khi thêm danh mục");
+      toast.error(error.response?.data?.message || "Lỗi khi thêm danh mục");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,14 +43,16 @@ const AddCategory = () => {
           value={formData.name}
           onChange={handleChange}
           placeholder="Tên danh mục"
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           required
+          disabled={loading}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          disabled={loading}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed"
         >
-          Thêm
+          {loading ? "Đang thêm..." : "Thêm"}
         </button>
       </form>
     </div>

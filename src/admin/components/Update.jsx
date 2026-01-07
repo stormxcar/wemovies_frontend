@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 
 const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
   const [selectedId, setSelectedId] = useState("");
   const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,10 +17,7 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
       updateEndpoint,
       onUpdate,
     });
-    console.log(
-      "Items structure:",
-      items.map((item) => ({ category_id: item.id, name: item.name }))
-    );
+    console.log("Items structure:", items);
   }, [title, items, fields, updateEndpoint, onUpdate]);
 
   useEffect(() => {
@@ -28,17 +26,10 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
       setFormData({});
       return;
     }
-    const parsedId = parseInt(selectedId);
-    if (isNaN(parsedId)) {
-      console.warn("Invalid ID, resetting formData");
-      setSelectedId("");
-      setFormData({});
-      return;
-    }
-    const item = items.find((item) => item.id === parsedId);
+    // Find item directly with string ID (UUID)
+    const item = items.find((item) => item.id === selectedId);
     console.log("Syncing formData with selectedId:", {
       selectedId,
-      parsedId,
       item,
     });
     setFormData(item || {});
@@ -52,9 +43,8 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
       setFormData({});
       return;
     }
-    const parsedId = parseInt(id);
-    console.log("Parsed ID:", parsedId);
-    const item = items.find((item) => item.id === parsedId); 
+    // Keep ID as string (UUID) instead of parsing to number
+    const item = items.find((item) => item.id === id);
     console.log("Found item:", item);
     if (item) {
       setSelectedId(id);
@@ -75,14 +65,13 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
       toast.error("Vui lòng chọn một mục để cập nhật.");
       return;
     }
+    if (loading) return; // Prevent multiple submissions
+
+    setLoading(true);
     try {
-      const response = await axios.put(
-        `${updateEndpoint}/${formData.id}`, 
-        formData,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+      const response = await api.put(
+        `${updateEndpoint}/${formData.id}`,
+        formData
       );
       toast.success(`${title} đã được cập nhật`);
       console.log("Updated Item:", response.data);
@@ -93,7 +82,9 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
         "Error updating item:",
         error.response?.data || error.message
       );
-      toast.error(error.response?.data || `Lỗi khi cập nhật ${title}`);
+      toast.error(error.response?.data?.message || `Lỗi khi cập nhật ${title}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,7 +113,8 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
           );
           handleSelect(e.target.value);
         }}
-        className="w-full p-2 mb-4 border rounded"
+        className="w-full p-2 mb-4 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
+        disabled={loading}
       >
         <option value="">Chọn {title}</option>
         {items.map((item) => (
@@ -144,7 +136,8 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
                   name={field.name}
                   value={formData[field.name] || ""}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  disabled={loading}
                 >
                   <option value="">Chọn {field.label.toLowerCase()}</option>
                   {(field.options || []).map((option) => (
@@ -159,7 +152,8 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
                   value={formData[field.name] || ""}
                   onChange={handleChange}
                   placeholder={field.placeholder}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  disabled={loading}
                 />
               ) : (
                 <input
@@ -168,16 +162,18 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
                   value={formData[field.name] || ""}
                   onChange={handleChange}
                   placeholder={field.placeholder}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  disabled={loading}
                 />
               )}
             </div>
           ))}
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
-            Cập nhật
+            {loading ? "Đang cập nhật..." : "Cập nhật"}
           </button>
         </form>
       )}

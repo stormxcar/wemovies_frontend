@@ -10,6 +10,7 @@ import {
   fetchCategories as getCategories,
   fetchCountries as getCountries,
 } from "../../../services/api";
+import ImageUpload from "../../../components/ui/ImageUpload";
 
 // Reducer for formData state management
 const formReducer = (state, action) => {
@@ -63,6 +64,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // eslint-disable-next-line no-unused-vars
   const [episodeLinks, setEpisodeLinks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [thumbnailData, setThumbnailData] = useState({
+    type: "url",
+    value: "",
+  });
   const navigate = useNavigate();
 
   // Fetch movie types, categories, and countries
@@ -93,7 +98,14 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // Sync formData with selected item and fetch episode links
   useEffect(() => {
     const syncData = async () => {
+      console.log(
+        "syncData called with selectedId:",
+        selectedId,
+        "items length:",
+        items.length
+      );
       if (!selectedId || selectedId === "") {
+        console.log("No selectedId, resetting form");
         dispatchFormData({
           type: "RESET",
           payload: {
@@ -120,11 +132,25 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           },
         });
         setEpisodeLinks([]);
+        setThumbnailData({ type: "url", value: "" });
         return;
       }
       setLoading(true);
-      const parsedId = parseInt(selectedId);
-      if (isNaN(parsedId)) {
+      // selectedId is now UUID string, no need to parse
+      console.log(
+        "Looking for item with id:",
+        selectedId,
+        "type:",
+        typeof selectedId
+      );
+      console.log(
+        "Items:",
+        items.map((item) => ({ id: item.id, type: typeof item.id }))
+      );
+      const item = items.find((item) => item.id === selectedId);
+      console.log("Found item:", item);
+      if (!item) {
+        console.log("Item not found, resetting");
         setSelectedId("");
         dispatchFormData({
           type: "RESET",
@@ -152,10 +178,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           },
         });
         setEpisodeLinks([]);
+        setThumbnailData({ type: "url", value: "" });
         setLoading(false);
         return;
       }
-      const item = items.find((item) => item.id === parsedId);
       if (item) {
         console.log("Fetched item.link:", item.link);
         const movieTypeIds = Array.isArray(item.movieTypes)
@@ -173,7 +199,15 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           status: item.status || "",
           totalEpisodes: item.totalEpisodes || "",
           director: item.director || "",
-          actors: item.actors ? Array.from(item.actors) : [""],
+          actors: item.actorsSet
+            ? Array.isArray(item.actorsSet)
+              ? item.actorsSet
+              : Array.from(item.actorsSet)
+            : item.actors
+            ? Array.isArray(item.actors)
+              ? item.actors
+              : [item.actors]
+            : [""],
           duration: item.duration || "",
           quality: item.quality || "",
           vietSub: item.vietSub ? "true" : "false",
@@ -189,26 +223,23 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           episodeLinks: [], // Will be set after fetching episodes
         };
         dispatchFormData({ type: "RESET", payload: newFormData });
-        try {
-          const response = await fetchJson(`/api/movies/${parsedId}/episodes`);
-          const links = response.data || [];
-          setEpisodeLinks(links);
-          if (links.length > 0) {
-            dispatchFormData({
-              type: "UPDATE_FIELD",
-              field: "totalEpisodes",
-              value: links.length.toString(),
-            });
-            dispatchFormData({
-              type: "UPDATE_FIELD",
-              field: "episodeLinks",
-              value: links,
-            });
-          }
-        } catch (err) {
-          console.error("Error fetching episode links:", err);
-          setEpisodeLinks([]);
-          toast.error("Không thể tải danh sách tập phim.");
+        setThumbnailData({ type: "url", value: item.thumb_url || "" });
+
+        // Set episodes from the movie data
+        const episodes = item.episodes || [];
+        const episodeLinks = episodes.map((ep) => ep.link || "");
+        setEpisodeLinks(episodeLinks);
+        if (episodeLinks.length > 0) {
+          dispatchFormData({
+            type: "UPDATE_FIELD",
+            field: "totalEpisodes",
+            value: episodeLinks.length.toString(),
+          });
+          dispatchFormData({
+            type: "UPDATE_FIELD",
+            field: "episodeLinks",
+            value: episodeLinks,
+          });
         }
       } else {
         dispatchFormData({
@@ -345,32 +376,49 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       return;
     }
     try {
-      const payload = {
-        id: formData.id,
-        title: formData.title,
-        titleByLanguage: formData.titleByLanguage,
-        status: formData.status,
-        totalEpisodes: formData.totalEpisodes || null,
-        director: formData.director,
-        duration: String(formData.duration), // Convert to string
-        quality: formData.quality,
-        vietSub: formData.vietSub === "true",
-        description: formData.description,
-        release_year: parseInt(formData.release_year) || 2000,
-        hot: formData.hot === "true",
-        thumb_url: formData.thumb_url,
-        trailer: formData.trailer,
-        link: isFullStatus
-          ? Array.isArray(formData.link)
-            ? formData.link[0]
-            : formData.link
-          : null, // Ensure link is a string
-      };
+      const formDataToSend = new FormData();
 
-      const params = new URLSearchParams();
+      // Add basic fields
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("director", formData.director);
+      formDataToSend.append("duration", parseInt(formData.duration) || 0);
+      formDataToSend.append("hot", formData.hot === "true");
+      formDataToSend.append("link", isFullStatus ? formData.link : "");
+      formDataToSend.append("quality", formData.quality);
+      formDataToSend.append(
+        "release_year",
+        parseInt(formData.release_year) || 2000
+      );
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("titleByLanguage", formData.titleByLanguage);
+      formDataToSend.append("trailer", formData.trailer);
+      formDataToSend.append("vietSub", formData.vietSub === "true");
+
+      // Handle totalEpisodes
+      if (
+        !isFullStatus &&
+        formData.totalEpisodes &&
+        formData.totalEpisodes.trim() !== ""
+      ) {
+        formDataToSend.append(
+          "totalEpisodes",
+          parseInt(formData.totalEpisodes)
+        );
+      }
+
+      // Handle thumbnail
+      if (thumbnailData.type === "url" && thumbnailData.value) {
+        formDataToSend.append("thumb_url", thumbnailData.value);
+      } else if (thumbnailData.type === "file" && thumbnailData.value) {
+        formDataToSend.append("thumbnailFile", thumbnailData.value);
+      }
+
+      // Handle actors
       const filteredActors = formData.actors.filter((actor) => actor.trim());
-      filteredActors.forEach((actor) => params.append("actors", actor));
+      filteredActors.forEach((actor) => formDataToSend.append("actors", actor));
 
+      // Handle episode links
       if (
         !isFullStatus &&
         formData.episodeLinks &&
@@ -380,38 +428,31 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           link.trim()
         );
         filteredEpisodeLinks.forEach((link) =>
-          params.append("episodeLinks", link)
+          formDataToSend.append("episodeLinks", link)
         );
-        // payload.episodeLinks = filteredEpisodeLinks;
-        payload.totalEpisodes = filteredEpisodeLinks.length;
-      } else {
-        // payload.episodeLinks = null;
-        payload.totalEpisodes = null;
       }
 
-      params.append("countryId", formData.countryId || "");
-      formData.movieTypeIds.forEach((id) => params.append("movieTypeIds", id));
-      formData.categoryIds.forEach((id) => params.append("categoryIds", id));
+      // Handle country, movie types, and categories
+      if (formData.countryId) {
+        formDataToSend.append("countryId", formData.countryId);
+      }
+      formData.movieTypeIds.forEach((id) =>
+        formDataToSend.append("movieTypeIds", id)
+      );
+      formData.categoryIds.forEach((id) =>
+        formDataToSend.append("categoryIds", id)
+      );
 
-      const queryString = params.toString();
-      const url = `${updateEndpoint}/${formData.id}${
-        queryString ? `?${queryString}` : ""
-      }`;
+      console.log("FormData contents:");
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(key, value);
+      }
 
-      console.log("Sending payload:", JSON.stringify(payload));
-      console.log("Update URL:", url);
-
-      const options = {
+      const response = await fetchJson(`${updateEndpoint}/${formData.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formDataToSend,
         credentials: "include",
-      };
-
-      const response = await fetchJson(url, options);
+      });
 
       console.log("====================================");
       console.log("response", response);
@@ -730,21 +771,13 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   <option value="false">Không</option>
                 </select>
               </div>
-              <div>
-                <label
-                  htmlFor="thumb_url"
-                  className="block text-sm font-medium"
-                >
-                  Ảnh bìa:
-                </label>
-                <input
-                  type="text"
-                  name="thumb_url"
-                  value={formData.thumb_url}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
+              <ImageUpload
+                onImageChange={setThumbnailData}
+                currentImageUrl={
+                  thumbnailData.type === "url" ? thumbnailData.value : ""
+                }
+                label="Ảnh bìa:"
+              />
               <div>
                 <label htmlFor="trailer" className="block text-sm font-medium">
                   Đường dẫn (trailer):
@@ -807,6 +840,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       },
                     });
                     setEpisodeLinks([]);
+                    setThumbnailData({ type: "url", value: "" });
                   }}
                 >
                   Làm mới

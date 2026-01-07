@@ -60,7 +60,7 @@ const ShowMovies = () => {
 
   return (
     <div className="px-10 bg-gray-800 w-full">
-      <nav className="my-4 flex items-center space-x-2">
+      <nav className=" flex items-center space-x-2">
         <Link to="/" className="text-white text-xl font-semibold">
           Movies
         </Link>

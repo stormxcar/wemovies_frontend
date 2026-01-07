@@ -264,8 +264,8 @@ export const fetchUsers = async () => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
-    const response = await fetchJson("/api/user");
-    return Array.isArray(response) ? response : [];
+    const response = await api.get("/api/user");
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;

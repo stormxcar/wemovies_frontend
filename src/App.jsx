@@ -74,6 +74,13 @@ const AppContent = () => {
   const [types, setTypes] = useState([]);
   const [users, setUsers] = useState([]);
 
+  // Loading states
+  const [moviesLoading, setMoviesLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [countriesLoading, setCountriesLoading] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [typesLoading, setTypesLoading] = useState(false);
+
   const user = { username: "Admin", email: "admin@example.com" };
 
   const navigate = useNavigate();
@@ -134,6 +141,67 @@ const AppContent = () => {
   };
   const handleUpdateUser = (data) => {
     setUsers(users.map((user) => (user.id === data.id ? data : user)));
+  };
+
+  // Refresh functions for admin lists
+  const refreshMovies = async () => {
+    setMoviesLoading(true);
+    try {
+      const moviesData = await getMovies();
+      setMovies(Array.isArray(moviesData) ? moviesData : []);
+    } catch (error) {
+      console.error("Error refreshing movies:", error);
+    } finally {
+      setMoviesLoading(false);
+    }
+  };
+
+  const refreshCategories = async () => {
+    setCategoriesLoading(true);
+    try {
+      const categoriesData = await getCategories();
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  const refreshCountries = async () => {
+    setCountriesLoading(true);
+    try {
+      const countriesData = await getCountries();
+      setCountries(Array.isArray(countriesData) ? countriesData : []);
+    } catch (error) {
+      console.error("Error refreshing countries:", error);
+    } finally {
+      setCountriesLoading(false);
+    }
+  };
+
+  const refreshUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const usersData = await getUsers();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error("Error refreshing users:", error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const refreshTypes = async () => {
+    setTypesLoading(true);
+    try {
+      const typesData = await getTypes();
+      setTypes(Array.isArray(typesData) ? typesData : []);
+    } catch (error) {
+      console.error("Error refreshing types:", error);
+    } finally {
+      setTypesLoading(false);
+    }
   };
 
   const movieDisplayFields = [
@@ -332,6 +400,7 @@ const AppContent = () => {
                   onEdit={handleEditMovie}
                   onDelete={handleDeleteMovie}
                   onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
+                  onRefresh={refreshMovies}
                   searchFields={["title", "category", "country"]}
                   displayFields={movieDisplayFields}
                   keyField="id"
@@ -358,6 +427,7 @@ const AppContent = () => {
                   items={categories}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
+                  onRefresh={refreshCategories}
                   searchFields={["name"]}
                   displayFields={categoryDisplayFields}
                   keyField="id"
@@ -387,6 +457,7 @@ const AppContent = () => {
                   items={countries}
                   onEdit={handleEditCountry}
                   onDelete={handleDeleteCountry}
+                  onRefresh={refreshCountries}
                   searchFields={["name"]}
                   displayFields={countryDisplayFields}
                   keyField="id"
@@ -415,6 +486,7 @@ const AppContent = () => {
                   types={types}
                   onEdit={handleEditType}
                   onAdd={handleAddType}
+                  onRefresh={refreshTypes}
                 />
               }
             />
@@ -427,6 +499,7 @@ const AppContent = () => {
                   items={users}
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}
+                  onRefresh={refreshUsers}
                   searchFields={["username", "email"]}
                   displayFields={userDisplayFields}
                   keyField="id"

@@ -10,26 +10,21 @@ import {
 } from "./ui/sheet";
 import { Button } from "./ui/button";
 
-const MobileMenu = ({
-  categories,
-  types,
-  countries,
-  navigateToMovies,
-}) => {
+const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
   const [typeSearch, setTypeSearch] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
   const [activeSection, setActiveSection] = useState(null);
 
-  const filteredTypes = types.filter(type =>
+  const filteredTypes = types.filter((type) =>
     type.name.toLowerCase().includes(typeSearch.toLowerCase())
   );
 
-  const filteredCategories = categories.filter(category =>
+  const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
-  const filteredCountries = countries.filter(country =>
+  const filteredCountries = countries.filter((country) =>
     country.name.toLowerCase().includes(countrySearch.toLowerCase())
   );
 
@@ -41,7 +36,10 @@ const MobileMenu = ({
           <span className="sr-only">Mở menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] bg-gray-900 text-white border-gray-700">
+      <SheetContent
+        side="left"
+        className="w-[300px] bg-gray-900 text-white border-gray-700"
+      >
         <SheetHeader>
           <SheetTitle className="text-white text-left">Menu</SheetTitle>
           <SheetDescription className="text-gray-400 text-left">
@@ -81,9 +79,11 @@ const MobileMenu = ({
                 )}
                 {/* Types grid */}
                 <div className="max-h-48 overflow-y-auto">
-                  <div className={`grid gap-1 ${
-                    filteredTypes.length > 8 ? "grid-cols-2" : "grid-cols-1"
-                  }`}>
+                  <div
+                    className={`grid gap-1 ${
+                      filteredTypes.length > 8 ? "grid-cols-2" : "grid-cols-1"
+                    }`}
+                  >
                     {filteredTypes.length > 0 ? (
                       filteredTypes.map((item) => (
                         <button
@@ -169,9 +169,13 @@ const MobileMenu = ({
                 )}
                 {/* Countries grid with better layout */}
                 <div className="max-h-48 overflow-y-auto">
-                  <div className={`grid gap-1 ${
-                    filteredCountries.length > 8 ? "grid-cols-2" : "grid-cols-1"
-                  }`}>
+                  <div
+                    className={`grid gap-1 ${
+                      filteredCountries.length > 8
+                        ? "grid-cols-2"
+                        : "grid-cols-1"
+                    }`}
+                  >
                     {filteredCountries.length > 0 ? (
                       filteredCountries.map((item) => (
                         <button

@@ -1,6 +1,14 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, User, LogOut, UserCircle, Heart, Settings } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  User,
+  LogOut,
+  UserCircle,
+  Heart,
+  Settings,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import Banner from "./Banner";
 import RegisterForm from "../components/auth/RegisterForm";

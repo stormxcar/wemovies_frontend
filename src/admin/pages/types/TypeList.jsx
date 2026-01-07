@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../../services/api";
+import { useCrudOperations } from "../../hooks/useCrudOperations";
 
-const TypeList = ({ types: initialTypes, onEdit }) => {
+const TypeList = ({ types: initialTypes, onEdit, onRefresh }) => {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState(null);
   const [localTypes, setLocalTypes] = useState(initialTypes); // Local state for types
+
+  // Use CRUD operations hook
+  const { handleDelete } = useCrudOperations("Loại phim", () => {
+    if (onRefresh) {
+      onRefresh();
+    }
+  });
 
   // Sync localTypes with initialTypes when it changes
   useEffect(() => {
@@ -25,12 +33,9 @@ const TypeList = ({ types: initialTypes, onEdit }) => {
   const handleSave = async () => {
     try {
       console.log("Saving type with data:", currentType);
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/types/update/${currentType.id}`,
-        currentType,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+      const response = await api.put(
+        `/api/types/update/${currentType.id}`,
+        currentType
       );
       console.log("Update successful, response:", response.data);
       toast.success("Loại phim đã được cập nhật");
@@ -85,12 +90,20 @@ const TypeList = ({ types: initialTypes, onEdit }) => {
               <td className="border p-2">{type.id}</td>
               <td className="border p-2">{type.name}</td>
               <td className="border p-2">
-                <button
-                  onClick={() => handleEdit(type)}
-                  className="px-2 py-1 bg-yellow-500 text-white rounded"
-                >
-                  Sửa
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEdit(type)}
+                    className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    onClick={() => handleDelete(type.id)}
+                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Xóa
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
