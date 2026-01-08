@@ -43,4 +43,33 @@ const ProtectedRoute = ({ children }) => {
   return isAdmin ? children : <Navigate to="/" />;
 };
 
+// Component mới để bảo vệ routes cần đăng nhập (cho tất cả users đã đăng nhập)
+export const AuthRoute = ({ children }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated || !user) {
+        toast.error("Vui lòng đăng nhập để truy cập trang này!");
+        navigate("/");
+        return;
+      }
+    }
+  }, [user, isAuthenticated, loading, navigate]);
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <ClipLoader color="#ffffff" size={50} />
+      </div>
+    );
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
+
 export default ProtectedRoute;

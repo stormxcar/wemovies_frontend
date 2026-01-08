@@ -10,7 +10,17 @@ const getCookie = (name) => {
   return null;
 };
 
-const AuthContext = createContext();
+const AuthContext = createContext({
+  user: null,
+  isAuthenticated: false,
+  loading: true,
+  cookieConsent: false,
+  login: () => {},
+  logout: () => {},
+  acceptCookies: () => {},
+  checkAuthStatus: () => {},
+  fetchCookiePreferences: () => {},
+});
 
 export const useAuth = () => useContext(AuthContext);
 

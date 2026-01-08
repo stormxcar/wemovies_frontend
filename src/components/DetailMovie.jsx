@@ -120,26 +120,24 @@ const DetailMovie = () => {
               </button>
             )}
           </div>
-              {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="bg-black/50 border-2 border-white rounded-lg shadow-lg p-2 w-3/4 max-w-2xl">
-                    <button
-                      onClick={() => setShowModal(false)}
-                      className="text-white float-right mb-8"
-                    >
-                      Close
-                    </button>
-                    <iframe
-                      src={convertToEmbedUrl(movieDetail.data.trailer)}
-                      title="Trailer"
-                      width="100%"
-                      height="400px"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                </div>
-              )}
-            </>
+          {showModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-black/50 border-2 border-white rounded-lg shadow-lg p-2 w-3/4 max-w-2xl">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-white float-right mb-8"
+                >
+                  Close
+                </button>
+                <iframe
+                  src={convertToEmbedUrl(movieDetail.data.trailer)}
+                  title="Trailer"
+                  width="100%"
+                  height="400px"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
           )}
         </div>
       </div>

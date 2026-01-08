@@ -328,3 +328,54 @@ export const checkIsInWatchlist = async (movieId) => {
     return false;
   }
 };
+
+// Admin delete functions
+export const deleteMovie = async (id) => {
+  try {
+    const response = await api.delete(`/api/movies/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete movie failed:", error);
+    throw error;
+  }
+};
+
+export const deleteCategory = async (id) => {
+  try {
+    const response = await api.delete(`/api/categories/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete category failed:", error);
+    throw error;
+  }
+};
+
+export const deleteCountry = async (id) => {
+  try {
+    const response = await api.delete(`/api/countries/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete country failed:", error);
+    throw error;
+  }
+};
+
+export const deleteType = async (id) => {
+  try {
+    const response = await api.delete(`/api/movie-types/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete type failed:", error);
+    throw error;
+  }
+};
+
+export const deleteUser = async (id) => {
+  try {
+    const response = await api.delete(`/api/users/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete user failed:", error);
+    throw error;
+  }
+};

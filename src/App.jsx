@@ -13,6 +13,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider, useLoading } from "./utils/LoadingContext";
+import { QueryProvider } from "./utils/queryClient";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import PageLoader from "./components/loading/PageLoader";
 import "./components/loading/animations.css";
@@ -27,6 +28,7 @@ const MovieList = lazy(() => import("./components/MovieList.jsx"));
 const Watch = lazy(() => import("./components/Watch.jsx"));
 const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
+const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 // Admin components
 const Home = lazy(() => import("./admin/pages/Home"));
@@ -44,16 +46,20 @@ const AddType = lazy(() => import("./admin/pages/types/AddType"));
 const AddMovie = lazy(() => import("./admin/pages/movies/AddMovie"));
 const UpdateMovie = lazy(() => import("./admin/pages/movies/UpdateMovie"));
 
-// API functions
 import {
-  fetchCategories as getCategories,
-  fetchCountries as getCountries,
-  fetchMovies as getMovies,
-  fetchMovieType as getTypes,
-  fetchUsers as getUsers,
-} from "./services/api";
+  useMovies,
+  useCategories,
+  useCountries,
+  useTypes,
+  useUsers,
+  useDeleteMovie,
+  useDeleteCategory,
+  useDeleteCountry,
+  useDeleteType,
+  useDeleteUser,
+} from "./hooks/useAdminQueries";
 
-import ProtectedRoute from "./ProtectRoute";
+import ProtectedRoute, { AuthRoute } from "./ProtectRoute";
 import { UserLayout, AdminLayout } from "./layout";
 
 // Loading component for lazy loading
@@ -68,18 +74,40 @@ const LazyLoadingFallback = () => {
 const AppContent = () => {
   const { pageLoading, pageLoadingMessage, showPageLoading, hidePageLoading } =
     useLoading();
-  const [movies, setMovies] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [types, setTypes] = useState([]);
-  const [users, setUsers] = useState([]);
 
-  // Loading states
-  const [moviesLoading, setMoviesLoading] = useState(false);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [countriesLoading, setCountriesLoading] = useState(false);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [typesLoading, setTypesLoading] = useState(false);
+  // Use TanStack Query hooks
+  const {
+    data: movies = [],
+    isLoading: moviesLoading,
+    refetch: refetchMovies,
+  } = useMovies();
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    refetch: refetchCategories,
+  } = useCategories();
+  const {
+    data: countries = [],
+    isLoading: countriesLoading,
+    refetch: refetchCountries,
+  } = useCountries();
+  const {
+    data: types = [],
+    isLoading: typesLoading,
+    refetch: refetchTypes,
+  } = useTypes();
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    refetch: refetchUsers,
+  } = useUsers();
+
+  // Delete mutations
+  const deleteMovieMutation = useDeleteMovie();
+  const deleteCategoryMutation = useDeleteCategory();
+  const deleteCountryMutation = useDeleteCountry();
+  const deleteTypeMutation = useDeleteType();
+  const deleteUserMutation = useDeleteUser();
 
   const user = { username: "Admin", email: "admin@example.com" };
 
@@ -89,119 +117,96 @@ const AppContent = () => {
   const handleEditMovie = () => {
     navigate("/admin/movies/update");
   };
-  const handleDeleteMovie = (id) => {
-    setMovies(movies.filter((movie) => movie.id !== id));
+
+  const handleDeleteMovie = async (id) => {
+    try {
+      await deleteMovieMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+    }
   };
+
   const handleAddMovie = (data) => {
-    setMovies([...movies, { id: movies.length + 1, ...data }]);
+    // This will be handled by the mutation in AddMovie component
+    refetchMovies();
   };
+
   const handleUpdateMovie = (data) => {
-    setMovies(movies.map((movie) => (movie.id === data.id ? data : movie)));
+    // This will be handled by the mutation in UpdateMovie component
+    refetchMovies();
   };
   const handleEditCategory = () => {
     navigate("/admin/categories/update");
   };
-  const handleDeleteCategory = (id) => {
-    setCategories(categories.filter((cat) => cat.id !== id));
+
+  const handleDeleteCategory = async (id) => {
+    try {
+      await deleteCategoryMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
   };
+
   const handleAddCategory = (data) => {
-    setCategories([...categories, { id: categories.length + 1, ...data }]);
+    // This will be handled by the mutation in AddCategory component
+    refetchCategories();
   };
+
   const handleUpdateCategory = (data) => {
-    setCategories(categories.map((cat) => (cat.id === data.id ? data : cat)));
+    // This will be handled by the mutation in Update component
+    refetchCategories();
   };
   const handleEditCountry = () => {
     navigate("/admin/countries/update");
   };
-  const handleDeleteCountry = (id) => {
-    setCountries(countries.filter((country) => country.id !== id));
+
+  const handleDeleteCountry = async (id) => {
+    try {
+      await deleteCountryMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting country:", error);
+    }
   };
+
   const handleAddCountry = (data) => {
-    setCountries([...countries, { id: countries.length + 1, ...data }]);
+    // This will be handled by the mutation in AddCountry component
+    refetchCountries();
   };
+
   const handleUpdateCountry = (data) => {
-    setCountries(
-      countries.map((country) => (country.id === data.id ? data : country))
-    );
+    // This will be handled by the mutation in Update component
+    refetchCountries();
   };
   const handleEditType = (type) => {
-    setTypes(types.map((t) => (t.id === type.id ? type : t)));
+    // This will be handled by TypeList component
+    refetchTypes();
   };
+
   const handleAddType = (data) => {
-    setTypes([...types, { id: types.length + 1, ...data }]);
+    // This will be handled by the mutation in AddType component
+    refetchTypes();
   };
+
   const handleEditUser = () => {
     navigate("/admin/users/update");
   };
-  const handleDeleteUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await deleteUserMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
   };
+
   const handleAddUser = (data) => {
-    setUsers([...users, { id: users.length + 1, ...data }]);
+    // This will be handled by the mutation in AddUser component
+    refetchUsers();
   };
+
   const handleUpdateUser = (data) => {
-    setUsers(users.map((user) => (user.id === data.id ? data : user)));
-  };
-
-  // Refresh functions for admin lists
-  const refreshMovies = async () => {
-    setMoviesLoading(true);
-    try {
-      const moviesData = await getMovies();
-      setMovies(Array.isArray(moviesData) ? moviesData : []);
-    } catch (error) {
-      console.error("Error refreshing movies:", error);
-    } finally {
-      setMoviesLoading(false);
-    }
-  };
-
-  const refreshCategories = async () => {
-    setCategoriesLoading(true);
-    try {
-      const categoriesData = await getCategories();
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-    } catch (error) {
-      console.error("Error refreshing categories:", error);
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
-  const refreshCountries = async () => {
-    setCountriesLoading(true);
-    try {
-      const countriesData = await getCountries();
-      setCountries(Array.isArray(countriesData) ? countriesData : []);
-    } catch (error) {
-      console.error("Error refreshing countries:", error);
-    } finally {
-      setCountriesLoading(false);
-    }
-  };
-
-  const refreshUsers = async () => {
-    setUsersLoading(true);
-    try {
-      const usersData = await getUsers();
-      setUsers(Array.isArray(usersData) ? usersData : []);
-    } catch (error) {
-      console.error("Error refreshing users:", error);
-    } finally {
-      setUsersLoading(false);
-    }
-  };
-
-  const refreshTypes = async () => {
-    setTypesLoading(true);
-    try {
-      const typesData = await getTypes();
-      setTypes(Array.isArray(typesData) ? typesData : []);
-    } catch (error) {
-      console.error("Error refreshing types:", error);
-    } finally {
-      setTypesLoading(false);
-    }
+    // This will be handled by the mutation in Update component
+    refetchUsers();
   };
 
   const movieDisplayFields = [
@@ -254,44 +259,6 @@ const AppContent = () => {
     { key: "email", label: "Email" },
   ];
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchInitialData = async () => {
-      try {
-        const [
-          moviesData,
-          categoriesData,
-          countriesData,
-          typesData,
-          usersData,
-        ] = await Promise.all([
-          getMovies(),
-          getCategories(),
-          getCountries(),
-          getTypes(),
-          getUsers(),
-        ]);
-
-        if (isMounted) {
-          setMovies(Array.isArray(moviesData) ? moviesData : []);
-          setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-          setCountries(Array.isArray(countriesData) ? countriesData : []);
-          setTypes(Array.isArray(typesData) ? typesData : []);
-          setUsers(Array.isArray(usersData) ? usersData : []);
-        }
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-      }
-    };
-
-    fetchInitialData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   // Handle page loading on route changes
   useEffect(() => {
     showPageLoading("Đang chuyển trang...");
@@ -300,51 +267,6 @@ const AppContent = () => {
     }, 300); // Quick transition for better UX
 
     return () => clearTimeout(timer);
-  }, [location.pathname, showPageLoading, hidePageLoading]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchData = async () => {
-      try {
-        if (location.pathname.startsWith("/admin/")) {
-          showPageLoading("Đang tải dữ liệu...");
-
-          if (location.pathname === "/admin/categories") {
-            const categoriesData = await getCategories();
-            if (isMounted)
-              setCategories(
-                Array.isArray(categoriesData) ? categoriesData : []
-              );
-          } else if (location.pathname === "/admin/countries") {
-            const countriesData = await getCountries();
-            if (isMounted)
-              setCountries(Array.isArray(countriesData) ? countriesData : []);
-          } else if (location.pathname === "/admin/types") {
-            const typesData = await getTypes();
-            if (isMounted) setTypes(Array.isArray(typesData) ? typesData : []);
-          } else if (location.pathname === "/admin/movies") {
-            const moviesData = await getMovies();
-            if (isMounted)
-              setMovies(Array.isArray(moviesData) ? moviesData : []);
-          } else if (location.pathname === "/admin/users") {
-            const usersData = await getUsers();
-            if (isMounted) setUsers(Array.isArray(usersData) ? usersData : []);
-          }
-
-          hidePageLoading();
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        hidePageLoading();
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
   }, [location.pathname, showPageLoading, hidePageLoading]);
 
   return (
@@ -378,7 +300,14 @@ const AppContent = () => {
               element={<Watch />}
             />
             <Route path="/moviepage" element={<MoviePage />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/profile"
+              element={
+                <AuthRoute>
+                  <Profile />
+                </AuthRoute>
+              }
+            />
           </Route>
 
           {/* Admin Routes */}
@@ -400,10 +329,11 @@ const AppContent = () => {
                   onEdit={handleEditMovie}
                   onDelete={handleDeleteMovie}
                   onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
-                  onRefresh={refreshMovies}
+                  onRefresh={refetchMovies}
                   searchFields={["title", "category", "country"]}
                   displayFields={movieDisplayFields}
                   keyField="id"
+                  isLoading={moviesLoading}
                 />
               }
             />
@@ -427,10 +357,11 @@ const AppContent = () => {
                   items={categories}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
-                  onRefresh={refreshCategories}
+                  onRefresh={refetchCategories}
                   searchFields={["name"]}
                   displayFields={categoryDisplayFields}
                   keyField="id"
+                  isLoading={categoriesLoading}
                 />
               }
             />
@@ -457,10 +388,11 @@ const AppContent = () => {
                   items={countries}
                   onEdit={handleEditCountry}
                   onDelete={handleDeleteCountry}
-                  onRefresh={refreshCountries}
+                  onRefresh={refetchCountries}
                   searchFields={["name"]}
                   displayFields={countryDisplayFields}
                   keyField="id"
+                  isLoading={countriesLoading}
                 />
               }
             />
@@ -479,17 +411,7 @@ const AppContent = () => {
                 />
               }
             />
-            <Route
-              path="types"
-              element={
-                <TypeList
-                  types={types}
-                  onEdit={handleEditType}
-                  onAdd={handleAddType}
-                  onRefresh={refreshTypes}
-                />
-              }
-            />
+            <Route path="types" element={<TypeList />} />
             <Route path="types/add" element={<AddType />} />
             <Route
               path="users"
@@ -499,10 +421,11 @@ const AppContent = () => {
                   items={users}
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}
-                  onRefresh={refreshUsers}
+                  onRefresh={refetchUsers}
                   searchFields={["username", "email"]}
                   displayFields={userDisplayFields}
                   keyField="id"
+                  isLoading={usersLoading}
                 />
               }
             />
@@ -525,6 +448,9 @@ const AppContent = () => {
             />
             <Route path="settings" element={<Settings />} />
           </Route>
+
+          {/* 404 Route - must be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>
@@ -537,8 +463,10 @@ function App() {
       <AuthProvider>
         <LoadingProvider>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <AppContent />
-            <CookieConsentBanner />
+            <QueryProvider>
+              <AppContent />
+              <CookieConsentBanner />
+            </QueryProvider>
           </GoogleOAuthProvider>
         </LoadingProvider>
       </AuthProvider>

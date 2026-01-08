@@ -64,6 +64,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // eslint-disable-next-line no-unused-vars
   const [episodeLinks, setEpisodeLinks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [thumbnailData, setThumbnailData] = useState({
     type: "url",
     value: "",
@@ -375,6 +376,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       toast.error("Vui lòng chọn một phim để cập nhật.");
       return;
     }
+    setSubmitting(true);
     try {
       const formDataToSend = new FormData();
 
@@ -465,6 +467,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         error.response?.data || error.message
       );
       toast.error(error.response?.data || `Lỗi khi cập nhật ${title}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -485,7 +489,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           <select
             value={selectedId || ""}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            disabled={submitting}
+            className="w-full p-2 mb-4 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Chọn {title}</option>
             {items.map((item) => (
@@ -506,7 +511,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -521,7 +527,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="titleByLanguage"
                   value={formData.titleByLanguage}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -533,7 +540,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               {!isFullStatus && (
@@ -550,7 +558,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     value={formData.totalEpisodes || ""}
                     onChange={handleChange}
                     min="1"
-                    className="w-full p-2 border rounded"
+                    disabled={submitting}
+                    className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                   {formData.episodeLinks.length > 0 && (
                     <div className="space-y-2">
@@ -564,7 +573,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                             value={link || ""}
                             onChange={(e) => handleEpisodeLinkChange(index, e)}
                             placeholder={`Link cho tập ${index + 1}`}
-                            className="flex-1 p-2 border rounded"
+                            disabled={submitting}
+                            className="flex-1 p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                           />
                         </div>
                       ))}
@@ -582,7 +592,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     name="link"
                     value={formData.link}
                     onChange={handleChange}
-                    className="w-full p-2 border rounded"
+                    disabled={submitting}
+                    className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
               )}
@@ -595,7 +606,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="director"
                   value={formData.director}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -607,14 +619,16 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       type="text"
                       value={actor}
                       onChange={(e) => handleActorChange(index, e)}
-                      className="w-full p-2 border rounded"
+                      disabled={submitting}
+                      className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                   ))}
                 </div>
                 <button
                   type="button"
                   onClick={addActor}
-                  className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  disabled={submitting}
+                  className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Thêm diễn viên
                 </button>
@@ -628,7 +642,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="duration"
                   value={formData.duration}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -639,7 +654,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="quality"
                   value={formData.quality}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn chất lượng</option>
                   <option value="SD">SD</option>
@@ -656,7 +672,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="vietSub"
                   value={formData.vietSub}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn</option>
                   <option value="true">Có</option>
@@ -670,13 +687,17 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 >
                   Mô tả:
                 </label>
-                <CKEditor
-                  name="description"
-                  editor={ClassicEditor}
-                  data={formData.description}
-                  onChange={handleEditorChange}
-                  className="w-full"
-                />
+                <div
+                  className={submitting ? "pointer-events-none opacity-50" : ""}
+                >
+                  <CKEditor
+                    name="description"
+                    editor={ClassicEditor}
+                    data={formData.description}
+                    onChange={handleEditorChange}
+                    className="w-full"
+                  />
+                </div>
               </div>
               <div>
                 <label
@@ -692,7 +713,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   onChange={handleChange}
                   min="1900"
                   max="2100"
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -716,6 +738,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       formData.movieTypeIds.includes(opt.value)
                     ) || []
                   }
+                  isDisabled={submitting}
                 />
               </div>
               <div>
@@ -736,6 +759,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       formData.categoryIds.includes(opt.value)
                     ) || []
                   }
+                  isDisabled={submitting}
                 />
               </div>
               <div>
@@ -754,6 +778,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     countries.find((opt) => opt.value === formData.countryId) ||
                     null
                   }
+                  isDisabled={submitting}
                 />
               </div>
               <div>
@@ -764,7 +789,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="hot"
                   value={formData.hot}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn</option>
                   <option value="true">Có</option>
@@ -777,6 +803,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   thumbnailData.type === "url" ? thumbnailData.value : ""
                 }
                 label="Ảnh bìa:"
+                className={submitting ? "pointer-events-none opacity-50" : ""}
               />
               <div>
                 <label htmlFor="trailer" className="block text-sm font-medium">
@@ -787,13 +814,15 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="trailer"
                   value={formData.trailer}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded"
+                  disabled={submitting}
+                  className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
               <div className="flex space-x-2 mt-4">
                 <button
                   type="button"
                   className="px-4 py-2 bg-red-700 rounded text-white"
+                  disabled={submitting}
                   onClick={() => {
                     if (hasChanges) {
                       if (
@@ -812,7 +841,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 </button>
                 <button
                   type="reset"
-                  className="px-4 py-2 bg-green-400 text-white rounded hover:bg-green-600"
+                  className="px-4 py-2 bg-green-400 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  disabled={submitting}
                   onClick={() => {
                     dispatchFormData({
                       type: "RESET",
@@ -863,9 +893,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       e.preventDefault();
                     }
                   }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={submitting}
                 >
-                  Cập nhật
+                  {submitting ? "Đang cập nhật..." : "Cập nhật"}
                 </button>
               </div>
             </form>

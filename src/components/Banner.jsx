@@ -53,11 +53,11 @@ function Banner() {
                 className="w-full h-full inset-0 z-[9999] ml-20"
                 style={{
                   backgroundImage: `url(${movie.thumb_url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
+                  backgroundSize: "cover", // Zoom out để ảnh nhỏ hơn
+                  backgroundPosition: "center 2px", // Di chuyển ảnh xuống dưới 100px từ top
                   backgroundRepeat: "no-repeat",
                   height: "100vh",
-                  objectFit: "contain",
+                  objectFit: "cover",
                 }}
               >
                 <SkeletonWrapper loading={loading} height="100%" width="100%">
