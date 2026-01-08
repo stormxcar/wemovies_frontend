@@ -133,7 +133,7 @@ function Header() {
       }
 
       try {
-        await fetchJson("/api/user/favorites", {
+        await fetchJson("/api/watchlist", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -174,7 +174,7 @@ function Header() {
           toast.success("Đăng nhập bằng Google thành công!");
 
           try {
-            await fetchJson("/api/user/favorites", {
+            await fetchJson("/api/watchlist", {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",

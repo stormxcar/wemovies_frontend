@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
 import { ClipLoader } from "react-spinners";
-import { FaChevronRight } from "react-icons/fa";
+import { FaChevronRight, FaHeart, FaShare, FaClock } from "react-icons/fa";
 import WatchlistButton from "./WatchlistButton";
 
 const DetailMovie = () => {
@@ -207,6 +207,32 @@ const DetailMovie = () => {
                     __html: movieDetail.data.description,
                   }}
                 />
+              </div>
+
+              <div className="flex items-center space-x-4 mt-6 mb-6">
+                <button className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                  <FaHeart />
+                  <span>Thích</span>
+                </button>
+                <WatchlistButton movieId={movieDetail.data.id} size="medium" />
+                <button
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: movieDetail.data.title,
+                        text: `Xem phim ${movieDetail.data.title}`,
+                        url: window.location.href,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert("Link đã được sao chép vào clipboard");
+                    }
+                  }}
+                  className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <FaShare />
+                  <span>Chia sẻ</span>
+                </button>
               </div>
 
               <div className="flex flex-row flex-wrap mt-8">

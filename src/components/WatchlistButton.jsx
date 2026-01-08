@@ -4,6 +4,7 @@ import {
   addToWatchlist,
   removeFromWatchlist,
   checkIsInWatchlist,
+  fetchJson,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
@@ -24,7 +25,8 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       const inList = await checkIsInWatchlist(movieId);
       setIsInWatchlist(inList);
     } catch (error) {
-      console.error("Error checking watchlist status:", error);
+      console.error("❌ Error checking watchlist status:", error);
+      // AuthContext sẽ tự động handle 401/403 và logout nếu cần
     }
   };
 
@@ -49,8 +51,8 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
         toast.success("Đã thêm vào danh sách yêu thích");
       }
     } catch (error) {
+      console.error("❌ Error toggling watchlist:", error);
       toast.error("Có lỗi xảy ra. Vui lòng thử lại");
-      console.error("Error toggling watchlist:", error);
     } finally {
       setLoading(false);
     }
@@ -68,11 +70,11 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       onClick={handleToggleWatchlist}
       disabled={loading}
       className={`
-        ${buttonSize} rounded-full transition-all duration-300 
+        ${buttonSize} rounded transition-all duration-300 
         ${
           isInWatchlist
             ? "bg-red-500 hover:bg-red-600 text-white"
-            : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+            : " text-white border-[1px] border-gray-500"
         }
         ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-110"}
         flex items-center justify-center
@@ -84,11 +86,14 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
           className={`${iconSize} animate-spin rounded-full border-2 border-white border-t-transparent`}
         ></div>
       ) : (
-        <Heart
-          className={iconSize}
-          fill={isInWatchlist ? "currentColor" : "none"}
-          stroke="currentColor"
-        />
+        <>
+          <Heart
+            className={`${iconSize} mr-1`}
+            fill={isInWatchlist ? "currentColor" : "none"}
+            stroke="currentColor"
+          />
+          Thích
+        </>
       )}
     </button>
   );

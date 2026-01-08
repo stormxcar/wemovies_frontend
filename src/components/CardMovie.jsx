@@ -12,10 +12,6 @@ function CardMovie({ movie }) {
     img.onload = () => setImageLoaded(true);
   }, [movie.thumb_url]);
 
-  // console.log("====================================");
-  // console.log("movie", movie);
-  // console.log("====================================");
-
   return (
     <div className="relative rounded-lg w-45 h-80 cursor-pointer">
       <div
@@ -36,6 +32,10 @@ function CardMovie({ movie }) {
               style={{ objectPosition: "top" }}
             />
           </SkeletonWrapper>
+          {/* Watchlist Button - Always visible */}
+          <div className="absolute top-2 right-2 z-10">
+            <WatchlistButton movieId={movie.id} />
+          </div>
           <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black to-transparent text-white text-center">
             <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
               <h3 className="text-lg">{movie.title}</h3>
@@ -43,11 +43,6 @@ function CardMovie({ movie }) {
             <SkeletonWrapper loading={!imageLoaded} height={20} width="40%">
               <h3 className="font-bold">{movie.release_year}</h3>
             </SkeletonWrapper>
-          </div>
-
-          {/* Watchlist Button - Always visible in top-right corner */}
-          <div className="absolute top-2 right-2">
-            <WatchlistButton movieId={movie.id} />
           </div>
         </div>
 

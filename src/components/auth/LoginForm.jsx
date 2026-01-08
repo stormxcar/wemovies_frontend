@@ -8,40 +8,95 @@ import { ClipLoader } from "react-spinners";
 import axios from "axios";
 
 function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, checkAuthStatus } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: "", passWord: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockMessage, setBlockMessage] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting || isBlocked) return; // Prevent multiple submissions or when blocked
 
     setIsSubmitting(true);
     try {
-      const result = await login(loginForm.email, loginForm.passWord);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: loginForm.email,
+            passWord: loginForm.passWord,
+          }),
+        }
+      );
 
-      if (result.success) {
-        toast.success("Đăng nhập thành công!");
-        if (onLoginSuccess) {
-          onLoginSuccess(result.user);
+      if (!response.ok) {
+        let errorMessage = await response.text();
+
+        // Try to parse as JSON
+        try {
+          const errorData = JSON.parse(errorMessage);
+          if (typeof errorData === "object" && errorData !== null) {
+            // If it's an object with field errors, get the first error message
+            const firstError = Object.values(errorData)[0];
+            errorMessage =
+              typeof firstError === "string"
+                ? firstError
+                : "Đăng nhập thất bại";
+          }
+        } catch (e) {
+          // Not JSON, use as is
         }
-        // Always check user role and navigate accordingly
-        const userRole =
-          result.user?.role?.roleName ||
-          result.user?.roleName ||
-          result.user?.role;
-        console.log("User role:", userRole, "Full user:", result.user);
-        if (userRole === "ADMIN") {
-          navigate("/admin");
-        } else {
-          navigate("/");
+
+        // Kiểm tra nếu là lỗi IP blocking
+        if (errorMessage.includes("IP của bạn đã bị tạm khóa")) {
+          // Parse thời gian còn lại từ message
+          const minutesMatch = errorMessage.match(/(\d+) phút/);
+          const remainingMinutes = minutesMatch
+            ? parseInt(minutesMatch[1])
+            : 15;
+
+          // Hiển thị thông báo block và disable form
+          showBlockMessage(remainingMinutes);
+          disableLoginForm(remainingMinutes);
+          return;
         }
+
+        toast.error(errorMessage);
+        return;
+      }
+
+      // Login thành công
+      const data = await response.json();
+
+      // Lưu tokens vào localStorage
+      if (data.accessToken) localStorage.setItem("jwtToken", data.accessToken);
+      if (data.refreshToken)
+        localStorage.setItem("refreshToken", data.refreshToken);
+
+      // Update auth context
+      await checkAuthStatus();
+
+      toast.success("Đăng nhập thành công!");
+      if (onLoginSuccess) {
+        onLoginSuccess(data.user || data);
+      }
+      // Always check user role and navigate accordingly
+      const userRole =
+        (data.user || data)?.role?.roleName ||
+        (data.user || data)?.roleName ||
+        (data.user || data)?.role;
+      console.log("User role:", userRole, "Full user:", data.user || data);
+      if (userRole === "ADMIN") {
+        navigate("/admin");
       } else {
-        toast.error(result.message || "Đăng nhập thất bại");
+        navigate("/");
       }
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi đăng nhập");
+      toast.error("Lỗi kết nối mạng");
     } finally {
       setIsSubmitting(false);
     }
@@ -139,6 +194,21 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
     toast.error("Đăng nhập bằng Google thất bại");
   };
 
+  const showBlockMessage = (remainingMinutes) => {
+    const message = `IP của bạn đã bị tạm khóa do nhập sai mật khẩu quá nhiều lần. Vui lòng thử lại sau ${remainingMinutes} phút.`;
+    setBlockMessage(message);
+    setIsBlocked(true);
+  };
+
+  const enableLoginForm = () => {
+    setIsBlocked(false);
+    setBlockMessage("");
+  };
+
+  const disableLoginForm = (remainingMinutes) => {
+    setIsBlocked(true);
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
@@ -171,6 +241,11 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           </button>
         </p>
         <form onSubmit={handleSubmit}>
+          {isBlocked && (
+            <div className="mb-4 p-4 bg-red-900/50 border border-red-500 rounded-md">
+              <p className="text-red-300 text-sm">{blockMessage}</p>
+            </div>
+          )}
           <input
             type="email"
             value={loginForm.email}
@@ -178,7 +253,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               setLoginForm({ ...loginForm, email: e.target.value })
             }
             placeholder="Email"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isBlocked}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
           />
@@ -189,13 +264,13 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               setLoginForm({ ...loginForm, passWord: e.target.value })
             }
             placeholder="Mật khẩu"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isBlocked}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
           />
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isBlocked}
             className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isSubmitting ? (
@@ -203,6 +278,8 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
                 <ClipLoader size={20} color="#000000" className="mr-2" />
                 Đang xử lý...
               </>
+            ) : isBlocked ? (
+              "Đang bị khóa"
             ) : (
               "Đăng nhập"
             )}

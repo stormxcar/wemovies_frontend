@@ -25,6 +25,10 @@ api.interceptors.request.use((config) => {
     const token = localStorage.getItem("jwtToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("🚀 Request to:", config.url);
+      console.log("🎫 Auth Header:", `Bearer ${token.substring(0, 20)}...`);
+    } else {
+      console.log("⚠️ No JWT token found for protected endpoint:", config.url);
     }
   }
 
