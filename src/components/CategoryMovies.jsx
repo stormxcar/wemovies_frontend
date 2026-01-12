@@ -6,16 +6,16 @@ import {
 } from "../services/api";
 import GridMovies from "./GridMovies";
 import { fetchJson } from "../services/api";
-import { ClipLoader } from "react-spinners";
+import { useLoading } from "../utils/LoadingContext";
 
 const CategoryMovies = () => {
   const { categoryName } = useParams();
   const navigate = useNavigate();
   const location = useLocation(); // Lấy state từ navigate
+  const { setLoading, isLoading } = useLoading();
   const [movies, setMovies] = useState([]);
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
-  const [loading, setLoading] = useState(true); // Thêm state loading
 
   // Lấy state từ location
   const { state } = location;
@@ -34,14 +34,17 @@ const CategoryMovies = () => {
   // Fetch movies when category or country changes
   const fetchMovies = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading("categoryMovies", true, "Đang tải danh sách phim...");
       let data = [];
       if (selectedCountry) {
-        data = await fetchMoviesByCountryAndCategory(selectedCountry, categoryName);
+        data = await fetchMoviesByCountryAndCategory(
+          selectedCountry,
+          categoryName
+        );
 
-        console.log('====================================');
+        console.log("====================================");
         console.log("data by country and category", data);
-        console.log('====================================');
+        console.log("====================================");
       } else {
         data = await fetchMoviesByCategory(categoryName);
       }
@@ -50,9 +53,9 @@ const CategoryMovies = () => {
       console.error("Error fetching movies:", error);
       setMovies([]);
     } finally {
-      setLoading(false);
+      setLoading("categoryMovies", false);
     }
-  }, [categoryName, selectedCountry]);
+  }, [categoryName, selectedCountry, setLoading]);
 
   // Kiểm tra state và fetch movies
   useEffect(() => {
@@ -62,12 +65,12 @@ const CategoryMovies = () => {
       console.log("Using movies from state:", state.movies);
       console.log("====================================");
       setMovies(state.movies);
-      setLoading(false);
+      setLoading("categoryMovies", false);
     } else {
       // Nếu không có state, gọi API
       fetchMovies();
     }
-  }, [state, fetchMovies]);
+  }, [state, fetchMovies, setLoading]);
 
   return (
     <div className="w-full px-10 bg-gray-800 pt-16 flex-1">
@@ -83,11 +86,7 @@ const CategoryMovies = () => {
         <span className="text-blue-500">{categoryName}</span>
       </nav>
 
-      {loading ? (
-        <div className="flex justify-center items-center">
-          <ClipLoader color="#ffffff" size={50} />
-        </div>
-      ) : (
+      {isLoading("categoryMovies") ? null : (
         <>
           {movies.length > 0 ? (
             <div className="flex items-center mb-4 gap-2">

@@ -188,49 +188,45 @@ const LoginForm = () => {
           email: formDataLogin.email,
           passWord: formDataLogin.passWord,
         }),
-        credentials: "include", // Include credentials for cookies
+        credentials: "include",
       };
 
       const loginResponse = await fetchJson("/api/auth/login", options);
       console.log("Login Response:", loginResponse);
 
-      // Assuming the backend returns a JSON object
       if (!loginResponse) {
         throw new Error("Login failed: No response data");
       }
 
-      // Check cookies in browser storage
-      const cookies = document.cookie;
-      console.log("Browser Cookies after Login:", cookies);
+      // Lưu tokens vào localStorage
+      if (loginResponse.accessToken) {
+        localStorage.setItem("jwtToken", loginResponse.accessToken);
+        console.log("💾 Saved accessToken to localStorage");
+      }
+      if (loginResponse.refreshToken) {
+        localStorage.setItem("refreshToken", loginResponse.refreshToken);
+        console.log("💾 Saved refreshToken to localStorage");
+      }
 
-      // Verify user role
-      const verifyResponse = await fetchJson("/api/auth/verifyUser", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-      });
-      console.log("Verify User Response:", verifyResponse);
+      // Lưu user data vào localStorage luôn để tránh verify lại
+      if (loginResponse.user) {
+        localStorage.setItem("user", JSON.stringify(loginResponse.user));
+        console.log("💾 Saved user data to localStorage");
+      }
 
-      const role = verifyResponse?.role || verifyResponse?.data?.role.roleName;
+      // Kiểm tra role từ login response
+      const role = loginResponse.user?.role?.roleName;
+      console.log("🎭 User role:", role);
+
       if (role === "ADMIN") {
         toast.success("Đăng nhập Admin thành công!");
         navigate("/admin");
       } else {
         toast.error("Chỉ admin mới có quyền truy cập!");
 
-        // Log the logout response
-        const logoutResponse = await fetchJson("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
-        console.log("Logout Response:", logoutResponse);
+        // Clear tokens vì không phải admin
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("refreshToken");
       }
     } catch (error) {
       console.error("Login Error:", {

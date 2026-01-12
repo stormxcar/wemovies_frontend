@@ -14,7 +14,6 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider, useLoading } from "./utils/LoadingContext";
 import { QueryProvider } from "./utils/queryClient";
-import CookieConsentBanner from "./components/CookieConsentBanner";
 import PageLoader from "./components/loading/PageLoader";
 import "./components/loading/animations.css";
 
@@ -38,6 +37,7 @@ const Update = lazy(() => import("./admin/components/Update"));
 const MovieDetail = lazy(() => import("./admin/pages/movies/Detail"));
 const Settings = lazy(() => import("./admin/pages/Settings"));
 const TypeList = lazy(() => import("./admin/pages/types/TypeList"));
+const AdminProfile = lazy(() => import("./admin/pages/Profile"));
 
 // Admin pages
 const AddCategory = lazy(() => import("./admin/pages/categories/AddCategory"));
@@ -61,6 +61,7 @@ import {
 
 import ProtectedRoute, { AuthRoute } from "./ProtectRoute";
 import { UserLayout, AdminLayout } from "./layout";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 // Loading component for lazy loading
 const LazyLoadingFallback = () => {
@@ -447,12 +448,30 @@ const AppContent = () => {
               }
             />
             <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<AdminProfile />} />
           </Route>
 
           {/* 404 Route - must be last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+
+      {/* Toast notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+
+      {/* Cookie Consent Banner */}
+      <CookieConsentBanner />
     </>
   );
 };
@@ -465,7 +484,6 @@ function App() {
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
             <QueryProvider>
               <AppContent />
-              <CookieConsentBanner />
             </QueryProvider>
           </GoogleOAuthProvider>
         </LoadingProvider>

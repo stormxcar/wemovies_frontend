@@ -13,7 +13,7 @@ function CardMovie({ movie }) {
   }, [movie.thumb_url]);
 
   return (
-    <div className="relative rounded-lg w-45 h-80 cursor-pointer">
+    <div className="relative rounded-lg w-full aspect-[2/3] cursor-pointer">
       <div
         className="relative w-full h-full overflow-visible"
         onMouseEnter={() => setIsHovered(true)}
@@ -38,10 +38,14 @@ function CardMovie({ movie }) {
           </div>
           <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black to-transparent text-white text-center">
             <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
-              <h3 className="text-lg">{movie.title}</h3>
+              <h3 className="text-sm sm:text-base lg:text-lg line-clamp-2">
+                {movie.title}
+              </h3>
             </SkeletonWrapper>
             <SkeletonWrapper loading={!imageLoaded} height={20} width="40%">
-              <h3 className="font-bold">{movie.release_year}</h3>
+              <h3 className="font-bold text-xs sm:text-sm">
+                {movie.release_year}
+              </h3>
             </SkeletonWrapper>
           </div>
         </div>
@@ -49,7 +53,7 @@ function CardMovie({ movie }) {
         {/* Expanded Overlay Card */}
         {isHovered && (
           <div
-            className="absolute top-[-100px] left-1/3 transform -translate-x-1/2 w-[400px] h-[500px] text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
+            className="absolute top-[-100px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[350px] md:w-[400px] h-[400px] sm:h-[450px] md:h-[500px] text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto"
             style={{ opacity: isHovered ? 1 : 0 }}
           >
             <SkeletonWrapper loading={!imageLoaded} height={350}>
@@ -66,21 +70,25 @@ function CardMovie({ movie }) {
             </SkeletonWrapper>
             <div className="absolute inset-0 bottom-0 left-0 bg-gradient-to-t from-black via-black/80 to-black/10"></div>
             <div className="absolute bottom-0 w-full">
-              <div className="px-6 py-2 flex flex-col">
+              <div className="px-4 sm:px-6 py-2 flex flex-col">
                 <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
-                  <h3 className="text-lg font-bold">{movie.title}</h3>
+                  <h3 className="text-base sm:text-lg font-bold line-clamp-2">
+                    {movie.title}
+                  </h3>
                 </SkeletonWrapper>
                 <SkeletonWrapper loading={!imageLoaded} height={20} width="60%">
-                  <p>Năm phát hành: {movie.release_year}</p>
+                  <p className="text-sm sm:text-base">
+                    Năm phát hành: {movie.release_year}
+                  </p>
                 </SkeletonWrapper>
                 <div className="flex items-center justify-between space-x-2">
                   <SkeletonWrapper loading={!imageLoaded} height={40}>
-                    <button className="mt-2 bg-blue-500 text-white p-2 rounded flex-1">
+                    <button className="mt-2 bg-blue-500 text-white p-2 rounded flex-1 text-sm sm:text-base">
                       Xem ngay
                     </button>
                   </SkeletonWrapper>
                   <SkeletonWrapper loading={!imageLoaded} height={40}>
-                    <button className="mt-2 bg-transparent text-white p-2 rounded flex-1 border-[1px] border-gray-500">
+                    <button className="mt-2 bg-transparent text-white p-2 rounded flex-1 border-[1px] border-gray-500 text-sm sm:text-base">
                       Chi tiết
                     </button>
                   </SkeletonWrapper>

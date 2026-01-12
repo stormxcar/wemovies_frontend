@@ -59,13 +59,13 @@ const ShowMovies = () => {
   };
 
   return (
-    <div className="px-10 bg-gray-800 w-full">
-      <nav className=" flex items-center space-x-2">
-        <Link to="/" className="text-white text-xl font-semibold">
+    <div className="px-4 sm:px-6 md:px-8 lg:px-10 bg-gray-800 w-full">
+      <nav className="flex items-center space-x-2 py-4">
+        <Link to="/" className="text-white text-lg sm:text-xl font-semibold">
           Movies
         </Link>
         <span className="text-white">{<FaChevronRight />}</span>
-        <span className="text-blue-500 text-xl font-semibold">
+        <span className="text-blue-500 text-lg sm:text-xl font-semibold">
           danh mục phổ biến
         </span>
       </nav>

@@ -1,59 +1,323 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useLoading } from "../../utils/LoadingContext";
 
 import {
   fetchCategories as getCategories,
   fetchMovies as getMovies,
   fetchUsers as getUsers,
+  fetchCountries as getCountries,
+  fetchMovieType as getTypes,
 } from "../../services/api";
+
+// Icons components (you can replace with react-icons if available)
+const StatsCard = ({ title, value, icon, color, link, description, trend }) => (
+  <Link
+    to={link}
+    className={`${color} p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-white`}
+  >
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-lg font-semibold opacity-90">{title}</h3>
+        <p className="text-3xl font-bold mt-2">{value}</p>
+        <p className="text-sm opacity-75 mt-1">{description}</p>
+        {trend && (
+          <div className="flex items-center mt-2">
+            <span className="text-sm font-medium">{trend}</span>
+          </div>
+        )}
+      </div>
+      <div className="text-4xl opacity-80">{icon}</div>
+    </div>
+  </Link>
+);
+
+const QuickAction = ({ title, icon, link, color }) => (
+  <Link
+    to={link}
+    className={`${color} p-4 rounded-lg text-white hover:shadow-lg transition-all duration-300 flex items-center space-x-3`}
+  >
+    <span className="text-2xl">{icon}</span>
+    <span className="font-medium">{title}</span>
+  </Link>
+);
 
 // Home Component
 const Home = () => {
   const [movies, setMovies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const { setLoading } = useLoading();
 
   useEffect(() => {
-    try {
-      const fetchData = async () => {
-        const categoriesData = await getCategories();
-        const moviesData = await getMovies();
-        const usersData = await getUsers();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [
+          categoriesData,
+          moviesData,
+          usersData,
+          countriesData,
+          typesData,
+        ] = await Promise.all([
+          getCategories(),
+          getMovies(),
+          getUsers(),
+          getCountries(),
+          getTypes(),
+        ]);
 
-        setCategories(categoriesData);
-        setMovies(moviesData);
-        setUsers(usersData);
-      };
-      fetchData();
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  }, []);
+        setCategories(categoriesData || []);
+        setMovies(moviesData || []);
+        setUsers(usersData || []);
+        setCountries(countriesData || []);
+        setTypes(typesData || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Không thể tải dữ liệu dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    console.log("====================================");
-    console.log("data users:", users);
-    console.log("====================================");
-  }, [users]);
+    fetchData();
+  }, [setLoading]);
 
-  // Home Component
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate some analytics
+  const recentMovies = movies.filter((movie) => {
+    const movieDate = new Date(movie.createdAt || movie.releaseDate);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    return movieDate > thirtyDaysAgo;
+  }).length;
+
+  const activeUsers = users.filter((user) => user.isActive).length;
+  const adminUsers = users.filter(
+    (user) => user.role?.roleName === "ADMIN"
+  ).length;
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Trang chủ</h1>
-      <p>Chào mừng đến với bảng điều khiển quản trị website xem phim!</p>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link to="/admin/movies" className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Tổng số phim</h2>
-          <p className="text-2xl">{movies.length}</p>
-        </Link>
-        <Link to="/admin/categories" className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Danh mục</h2>
-          <p className="text-2xl">{categories.length}</p>
-        </Link>
-        <Link to="/admin/users" className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Người dùng</h2>
-          <p className="text-2xl">{users.length}</p>
-        </Link>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Dashboard Quản Trị
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Chào mừng đến với hệ thống quản lý WeMovies
+              </p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date().toLocaleDateString("vi-VN", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            title="Tổng Phim"
+            value={movies.length.toLocaleString()}
+            icon="🎬"
+            color="bg-gradient-to-r from-blue-500 to-blue-600"
+            link="/admin/movies"
+            description="Tổng số phim trong hệ thống"
+            trend={
+              recentMovies > 0
+                ? `+${recentMovies} phim mới (30 ngày)`
+                : "Không có phim mới"
+            }
+          />
+
+          <StatsCard
+            title="Người Dùng"
+            value={users.length.toLocaleString()}
+            icon="👥"
+            color="bg-gradient-to-r from-green-500 to-green-600"
+            link="/admin/users"
+            description={`${activeUsers} đang hoạt động`}
+            trend={`${adminUsers} quản trị viên`}
+          />
+
+          <StatsCard
+            title="Danh Mục"
+            value={categories.length.toLocaleString()}
+            icon="📁"
+            color="bg-gradient-to-r from-purple-500 to-purple-600"
+            link="/admin/categories"
+            description="Thể loại phim"
+            trend="Đã phân loại"
+          />
+
+          <StatsCard
+            title="Quốc Gia"
+            value={countries.length.toLocaleString()}
+            icon="🌍"
+            color="bg-gradient-to-r from-orange-500 to-orange-600"
+            link="/admin/countries"
+            description="Nguồn gốc phim"
+            trend={`${types.length} định dạng`}
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Thao Tác Nhanh
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <QuickAction
+              title="Thêm Phim Mới"
+              icon="➕"
+              link="/admin/movies/add"
+              color="bg-gradient-to-r from-blue-500 to-blue-600"
+            />
+            <QuickAction
+              title="Quản Lý Thể Loại"
+              icon="🏷️"
+              link="/admin/categories"
+              color="bg-gradient-to-r from-purple-500 to-purple-600"
+            />
+            <QuickAction
+              title="Xem Người Dùng"
+              icon="👤"
+              link="/admin/users"
+              color="bg-gradient-to-r from-green-500 to-green-600"
+            />
+            <QuickAction
+              title="Cài Đặt Hệ Thống"
+              icon="⚙️"
+              link="/admin/settings"
+              color="bg-gradient-to-r from-gray-500 to-gray-600"
+            />
+          </div>
+        </div>
+
+        {/* Recent Activity & System Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Movies */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Phim Mới Nhất
+            </h2>
+            <div className="space-y-3">
+              {movies.slice(0, 5).map((movie, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="w-12 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded flex items-center justify-center text-white font-bold text-sm">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900 truncate">
+                      {movie.name || movie.title || `Phim ${index + 1}`}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {movie.year || movie.releaseDate || "Không xác định"}
+                    </p>
+                  </div>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    Mới
+                  </span>
+                </div>
+              ))}
+              {movies.length === 0 && (
+                <p className="text-gray-500 text-center py-4">
+                  Chưa có phim nào
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* System Overview */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Tổng Quan Hệ Thống
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <span className="text-gray-700">Phim có sẵn</span>
+                <span className="font-bold text-green-600">
+                  {movies.length} phim
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                <span className="text-gray-700">Thể loại đa dạng</span>
+                <span className="font-bold text-purple-600">
+                  {categories.length} thể loại
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                <span className="text-gray-700">Nguồn quốc gia</span>
+                <span className="font-bold text-orange-600">
+                  {countries.length} quốc gia
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Stats */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Thống Kê Chi Tiết
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {Math.round((movies.length / (categories.length || 1)) * 10) /
+                  10}
+              </div>
+              <div className="text-sm text-gray-600">Phim/Thể loại</div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round((activeUsers / users.length) * 100) || 0}%
+              </div>
+              <div className="text-sm text-gray-600">Người dùng hoạt động</div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">
+                {recentMovies}
+              </div>
+              <div className="text-sm text-gray-600">Phim mới (30 ngày)</div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {adminUsers}
+              </div>
+              <div className="text-sm text-gray-600">Quản trị viên</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

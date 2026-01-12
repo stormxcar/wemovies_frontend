@@ -3,24 +3,13 @@ import { fetchJson } from "../services/api";
 import api from "../services/api";
 import { toast } from "react-toastify";
 
-// Utility function to read cookies
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-  return null;
-};
-
 const AuthContext = createContext({
   user: null,
   isAuthenticated: false,
   loading: true,
-  cookieConsent: false,
   login: () => {},
   logout: () => {},
-  acceptCookies: () => {},
   checkAuthStatus: () => {},
-  fetchCookiePreferences: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -29,7 +18,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [cookieConsent, setCookieConsent] = useState(false);
 
   // Auto logout function với safeguard
   const autoLogout = React.useCallback(
@@ -46,9 +34,9 @@ export const AuthProvider = ({ children }) => {
 
       toast.error(`${reason}. Vui lòng đăng nhập lại.`);
 
-      // Redirect to login page
+      // Redirect to homepage instead of /auth since /auth doesn't exist
       setTimeout(() => {
-        window.location.href = "/auth";
+        window.location.href = "/";
       }, 1500);
     },
     [isAuthenticated]
@@ -106,9 +94,9 @@ export const AuthProvider = ({ children }) => {
                 );
                 console.log("✅ Token refreshed successfully");
 
-                // Retry original request
-                originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
-                return api.request(originalRequest);
+                // Backend đã tự động set HttpOnly cookie, không cần retry với header
+                // Request tiếp theo sẽ tự động dùng cookie mới
+                return Promise.resolve(); // Không retry request cũ vì cookie đã được update
               }
             } catch (refreshError) {
               console.error("❌ Refresh token failed:", refreshError);
@@ -117,8 +105,7 @@ export const AuthProvider = ({ children }) => {
 
           // Tắc tạm auto-logout để debug
           console.log(
-            "⚠️ Auto logout disabled for debugging. 401/403 error:",
-            error.response?.data
+            "⚠️ Disabling auto logout to prevent redirect loop since no /auth route exists"
           );
           // autoLogout("Phiên đăng nhập không hợp lệ");
         }
@@ -132,76 +119,80 @@ export const AuthProvider = ({ children }) => {
     };
   }, []); // Empty dependency array
 
-  // Kiểm tra authentication và cookie consent khi app khởi động
+  // ĐƠN GIẢN HÓA: Chỉ check localStorage token
   useEffect(() => {
-    checkAuthStatus();
-    checkCookieConsent();
+    const token = localStorage.getItem("jwtToken");
+    const userData = localStorage.getItem("user");
 
-    // Also fetch cookie preferences from server
-    fetchCookiePreferences();
+    if (token) {
+      console.log("🔍 Found JWT token - user is authenticated");
+      setIsAuthenticated(true);
+
+      // Nếu có user data trong localStorage thì dùng luôn
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          console.log("✅ Loaded user from localStorage:", parsedUser.email);
+        } catch (error) {
+          console.log("⚠️ Failed to parse user data from localStorage");
+        }
+      }
+    } else {
+      console.log("📭 No JWT token found");
+    }
+
+    setLoading(false);
+    console.log("🔄 Simple auth check completed");
   }, []);
 
   const checkCookieConsent = () => {
-    // Check browser cookies first (set by backend)
-    const cookieConsentValue = getCookie("cookieConsent");
-    const localStorageConsent = localStorage.getItem("cookieConsent");
-
-    console.log("🍪 Browser cookie consent:", cookieConsentValue);
-    console.log("🍪 LocalStorage consent:", localStorageConsent);
-
-    // Priority: browser cookie > localStorage
-    const hasConsent = cookieConsentValue || localStorageConsent === "true";
-    console.log("🍪 Final consent status:", hasConsent);
-
-    setCookieConsent(!!hasConsent);
+    // Cookie consent functionality removed for simplification
   };
 
   const fetchCookiePreferences = async () => {
-    try {
-      const preferences = await fetchJson("/api/cookies/preferences");
-      console.log("🍪 Server preferences:", preferences);
-
-      // If server has preferences, update local consent
-      if (
-        preferences &&
-        (preferences.necessary ||
-          preferences.analytics ||
-          preferences.marketing)
-      ) {
-        setCookieConsent(true);
-        localStorage.setItem("cookieConsent", "true");
-      }
-
-      return preferences;
-    } catch (error) {
-      console.error("🍪 Failed to fetch cookie preferences:", error);
-      return null;
-    }
+    // Cookie preferences functionality removed for simplification
+    return null;
   };
 
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
+      const userData = localStorage.getItem("user");
+
       if (!token) {
+        console.log("📭 No JWT token found in localStorage");
         setLoading(false);
         return;
       }
 
-      // Xác minh token với server (chỉ nếu chưa authenticated)
-      if (!isAuthenticated) {
+      console.log("🔍 JWT token found, checking user data...");
+
+      if (userData) {
         try {
-          const userData = await fetchJson("/api/auth/verifyUser");
-          setUser(userData);
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
           setIsAuthenticated(true);
-          console.log("✅ Auth status verified");
-        } catch (verifyError) {
-          console.error("❌ Token verification failed:", verifyError);
-          // Không auto logout ở đây vì interceptor sẽ handle
+          console.log(
+            "✅ User restored from localStorage:",
+            parsedUser.email,
+            "Role:",
+            parsedUser.role?.roleName
+          );
+        } catch (error) {
+          console.error("❌ Failed to parse user data:", error);
+          // Clear invalid data
+          localStorage.removeItem("user");
+          localStorage.removeItem("jwtToken");
+          localStorage.removeItem("refreshToken");
         }
+      } else {
+        console.log("⚠️ No user data found in localStorage, clearing tokens");
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("refreshToken");
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      // Không auto logout ở đây để tránh loop
     } finally {
       setLoading(false);
     }
@@ -221,14 +212,27 @@ export const AuthProvider = ({ children }) => {
       if (data.refreshToken)
         localStorage.setItem("refreshToken", data.refreshToken);
 
-      // Set user data
-      setUser(data.user || data);
+      // Lưu user data vào localStorage
+      const userData = data.user || data;
+      if (userData) {
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+
+      // Set user data và authentication state
+      setUser(userData);
       setIsAuthenticated(true);
+
+      console.log(
+        "✅ Login successful, user data set:",
+        userData.email,
+        "Role:",
+        userData.role?.roleName
+      );
 
       return {
         success: true,
         message: data.message || "Login successful",
-        user: data.user || data,
+        user: userData,
       };
     } catch (error) {
       return {
@@ -239,48 +243,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const acceptCookies = async (customPreferences = null) => {
-    try {
-      console.log("🍪 Starting cookie consent process...");
-
-      // Set default preferences
-      const preferences = customPreferences || {
-        necessary: true,
-        analytics: false,
-        marketing: false,
-      };
-
-      console.log("🍪 Sending preferences:", preferences);
-
-      // Always set local consent first for immediate UI update
-      localStorage.setItem("cookieConsent", "true");
-      setCookieConsent(true);
-      console.log("✅ Set local cookie consent");
-
-      const token = localStorage.getItem("jwtToken");
-      if (!token) {
-        console.log(
-          "ℹ️ No JWT token found, skipping API call but consent is set locally"
-        );
-        return;
-      }
-
-      // Call backend API to save preferences and set cookies
-      const response = await api.post("/api/cookies/preferences", preferences);
-
-      console.log("🍪 Cookie consent API successful:", response.data);
-
-      // Refresh cookie state from browser
-      setTimeout(() => {
-        checkCookieConsent();
-      }, 100);
-
-      // Check auth status to get any new cookies
-      await checkAuthStatus();
-      console.log("✅ Cookie consent process completed");
-    } catch (error) {
-      console.error("❌ Cookie consent API failed:", error);
-      console.log("✅ Local cookie consent already set despite API failure");
-    }
+    // Cookie consent functionality removed for simplification
+    console.log(
+      "🍪 Cookie consent functionality disabled for simplified authentication"
+    );
   };
 
   const logout = async () => {
@@ -297,6 +263,14 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
 
+      // Clear JWT cookie if present
+      try {
+        document.cookie =
+          "jwtToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+      } catch (error) {
+        // Ignore cookie clearing errors
+      }
+
       // Redirect to home or login
       window.location.href = "/";
     }
@@ -307,7 +281,6 @@ export const AuthProvider = ({ children }) => {
     setUser,
     isAuthenticated,
     loading,
-    cookieConsent,
     login,
     logout,
     autoLogout,

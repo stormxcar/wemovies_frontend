@@ -35,8 +35,13 @@ const AddMovie = () => {
     trailer: "",
     link: "",
     episodeLinks: null,
+    ageRating: "", // Age rating field
   });
   const [thumbnailData, setThumbnailData] = useState({
+    type: "url",
+    value: "",
+  });
+  const [bannerData, setBannerData] = useState({
     type: "url",
     value: "",
   });
@@ -195,6 +200,18 @@ const AddMovie = () => {
         formDataToSend.append("thumbnailFile", thumbnailData.value);
       }
 
+      // Handle banner
+      if (bannerData.type === "url" && bannerData.value) {
+        formDataToSend.append("banner_url", bannerData.value);
+      } else if (bannerData.type === "file" && bannerData.value) {
+        formDataToSend.append("bannerFile", bannerData.value);
+      }
+
+      // Handle age rating
+      if (formData.ageRating && formData.ageRating.trim() !== "") {
+        formDataToSend.append("ageRating", formData.ageRating);
+      }
+
       // Handle actors
       const filteredActors = formData.actors.filter((actor) => actor.trim());
       if (filteredActors.length === 0) {
@@ -257,8 +274,10 @@ const AddMovie = () => {
         trailer: "",
         link: "",
         episodeLinks: null,
+        ageRating: "",
       });
       setThumbnailData({ type: "url", value: "" });
+      setBannerData({ type: "url", value: "" });
       navigate("/admin/movies");
     } catch (err) {
       console.error("Error adding movie:", err);
@@ -528,9 +547,39 @@ const AddMovie = () => {
           currentImageUrl={
             thumbnailData.type === "url" ? thumbnailData.value : ""
           }
-          label="Ảnh bìa:"
+          label="Ảnh bìa (Thumbnail):"
+          radioName="thumbnailUploadType"
           className={loading ? "pointer-events-none opacity-50" : ""}
         />
+
+        <ImageUpload
+          onImageChange={setBannerData}
+          currentImageUrl={bannerData.type === "url" ? bannerData.value : ""}
+          label="Ảnh banner (Ảnh lớn nằm ngang cho header trang chủ & chi tiết phim):"
+          radioName="bannerUploadType"
+          className={loading ? "pointer-events-none opacity-50" : ""}
+        />
+
+        <div>
+          <label htmlFor="ageRating" className="block text-sm font-medium">
+            Độ tuổi phù hợp:
+          </label>
+          <select
+            id="ageRating"
+            name="ageRating"
+            value={formData.ageRating}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            disabled={loading}
+          >
+            <option value="">Chọn độ tuổi</option>
+            <option value="P">P - Phù hợp mọi lứa tuổi</option>
+            <option value="T7">T7 - Từ 7 tuổi trở lên</option>
+            <option value="T13">T13 - Từ 13 tuổi trở lên</option>
+            <option value="T16">T16 - Từ 16 tuổi trở lên</option>
+            <option value="T18">T18 - Từ 18 tuổi trở lên</option>
+          </select>
+        </div>
         <div>
           <label htmlFor="trailer" className="block text-sm font-medium">
             Đường dẫn (trailer):

@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Clock, Play, Eye, Calendar } from "lucide-react";
 
-const WatchingHistoryTab = () => {
+const WatchingHistoryTab = ({ onRefresh }) => {
   const [watchingHistory, setWatchingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch watching history from API
-    // For now, using mock data
+    // Simulate API call
     setTimeout(() => {
       setWatchingHistory([
         {
           id: 1,
           movie: {
             id: "1",
-            title: "Avengers: Endgame",
+            title: "Avatar: The Way of Water",
             posterUrl: "https://via.placeholder.com/300x450",
-            release_year: 2019,
+            release_year: 2022,
           },
-          lastWatched: "2024-12-20T10:30:00Z",
+          lastWatched: "2024-12-20T14:30:00Z",
           progress: 75, // percentage
           episode: 1,
           totalEpisodes: 1,
@@ -35,6 +35,32 @@ const WatchingHistoryTab = () => {
           progress: 45,
           episode: 3,
           totalEpisodes: 62,
+        },
+        {
+          id: 3,
+          movie: {
+            id: "3",
+            title: "The Witcher",
+            posterUrl: "https://via.placeholder.com/300x450",
+            release_year: 2019,
+          },
+          lastWatched: "2024-12-18T16:45:00Z",
+          progress: 100,
+          episode: 8,
+          totalEpisodes: 8,
+        },
+        {
+          id: 4,
+          movie: {
+            id: "4",
+            title: "Stranger Things",
+            posterUrl: "https://via.placeholder.com/300x450",
+            release_year: 2016,
+          },
+          lastWatched: "2024-12-17T21:20:00Z",
+          progress: 30,
+          episode: 2,
+          totalEpisodes: 34,
         },
       ]);
       setLoading(false);
@@ -55,6 +81,18 @@ const WatchingHistoryTab = () => {
     return "bg-gray-400";
   };
 
+  const formatLastWatched = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "Hôm qua";
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} tuần trước`;
+    return date.toLocaleDateString("vi-VN");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -67,17 +105,18 @@ const WatchingHistoryTab = () => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📺</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Chưa có lịch sử xem phim
+        <h3 className="text-xl font-semibold text-white mb-2">
+          Chưa có lịch sử xem
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-400 mb-6">
           Bắt đầu xem phim để theo dõi tiến trình của bạn
         </p>
         <Link
           to="/"
-          className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Xem phim ngay
+          <Eye className="mr-2 h-4 w-4" />
+          Khám phá phim
         </Link>
       </div>
     );
@@ -86,120 +125,106 @@ const WatchingHistoryTab = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Phim đang xem ({watchingHistory.length})
-        </h2>
-        <div className="flex items-center space-x-2">
-          <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <option value="recent">Xem gần đây</option>
-            <option value="progress">Theo tiến trình</option>
-            <option value="title">Theo tên phim</option>
-          </select>
-        </div>
+        <h3 className="text-xl font-semibold text-white flex items-center">
+          <Clock className="mr-2 h-5 w-5 text-blue-500" />
+          Lịch sử xem ({watchingHistory.length})
+        </h3>
+        <button
+          onClick={onRefresh}
+          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Làm mới
+        </button>
       </div>
 
       <div className="space-y-4">
         {watchingHistory.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-all duration-200"
           >
             <div className="flex items-start space-x-4">
-              <Link to={`/movie/${item.movie.id}`} className="flex-shrink-0">
+              {/* Movie Poster */}
+              <div className="flex-shrink-0">
                 <img
-                  src={item.movie.posterUrl}
+                  src={
+                    item.movie.posterUrl ||
+                    "https://via.placeholder.com/120x180"
+                  }
                   alt={item.movie.title}
                   className="w-20 h-28 object-cover rounded-lg"
                 />
-              </Link>
+              </div>
 
-              <div className="flex-grow min-w-0">
+              {/* Movie Info */}
+              <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
-                  <div className="flex-grow">
-                    <Link to={`/movie/${item.movie.id}`}>
-                      <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-1">
-                        {item.movie.title}
-                      </h3>
-                    </Link>
-                    <p className="text-sm text-gray-600 mb-2">
+                  <div className="flex-1">
+                    <h4 className="text-white font-semibold text-lg mb-1 line-clamp-1">
+                      {item.movie.title}
+                    </h4>
+                    <p className="text-gray-400 text-sm mb-2">
                       {item.movie.release_year}
                     </p>
-                    <p className="text-sm text-gray-500 mb-3">
-                      Xem lần cuối:{" "}
-                      {new Date(item.lastWatched).toLocaleDateString("vi-VN")}
-                    </p>
+
+                    {/* Episode info for series */}
+                    {item.totalEpisodes > 1 && (
+                      <p className="text-blue-400 text-sm mb-2">
+                        Tập {item.episode} / {item.totalEpisodes}
+                      </p>
+                    )}
+
+                    {/* Last watched */}
+                    <div className="flex items-center text-gray-500 text-sm mb-3">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      <span>
+                        Xem lần cuối: {formatLastWatched(item.lastWatched)}
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-gray-400 text-sm">
+                          {formatProgress(item.progress)}
+                        </span>
+                        <span className="text-gray-400 text-sm">
+                          {item.progress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
+                            item.progress
+                          )}`}
+                          style={{ width: `${item.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium text-white ${getProgressColor(
-                        item.progress
-                      )}`}
+                  {/* Action Button */}
+                  <div className="flex-shrink-0 ml-4">
+                    <Link
+                      to={`/movie/${item.movie.id}`}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
-                      {formatProgress(item.progress)}
-                    </span>
+                      <Play className="mr-1 h-4 w-4" />
+                      {item.progress === 100 ? "Xem lại" : "Tiếp tục"}
+                    </Link>
                   </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-600">
-                      {item.totalEpisodes > 1
-                        ? `Tập ${item.episode}/${item.totalEpisodes}`
-                        : "Phim lẻ"}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {item.progress}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full ${getProgressColor(
-                        item.progress
-                      )}`}
-                      style={{ width: `${item.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-3">
-                  <Link
-                    to={`/movie/watch/${item.movie.id}`}
-                    className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M8 5v10l8-5-8-5z" />
-                    </svg>
-                    <span>Tiếp tục xem</span>
-                  </Link>
-
-                  <button className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors text-sm">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span>Xóa khỏi lịch sử</span>
-                  </button>
                 </div>
               </div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Load More */}
+      <div className="mt-8 text-center">
+        <button className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+          Tải thêm
+        </button>
       </div>
     </div>
   );

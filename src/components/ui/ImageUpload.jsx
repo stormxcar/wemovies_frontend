@@ -8,6 +8,7 @@ const ImageUpload = ({
   accept = "image/*",
   maxSize = 5 * 1024 * 1024, // 5MB
   className = "",
+  radioName = "uploadType", // Unique name for radio buttons
 }) => {
   const [previewUrl, setPreviewUrl] = useState(currentImageUrl);
   const [uploadType, setUploadType] = useState("url"); // 'url' or 'file'
@@ -84,7 +85,7 @@ const ImageUpload = ({
         <label className="flex items-center">
           <input
             type="radio"
-            name="uploadType"
+            name={radioName}
             value="url"
             checked={uploadType === "url"}
             onChange={() => handleTypeChange("url")}
@@ -95,7 +96,7 @@ const ImageUpload = ({
         <label className="flex items-center">
           <input
             type="radio"
-            name="uploadType"
+            name={radioName}
             value="file"
             checked={uploadType === "file"}
             onChange={() => handleTypeChange("file")}

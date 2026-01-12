@@ -20,14 +20,14 @@ import {
   fetchMovieType,
   fetchJson,
 } from "../services/api";
-import { ClipLoader } from "react-spinners";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
+import { useLoading } from "../utils/LoadingContext";
 
 function Header() {
   const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { setLoading, isLoading } = useLoading();
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -75,21 +75,32 @@ function Header() {
   // Search handler
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
-    setIsLoading(true);
+    setLoading("search", true, "Đang tìm kiếm...");
     try {
       const response = await fetchJson(
         `/api/movies/search?keyword=${encodeURIComponent(query)}`
       );
+
+      // Handle different response formats
+      let movies = [];
+      if (Array.isArray(response)) {
+        movies = response;
+      } else if (response && Array.isArray(response.data)) {
+        movies = response.data;
+      } else if (response && Array.isArray(response.movies)) {
+        movies = response.movies;
+      }
+
       navigate("/search", {
-        state: { movies: Array.isArray(response) ? response : [] },
+        state: { movies: movies },
       });
     } catch (error) {
       handleApiError(error, "Lỗi khi tìm kiếm phim");
     } finally {
-      setIsLoading(false);
+      setLoading("search", false);
       setIsSearchOpen(false);
     }
-  }, [query, navigate, handleApiError]);
+  }, [query, navigate, handleApiError, setLoading]);
 
   const handleKeyDownToSearch = (event) => {
     if (event.key === "Enter") handleSearch();
@@ -214,16 +225,46 @@ function Header() {
   const navigateToMovies = useCallback(
     async (endpoint, name) => {
       try {
+        console.log(`🎬 Fetching movies from: ${endpoint}`);
         const response = await fetchJson(endpoint);
+
+        // Handle different response formats
+        let movies = [];
+        if (response && Array.isArray(response)) {
+          movies = response;
+        } else if (response && Array.isArray(response.data)) {
+          movies = response.data;
+        } else if (
+          response &&
+          response.movies &&
+          Array.isArray(response.movies)
+        ) {
+          movies = response.movies;
+        } else {
+          console.log("⚠️ Unexpected response format:", response);
+          movies = [];
+        }
+
+        console.log(`✅ Found ${movies.length} movies for ${name}`);
         navigate(`/movies/${name}`, {
           state: {
-            movies: Array.isArray(response.data) ? response.data : [],
+            movies,
             title: name,
           },
         });
         closeModal();
       } catch (error) {
+        console.error(`❌ Failed to fetch movies for ${name}:`, error);
         handleApiError(error, `Lỗi khi tải phim cho ${name}`);
+
+        // Navigate anyway with empty movies array to show the page
+        navigate(`/movies/${name}`, {
+          state: {
+            movies: [],
+            title: name,
+          },
+        });
+        closeModal();
       }
     },
     [navigate, handleApiError, closeModal]
@@ -400,11 +441,7 @@ function Header() {
         </div>
 
         <div className="flex items-center w-[30%] justify-end">
-          {loading ? (
-            <div>
-              <ClipLoader color="#ffffff" size={30} />
-            </div>
-          ) : user ? (
+          {isLoading("search") ? null : user ? (
             <div className="relative">
               <button
                 onClick={(e) => {

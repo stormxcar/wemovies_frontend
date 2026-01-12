@@ -3,16 +3,38 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
 import { ClipLoader } from "react-spinners";
-import { FaChevronRight, FaHeart, FaShare, FaClock } from "react-icons/fa";
+import {
+  FaChevronRight,
+  FaHeart,
+  FaShare,
+  FaClock,
+  FaStar,
+  FaCalendarAlt,
+} from "react-icons/fa";
 import WatchlistButton from "./WatchlistButton";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import { useLoading } from "../utils/LoadingContext";
+import { trackMovieView, trackUserAction } from "../services/analytics";
 
 const DetailMovie = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { setLoading, isLoading } = useLoading();
   const [movieDetail, setMovieDetail] = useState(null);
   const [relatedMovies, setRelatedMovies] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  // const navigate = useNavigate();
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [userComment, setUserComment] = useState("");
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [scheduleDateTime, setScheduleDateTime] = useState("");
+  const [scheduleNotes, setScheduleNotes] = useState("");
+  const [scheduleReminder, setScheduleReminder] = useState(true);
+  const [isScheduled, setIsScheduled] = useState(false);
 
   const fetchRelatedMovies = useCallback(async (categoryId) => {
     if (!categoryId) {
@@ -31,29 +53,116 @@ const DetailMovie = () => {
     }
   }, []);
 
+  const fetchReviews = useCallback(async () => {
+    try {
+      const reviewsData = await fetchJson(`/api/reviews/${id}/reviews`);
+      const ratingData = await fetchJson(`/api/reviews/${id}/average-rating`);
+      setReviews(reviewsData || []);
+      setAverageRating(ratingData || 0);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  }, [id]);
+
+  const checkScheduleStatus = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const scheduled = await fetchJson(`/api/schedules/check/${id}`);
+      setIsScheduled(scheduled);
+    } catch (error) {
+      console.error("Error checking schedule status:", error);
+    }
+  }, [id, isAuthenticated]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để đánh giá");
+      return;
+    }
+    if (userRating === 0) {
+      toast.error("Vui lòng chọn số sao");
+      return;
+    }
+
+    try {
+      const url = `/api/reviews/${id}/review?rating=${userRating}${
+        userComment ? `&comment=${encodeURIComponent(userComment)}` : ""
+      }`;
+      await fetchJson(url, {
+        method: "POST",
+      });
+      toast.success("Đánh giá thành công!");
+      setShowReviewForm(false);
+      setUserRating(0);
+      setUserComment("");
+      fetchReviews();
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi đánh giá");
+    }
+  };
+
+  const handleCreateSchedule = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để tạo lịch xem");
+      return;
+    }
+
+    try {
+      await fetchJson("/api/schedules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          movieId: id,
+          scheduledDateTime: scheduleDateTime,
+          reminderEnabled: scheduleReminder,
+          notes: scheduleNotes,
+        }),
+      });
+      toast.success("Tạo lịch xem thành công!");
+      setShowScheduleForm(false);
+      setScheduleDateTime("");
+      setScheduleNotes("");
+      setScheduleReminder(true);
+      checkScheduleStatus();
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi tạo lịch xem");
+    }
+  };
+
   useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
+        setLoading("movieDetail", true, "Đang tải thông tin phim...");
         const data = await fetchJson(`/api/movies/${id}`);
 
         setMovieDetail(data);
+
+        // Track movie view with analytics (respects cookie consent)
+        if (data?.data?.title) {
+          trackMovieView(id, data.data.title);
+        }
 
         if (data.data.movieCategories?.length) {
           fetchRelatedMovies(data.data.movieCategories[0].id);
         }
       } catch (e) {
         setMovieDetail(null);
+      } finally {
+        setLoading("movieDetail", false);
       }
     };
     fetchMovieDetail();
-  }, [id, fetchRelatedMovies]);
+    fetchReviews();
+    checkScheduleStatus();
+  }, [id, fetchRelatedMovies, fetchReviews, checkScheduleStatus, setLoading]);
 
-  if (!movieDetail)
-    return (
-      <div className="flex items-center justify-center">
-        <ClipLoader color="#555" />
-      </div>
-    );
+  const isLoadingMovieDetail = isLoading("movieDetail");
+
+  if (isLoadingMovieDetail || !movieDetail) {
+    return null; // LoadingContext sẽ handle loading display
+  }
 
   // const episodeLinks = movieDetail.data.episodeLinks?.split(",") || [];
   const episodeLinks =
@@ -209,11 +318,34 @@ const DetailMovie = () => {
                 />
               </div>
 
+              {/* Rating Display */}
+              <div className="my-4">
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FaStar
+                        key={star}
+                        className={`text-lg ${
+                          star <= Math.round(averageRating)
+                            ? "text-yellow-400"
+                            : "text-gray-600"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-white">
+                    {averageRating > 0
+                      ? `${averageRating.toFixed(1)}/5`
+                      : "Chưa có đánh giá"}
+                  </span>
+                  <span className="text-gray-400">
+                    ({reviews.length} đánh giá)
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
               <div className="flex items-center space-x-4 mt-6 mb-6">
-                <button className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                  <FaHeart />
-                  <span>Thích</span>
-                </button>
                 <WatchlistButton movieId={movieDetail.data.id} size="medium" />
                 <button
                   onClick={() => {
@@ -233,7 +365,73 @@ const DetailMovie = () => {
                   <FaShare />
                   <span>Chia sẻ</span>
                 </button>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setShowScheduleForm(true)}
+                    disabled={isScheduled}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                      isScheduled
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-500 text-white hover:bg-blue-600"
+                    }`}
+                  >
+                    <FaCalendarAlt />
+                    <span>{isScheduled ? "Đã lên lịch" : "Lên lịch xem"}</span>
+                  </button>
+                )}
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setShowReviewForm(true)}
+                    className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <FaStar />
+                    <span>Đánh giá</span>
+                  </button>
+                )}
               </div>
+
+              {/* Reviews Section */}
+              {reviews.length > 0 && (
+                <div className="my-8">
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    Đánh giá từ người dùng
+                  </h3>
+                  <div className="space-y-4">
+                    {reviews.slice(0, 3).map((review, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-700/50 p-4 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-white font-semibold">
+                            {review.user?.fullName || "Người dùng"}
+                          </span>
+                          <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <FaStar
+                                key={star}
+                                className={`text-sm ${
+                                  star <= review.rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-600"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-gray-300">{review.comment}</p>
+                        )}
+                        <p className="text-gray-500 text-sm mt-2">
+                          {new Date(review.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-row flex-wrap mt-8">
                 {episodeLinks.length > 0
@@ -257,7 +455,7 @@ const DetailMovie = () => {
 
       {/* <div className="my-4 mt-12"></div> */}
 
-      <div className="my-4 mx-12 mb-8 mt-40">
+      <div className=" mx-12 mt-40">
         <HorizontalMovies
           title="Phim liên quan"
           movies={relatedMovies}
@@ -266,6 +464,122 @@ const DetailMovie = () => {
           categoryId={null}
         />
       </div>
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              onClick={() => setShowReviewForm(false)}
+            >
+              ✕
+            </button>
+            <h3 className="text-xl text-white font-semibold mb-4">
+              Đánh giá phim
+            </h3>
+            <form onSubmit={handleSubmitReview}>
+              <div className="mb-4">
+                <label className="block text-white mb-2">Số sao:</label>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setUserRating(star)}
+                      className="text-2xl"
+                    >
+                      <FaStar
+                        className={
+                          star <= userRating
+                            ? "text-yellow-400"
+                            : "text-gray-600"
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-white mb-2">
+                  Bình luận (tùy chọn):
+                </label>
+                <textarea
+                  value={userComment}
+                  onChange={(e) => setUserComment(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  rows="3"
+                  placeholder="Viết bình luận của bạn..."
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Gửi đánh giá
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Form Modal */}
+      {showScheduleForm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              onClick={() => setShowScheduleForm(false)}
+            >
+              ✕
+            </button>
+            <h3 className="text-xl text-white font-semibold mb-4">
+              Lên lịch xem phim
+            </h3>
+            <form onSubmit={handleCreateSchedule}>
+              <div className="mb-4">
+                <label className="block text-white mb-2">Thời gian xem:</label>
+                <input
+                  type="datetime-local"
+                  value={scheduleDateTime}
+                  onChange={(e) => setScheduleDateTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-white mb-2">
+                  Ghi chú (tùy chọn):
+                </label>
+                <textarea
+                  value={scheduleNotes}
+                  onChange={(e) => setScheduleNotes(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  rows="2"
+                  placeholder="Ghi chú cho lịch xem..."
+                />
+              </div>
+              <div className="mb-4">
+                <label className="flex items-center text-white">
+                  <input
+                    type="checkbox"
+                    checked={scheduleReminder}
+                    onChange={(e) => setScheduleReminder(e.target.checked)}
+                    className="mr-2"
+                  />
+                  Nhắc nhở trước 30 phút
+                </label>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+              >
+                Tạo lịch xem
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

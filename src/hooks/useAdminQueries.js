@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
 import {
   fetchMovies,
   fetchCategories,
@@ -14,10 +15,13 @@ import {
 
 // Movies queries
 export const useMovies = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return useQuery({
     queryKey: ["movies"],
     queryFn: fetchMovies,
     select: (data) => (Array.isArray(data) ? data : []),
+    enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });
 };
 
@@ -34,10 +38,13 @@ export const useDeleteMovie = () => {
 
 // Categories queries
 export const useCategories = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     select: (data) => (Array.isArray(data) ? data : []),
+    enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });
 };
 
@@ -54,10 +61,13 @@ export const useDeleteCategory = () => {
 
 // Countries queries
 export const useCountries = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return useQuery({
     queryKey: ["countries"],
     queryFn: fetchCountries,
     select: (data) => (Array.isArray(data) ? data : []),
+    enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });
 };
 
@@ -74,10 +84,13 @@ export const useDeleteCountry = () => {
 
 // Types queries
 export const useTypes = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return useQuery({
     queryKey: ["types"],
     queryFn: fetchMovieType,
     select: (data) => (Array.isArray(data) ? data : []),
+    enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });
 };
 
@@ -94,10 +107,13 @@ export const useDeleteType = () => {
 
 // Users queries
 export const useUsers = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return useQuery({
     queryKey: ["users"],
     queryFn: fetchUsers,
     select: (data) => (Array.isArray(data) ? data : []),
+    enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });
 };
 

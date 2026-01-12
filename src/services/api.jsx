@@ -24,9 +24,9 @@ api.interceptors.request.use((config) => {
   if (!publicEndpoints.some((endpoint) => config.url.includes(endpoint))) {
     const token = localStorage.getItem("jwtToken");
     if (token) {
+      // Sử dụng Authorization header - đơn giản và hiệu quả
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("🚀 Request to:", config.url);
-      console.log("🎫 Auth Header:", `Bearer ${token.substring(0, 20)}...`);
+      console.log("🔑 Set Authorization header for:", config.url);
     } else {
       console.log("⚠️ No JWT token found for protected endpoint:", config.url);
     }
@@ -62,7 +62,8 @@ api.interceptors.response.use(
           // Refresh failed, logout
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("refreshToken");
-          window.location.href = "/auth";
+          console.log("Redirecting to homepage due to authentication failure");
+          window.location.href = "/";
         }
       }
     }

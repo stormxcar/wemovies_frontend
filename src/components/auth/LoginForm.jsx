@@ -72,13 +72,19 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       // Login thành công
       const data = await response.json();
 
-      // Lưu tokens vào localStorage
+      // Lưu tokens và user data vào localStorage
       if (data.accessToken) localStorage.setItem("jwtToken", data.accessToken);
       if (data.refreshToken)
         localStorage.setItem("refreshToken", data.refreshToken);
+      if (data.user || data) {
+        localStorage.setItem("user", JSON.stringify(data.user || data));
+      }
 
-      // Update auth context
-      await checkAuthStatus();
+      // Update auth context directly with login data (no need to call checkAuthStatus)
+      const loginResult = await login(loginForm.email, loginForm.passWord);
+      if (!loginResult.success) {
+        throw new Error(loginResult.message);
+      }
 
       toast.success("Đăng nhập thành công!");
       if (onLoginSuccess) {
@@ -96,7 +102,27 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         navigate("/");
       }
     } catch (error) {
-      toast.error("Lỗi kết nối mạng");
+      console.error("Login error:", error);
+
+      // Improved error handling
+      let errorMessage = "Đăng nhập thất bại";
+
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra internet.";
+      } else if (error.response) {
+        // Server responded with error status
+        errorMessage =
+          error.response.data?.message ||
+          `Lỗi server: ${error.response.status}`;
+      } else if (error.request) {
+        // Request made but no response received
+        errorMessage = "Không thể kết nối tới server. Vui lòng thử lại sau.";
+      } else if (error.message) {
+        // Something else happened
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

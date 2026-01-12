@@ -16,35 +16,15 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
     if (path === "/admin") {
       return location.pathname === "/admin" || location.pathname === "/admin/";
     }
-    return location.pathname === path;
-  };
-
-  // Function to check if current path is under a parent section
-  const isParentActive = (parentPath) => {
-    if (parentPath === "/admin") {
-      return location.pathname === "/admin" || location.pathname === "/admin/";
-    }
-    return location.pathname.startsWith(parentPath + "/");
+    return location.pathname.startsWith(path);
   };
 
   // Function to get button classes with active state
-  const getButtonClasses = (path, isParent = false) => {
-    const baseClasses =
-      "w-full text-left p-2 rounded transition-colors duration-200";
+  const getButtonClasses = (path) => {
+    const baseClasses = "w-full text-left p-2 rounded transition-colors duration-200";
     const activeClasses = "bg-blue-600 text-white";
-    const parentActiveClasses = "bg-blue-500 text-white";
     const inactiveClasses = "hover:bg-gray-700";
-
-    if (isParent) {
-      return `${baseClasses} ${
-        isParentActive(path) && !isActive(path)
-          ? parentActiveClasses
-          : isActive(path)
-          ? activeClasses
-          : inactiveClasses
-      }`;
-    }
-
+    
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`;
   };
 
@@ -68,7 +48,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                className={getButtonClasses("/admin/categories", true)}
+                className={getButtonClasses("/admin/categories")}
               >
                 Danh mục
               </button>
@@ -77,7 +57,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/categories")}
-                      className={getButtonClasses("/admin/categories")}
+                      className={getButtonClasses(path)}
                     >
                       Danh sách
                     </button>
@@ -85,7 +65,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/categories/add")}
-                      className={getButtonClasses("/admin/categories/add")}
+                      className={getButtonClasses(path)}
                     >
                       Thêm
                     </button>
@@ -93,7 +73,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/categories/update")}
-                      className={getButtonClasses("/admin/categories/update")}
+                      className={getButtonClasses(path)}
                     >
                       Cập nhật
                     </button>
@@ -104,7 +84,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => setIsCountryOpen(!isCountryOpen)}
-                className={getButtonClasses("/admin/countries", true)}
+                className={getButtonClasses(path)}
               >
                 Quốc gia
               </button>
@@ -113,7 +93,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/countries")}
-                      className={getButtonClasses("/admin/countries")}
+                      className={getButtonClasses(path)}
                     >
                       Danh sách
                     </button>
@@ -121,7 +101,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/countries/add")}
-                      className={getButtonClasses("/admin/countries/add")}
+                      className={getButtonClasses(path)}
                     >
                       Thêm
                     </button>
@@ -129,7 +109,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/countries/update")}
-                      className={getButtonClasses("/admin/countries/update")}
+                      className={getButtonClasses(path)}
                     >
                       Cập nhật
                     </button>
@@ -140,7 +120,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => setIsMovieOpen(!isMovieOpen)}
-                className={getButtonClasses("/admin/movies", true)}
+                className={getButtonClasses(path)}
               >
                 Phim
               </button>
@@ -149,7 +129,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/movies")}
-                      className={getButtonClasses("/admin/movies")}
+                      className={getButtonClasses(path)}
                     >
                       Danh sách
                     </button>
@@ -157,7 +137,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/movies/add")}
-                      className={getButtonClasses("/admin/movies/add")}
+                      className={getButtonClasses(path)}
                     >
                       Thêm
                     </button>
@@ -165,7 +145,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/movies/update")}
-                      className={getButtonClasses("/admin/movies/update")}
+                      className={getButtonClasses(path)}
                     >
                       Cập nhật
                     </button>
@@ -176,7 +156,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => setIsTypeOpen(!isTypeOpen)}
-                className={getButtonClasses("/admin/types", true)}
+                className={getButtonClasses(path)}
               >
                 Loại phim
               </button>
@@ -185,7 +165,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/types")}
-                      className={getButtonClasses("/admin/types")}
+                      className={getButtonClasses(path)}
                     >
                       Danh sách
                     </button>
@@ -193,7 +173,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/types/add")}
-                      className={getButtonClasses("/admin/types/add")}
+                      className={getButtonClasses(path)}
                     >
                       Thêm
                     </button>
@@ -204,7 +184,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => setIsUserOpen(!isUserOpen)}
-                className={getButtonClasses("/admin/users", true)}
+                className={getButtonClasses(path)}
               >
                 Người dùng
               </button>
@@ -213,7 +193,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/users")}
-                      className={getButtonClasses("/admin/users")}
+                      className={getButtonClasses(path)}
                     >
                       Danh sách
                     </button>
@@ -221,7 +201,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   {/* <li>
                     <button
                       onClick={() => navigate("/admin/users/add")}
-                      className="w-full text-left p-2 hover:bg-gray-700 rounded"
+                      className={getButtonClasses(path)}
                     >
                       Thêm
                     </button>
@@ -229,7 +209,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
                   <li>
                     <button
                       onClick={() => navigate("/admin/users/update")}
-                      className="w-full text-left p-2 hover:bg-gray-700 rounded"
+                      className={getButtonClasses(path)}
                     >
                       Cập nhật
                     </button>
@@ -240,7 +220,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li>
               <button
                 onClick={() => navigate("/admin/settings")}
-                className={getButtonClasses("/admin/settings")}
+                className={getButtonClasses(path)}
               >
                 Cài đặt
               </button>
@@ -249,9 +229,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             <li className="border-t border-gray-700 pt-2 mt-4">
               <button
                 onClick={() => navigate("/admin/profile")}
-                className={`${getButtonClasses(
-                  "/admin/profile"
-                )} flex items-center space-x-2`}
+                className="w-full text-left p-2 hover:bg-gray-700 rounded flex items-center space-x-2"
               >
                 <svg
                   className="w-5 h-5"

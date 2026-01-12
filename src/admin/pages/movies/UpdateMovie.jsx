@@ -11,6 +11,8 @@ import {
   fetchCountries as getCountries,
 } from "../../../services/api";
 import ImageUpload from "../../../components/ui/ImageUpload";
+import { useLoading } from "../../../utils/LoadingContext";
+import { LoadingWrapper, FormSkeleton } from "../../../components/ui/Skeleton";
 
 // Reducer for formData state management
 const formReducer = (state, action) => {
@@ -35,6 +37,7 @@ const formReducer = (state, action) => {
 };
 
 const UpdateMovie = ({ title, items, updateEndpoint }) => {
+  const { setLoading, isLoading } = useLoading();
   const [selectedId, setSelectedId] = useState("");
   const [formData, dispatchFormData] = useReducer(formReducer, {
     id: "",
@@ -54,6 +57,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
     countryId: null,
     hot: "",
     thumb_url: "",
+    banner_url: "",
+    ageRating: "",
     trailer: "",
     link: "",
     episodeLinks: [], // Initialize as empty array
@@ -63,9 +68,11 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   const [countries, setCountries] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [episodeLinks, setEpisodeLinks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [thumbnailData, setThumbnailData] = useState({
+    type: "url",
+    value: "",
+  });
+  const [bannerData, setBannerData] = useState({
     type: "url",
     value: "",
   });
@@ -74,8 +81,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // Fetch movie types, categories, and countries
   useEffect(() => {
     const fetchOptions = async () => {
+      await setLoading("fetchOptions", true, "Đang tải dữ liệu...");
       try {
-        setLoading(true);
         const [typesData, catsData, countriesData] = await Promise.all([
           getTypes(),
           getCategories(),
@@ -90,7 +97,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         console.error("Error fetching options:", err);
         toast.error("Không thể tải dữ liệu. Vui lòng thử lại.");
       } finally {
-        setLoading(false);
+        setLoading("fetchOptions", false);
       }
     };
     fetchOptions();
@@ -136,7 +143,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         setThumbnailData({ type: "url", value: "" });
         return;
       }
-      setLoading(true);
+      setLoading("loadMovie", true, "Đang tải thông tin phim...");
       // selectedId is now UUID string, no need to parse
       console.log(
         "Looking for item with id:",
@@ -180,7 +187,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         });
         setEpisodeLinks([]);
         setThumbnailData({ type: "url", value: "" });
-        setLoading(false);
+        setLoading("loadMovie", false);
         return;
       }
       if (item) {
@@ -219,12 +226,15 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           countryId: item.country ? item.country.id : null,
           hot: item.hot ? "true" : "false",
           thumb_url: item.thumb_url || "",
+          banner_url: item.banner_url || "",
+          ageRating: item.ageRating || "",
           trailer: item.trailer || "",
           link: item.link || "",
           episodeLinks: [], // Will be set after fetching episodes
         };
         dispatchFormData({ type: "RESET", payload: newFormData });
         setThumbnailData({ type: "url", value: item.thumb_url || "" });
+        setBannerData({ type: "url", value: item.banner_url || "" });
 
         // Set episodes from the movie data
         const episodes = item.episodes || [];
@@ -263,6 +273,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
             countryId: null,
             hot: "",
             thumb_url: "",
+            banner_url: "",
+            ageRating: "",
             trailer: "",
             link: "",
             episodeLinks: [],
@@ -270,7 +282,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         });
         setEpisodeLinks([]);
       }
-      setLoading(false);
+      setLoading("loadMovie", false);
     };
     syncData();
   }, [selectedId, items]);
@@ -376,7 +388,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       toast.error("Vui lòng chọn một phim để cập nhật.");
       return;
     }
-    setSubmitting(true);
+    setLoading("submitMovie", true, "Đang cập nhật phim...");
     try {
       const formDataToSend = new FormData();
 
@@ -414,6 +426,18 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         formDataToSend.append("thumb_url", thumbnailData.value);
       } else if (thumbnailData.type === "file" && thumbnailData.value) {
         formDataToSend.append("thumbnailFile", thumbnailData.value);
+      }
+
+      // Handle banner
+      if (bannerData.type === "url" && bannerData.value) {
+        formDataToSend.append("banner_url", bannerData.value);
+      } else if (bannerData.type === "file" && bannerData.value) {
+        formDataToSend.append("bannerFile", bannerData.value);
+      }
+
+      // Handle age rating
+      if (formData.ageRating && formData.ageRating.trim() !== "") {
+        formDataToSend.append("ageRating", formData.ageRating);
       }
 
       // Handle actors
@@ -468,7 +492,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       );
       toast.error(error.response?.data || `Lỗi khi cập nhật ${title}`);
     } finally {
-      setSubmitting(false);
+      setLoading("submitMovie", false);
     }
   };
 
@@ -482,14 +506,15 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Chỉnh sửa {title}</h1>
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
+      <LoadingWrapper
+        isLoading={isLoading("fetchOptions") || isLoading("loadMovie")}
+        skeleton={FormSkeleton}
+      >
         <>
           <select
             value={selectedId || ""}
             onChange={(e) => setSelectedId(e.target.value)}
-            disabled={submitting}
+            disabled={isLoading("submitMovie")}
             className="w-full p-2 mb-4 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Chọn {title}</option>
@@ -511,7 +536,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -527,7 +552,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="titleByLanguage"
                   value={formData.titleByLanguage}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -540,7 +565,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -558,7 +583,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     value={formData.totalEpisodes || ""}
                     onChange={handleChange}
                     min="1"
-                    disabled={submitting}
+                    disabled={isLoading("submitMovie")}
                     className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                   {formData.episodeLinks.length > 0 && (
@@ -573,7 +598,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                             value={link || ""}
                             onChange={(e) => handleEpisodeLinkChange(index, e)}
                             placeholder={`Link cho tập ${index + 1}`}
-                            disabled={submitting}
+                            disabled={isLoading("submitMovie")}
                             className="flex-1 p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                           />
                         </div>
@@ -592,7 +617,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     name="link"
                     value={formData.link}
                     onChange={handleChange}
-                    disabled={submitting}
+                    disabled={isLoading("submitMovie")}
                     className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
@@ -606,7 +631,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="director"
                   value={formData.director}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -619,7 +644,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       type="text"
                       value={actor}
                       onChange={(e) => handleActorChange(index, e)}
-                      disabled={submitting}
+                      disabled={isLoading("submitMovie")}
                       className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                   ))}
@@ -627,7 +652,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 <button
                   type="button"
                   onClick={addActor}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Thêm diễn viên
@@ -642,7 +667,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="duration"
                   value={formData.duration}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -654,7 +679,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="quality"
                   value={formData.quality}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn chất lượng</option>
@@ -672,7 +697,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="vietSub"
                   value={formData.vietSub}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn</option>
@@ -688,7 +713,11 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   Mô tả:
                 </label>
                 <div
-                  className={submitting ? "pointer-events-none opacity-50" : ""}
+                  className={
+                    isLoading("submitMovie")
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 >
                   <CKEditor
                     name="description"
@@ -713,7 +742,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   onChange={handleChange}
                   min="1900"
                   max="2100"
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -738,7 +767,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       formData.movieTypeIds.includes(opt.value)
                     ) || []
                   }
-                  isDisabled={submitting}
+                  isdisabled={isLoading("submitMovie")}
                 />
               </div>
               <div>
@@ -759,7 +788,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       formData.categoryIds.includes(opt.value)
                     ) || []
                   }
-                  isDisabled={submitting}
+                  isdisabled={isLoading("submitMovie")}
                 />
               </div>
               <div>
@@ -778,7 +807,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     countries.find((opt) => opt.value === formData.countryId) ||
                     null
                   }
-                  isDisabled={submitting}
+                  isdisabled={isLoading("submitMovie")}
                 />
               </div>
               <div>
@@ -789,7 +818,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="hot"
                   value={formData.hot}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Chọn</option>
@@ -802,9 +831,58 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 currentImageUrl={
                   thumbnailData.type === "url" ? thumbnailData.value : ""
                 }
-                label="Ảnh bìa:"
-                className={submitting ? "pointer-events-none opacity-50" : ""}
+                label="Ảnh bìa (Thumbnail):"
+                radioName="thumbnailUploadType"
+                className={
+                  isLoading("submitMovie")
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
               />
+
+              <ImageUpload
+                onImageChange={setBannerData}
+                currentImageUrl={
+                  bannerData.type === "url" ? bannerData.value : ""
+                }
+                label="Ảnh banner (Ảnh lớn nằm ngang cho header trang chủ & chi tiết phim):"
+                radioName="bannerUploadType"
+                className={
+                  isLoading("submitMovie")
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+
+              <div>
+                <label
+                  htmlFor="ageRating"
+                  className="block text-sm font-medium"
+                >
+                  Độ tuổi phù hợp:
+                </label>
+                <select
+                  id="ageRating"
+                  name="ageRating"
+                  value={formData.ageRating || ""}
+                  onChange={(e) =>
+                    dispatchFormData({
+                      type: "UPDATE_FIELD",
+                      field: "ageRating",
+                      value: e.target.value,
+                    })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  disabled={isLoading("submitMovie")}
+                >
+                  <option value="">Chọn độ tuổi</option>
+                  <option value="P">P - Phù hợp mọi lứa tuổi</option>
+                  <option value="T7">T7 - Từ 7 tuổi trở lên</option>
+                  <option value="T13">T13 - Từ 13 tuổi trở lên</option>
+                  <option value="T16">T16 - Từ 16 tuổi trở lên</option>
+                  <option value="T18">T18 - Từ 18 tuổi trở lên</option>
+                </select>
+              </div>
               <div>
                 <label htmlFor="trailer" className="block text-sm font-medium">
                   Đường dẫn (trailer):
@@ -814,7 +892,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   name="trailer"
                   value={formData.trailer}
                   onChange={handleChange}
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   className="w-full p-2 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
@@ -822,7 +900,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 <button
                   type="button"
                   className="px-4 py-2 bg-red-700 rounded text-white"
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   onClick={() => {
                     if (hasChanges) {
                       if (
@@ -842,7 +920,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                 <button
                   type="reset"
                   className="px-4 py-2 bg-green-400 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                   onClick={() => {
                     dispatchFormData({
                       type: "RESET",
@@ -894,15 +972,15 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     }
                   }}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  disabled={submitting}
+                  disabled={isLoading("submitMovie")}
                 >
-                  {submitting ? "Đang cập nhật..." : "Cập nhật"}
+                  {isLoading("submitMovie") ? "Đang cập nhật..." : "Cập nhật"}
                 </button>
               </div>
             </form>
           )}
         </>
-      )}
+      </LoadingWrapper>
     </div>
   );
 };

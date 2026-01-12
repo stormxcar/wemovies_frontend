@@ -24,26 +24,29 @@ function MovieList({ movies = [], onMovieClick }) {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [types] = await Promise.all([fetchMovieType()]);
+        console.log("🎭 Fetching movie types...");
+        const typesResponse = await fetchMovieType();
 
-        setTypes(Array.isArray(types) ? types : []);
+        const typesArray = Array.isArray(typesResponse) ? typesResponse : [];
+        setTypes(typesArray);
 
-        console.log("====================================");
-        console.log("Fetch Data:", { types });
-        console.log("====================================");
+        console.log("✅ MovieList fetch data:", {
+          typesCount: typesArray.length,
+          stateMovies: stateMovies?.length || 0,
+          propsMovies: movies?.length || 0,
+        });
       } catch (error) {
         if (error.name === "AbortError") {
-          console.error("Fetch aborted due to timeout:", error.message);
+          console.error("⏰ Fetch aborted due to timeout:", error.message);
         } else {
-          console.error("Error fetching data:", error.message);
+          console.error("❌ Error fetching MovieList data:", error.message);
         }
 
         setTypes([]);
-      } finally {
       }
     };
     fetchAll();
-  }, []);
+  }, [stateMovies?.length, movies?.length]);
 
   const fetchMoviesByCategory = async (categoryId) => {
     try {

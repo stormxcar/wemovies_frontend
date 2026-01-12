@@ -1,15 +1,20 @@
 import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsTab = () => {
+  const { logout } = useAuth();
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
-    autoplay: true,
-    quality: "auto",
+    movieRecommendations: true,
+    newReleaseAlerts: true,
+    darkMode: true,
     language: "vi",
-    darkMode: false,
-    adultContent: false,
+    autoPlay: false,
+    downloadQuality: "hd",
+    dataUsage: "normal",
   });
 
   const handleSettingChange = (key, value) => {
@@ -17,6 +22,18 @@ const SettingsTab = () => {
       ...prev,
       [key]: value,
     }));
+    toast.success("Cài đặt đã được cập nhật!");
+  };
+
+  const handleLogout = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+      await logout();
+    }
+  };
+
+  const clearCache = () => {
+    localStorage.clear();
+    toast.success("Đã xóa cache!");
   };
 
   const handleSaveSettings = () => {
@@ -35,190 +52,244 @@ const SettingsTab = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Cài đặt</h2>
+    <div className="space-y-6">
+      {/* Notification Settings */}
+      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <Bell className="mr-2 h-5 w-5" />
+          Thông báo
+        </h3>
 
-      <div className="space-y-8">
-        {/* Notification Settings */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Thông báo
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-700">
-                  Thông báo email
-                </label>
-                <p className="text-sm text-gray-500">
-                  Nhận thông báo về phim mới, cập nhật
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.emailNotifications}
-                  onChange={(e) =>
-                    handleSettingChange("emailNotifications", e.target.checked)
-                  }
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-700">
-                  Thông báo đẩy
-                </label>
-                <p className="text-sm text-gray-500">
-                  Nhận thông báo trực tiếp trên trình duyệt
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.pushNotifications}
-                  onChange={(e) =>
-                    handleSettingChange("pushNotifications", e.target.checked)
-                  }
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Playback Settings */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Phát video
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-700">
-                  Tự động phát
-                </label>
-                <p className="text-sm text-gray-500">
-                  Tự động phát tập tiếp theo
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.autoplay}
-                  onChange={(e) =>
-                    handleSettingChange("autoplay", e.target.checked)
-                  }
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <label className="block font-medium text-gray-700 mb-2">
-                Chất lượng video
-              </label>
-              <select
-                value={settings.quality}
-                onChange={(e) => handleSettingChange("quality", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="auto">Tự động</option>
-                <option value="1080p">1080p (Full HD)</option>
-                <option value="720p">720p (HD)</option>
-                <option value="480p">480p (SD)</option>
-              </select>
+              <h4 className="text-white font-medium">Email thông báo</h4>
+              <p className="text-gray-400 text-sm">Nhận thông báo qua email</p>
             </div>
-          </div>
-        </div>
-
-        {/* General Settings */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Tổng quát
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block font-medium text-gray-700 mb-2">
-                Ngôn ngữ
-              </label>
-              <select
-                value={settings.language}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.emailNotifications}
                 onChange={(e) =>
-                  handleSettingChange("language", e.target.value)
+                  handleSettingChange("emailNotifications", e.target.checked)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="vi">Tiếng Việt</option>
-                <option value="en">English</option>
-                <option value="ko">한국어</option>
-                <option value="ja">日本語</option>
-              </select>
-            </div>
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-700">Chế độ tối</label>
-                <p className="text-sm text-gray-500">Sử dụng giao diện tối</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.darkMode}
-                  onChange={(e) =>
-                    handleSettingChange("darkMode", e.target.checked)
-                  }
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-white font-medium">Thông báo đẩy</h4>
+              <p className="text-gray-400 text-sm">
+                Nhận thông báo trên trình duyệt
+              </p>
             </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.pushNotifications}
+                onChange={(e) =>
+                  handleSettingChange("pushNotifications", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium text-gray-700">
-                  Nội dung người lớn
-                </label>
-                <p className="text-sm text-gray-500">Hiển thị nội dung 18+</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.adultContent}
-                  onChange={(e) =>
-                    handleSettingChange("adultContent", e.target.checked)
-                  }
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-white font-medium">Gợi ý phim</h4>
+              <p className="text-gray-400 text-sm">Nhận gợi ý phim phù hợp</p>
             </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.movieRecommendations}
+                onChange={(e) =>
+                  handleSettingChange("movieRecommendations", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-white font-medium">Phim mới ra mắt</h4>
+              <p className="text-gray-400 text-sm">Thông báo khi có phim mới</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.newReleaseAlerts}
+                onChange={(e) =>
+                  handleSettingChange("newReleaseAlerts", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
           </div>
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="border-t pt-6">
-          <div className="flex justify-between">
-            <button
-              onClick={handleSaveSettings}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Lưu cài đặt
-            </button>
+      {/* Appearance Settings */}
+      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <Palette className="mr-2 h-5 w-5" />
+          Giao diện
+        </h3>
 
-            <button
-              onClick={handleDeleteAccount}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-white font-medium">Chế độ tối</h4>
+              <p className="text-gray-400 text-sm">Sử dụng giao diện tối</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.darkMode}
+                onChange={(e) =>
+                  handleSettingChange("darkMode", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div>
+            <h4 className="text-white font-medium mb-2">Ngôn ngữ</h4>
+            <select
+              value={settings.language}
+              onChange={(e) => handleSettingChange("language", e.target.value)}
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
             >
-              Xóa tài khoản
-            </button>
+              <option value="vi">Tiếng Việt</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+            </select>
           </div>
         </div>
+      </div>
+
+      {/* Playback Settings */}
+      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <Settings className="mr-2 h-5 w-5" />
+          Phát video
+        </h3>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-white font-medium">Tự động phát</h4>
+              <p className="text-gray-400 text-sm">
+                Tự động phát video khi tải trang
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.autoPlay}
+                onChange={(e) =>
+                  handleSettingChange("autoPlay", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div>
+            <h4 className="text-white font-medium mb-2">
+              Chất lượng tải xuống
+            </h4>
+            <select
+              value={settings.downloadQuality}
+              onChange={(e) =>
+                handleSettingChange("downloadQuality", e.target.value)
+              }
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="sd">SD (480p)</option>
+              <option value="hd">HD (720p)</option>
+              <option value="fhd">Full HD (1080p)</option>
+              <option value="4k">4K (2160p)</option>
+            </select>
+          </div>
+
+          <div>
+            <h4 className="text-white font-medium mb-2">Sử dụng dữ liệu</h4>
+            <select
+              value={settings.dataUsage}
+              onChange={(e) => handleSettingChange("dataUsage", e.target.value)}
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="low">Tiết kiệm</option>
+              <option value="normal">Bình thường</option>
+              <option value="high">Cao nhất</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Management */}
+      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <Shield className="mr-2 h-5 w-5" />
+          Quản lý tài khoản
+        </h3>
+
+        <div className="space-y-4">
+          <button
+            onClick={clearCache}
+            className="w-full flex items-center justify-center px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Xóa cache và dữ liệu tạm thời
+          </button>
+
+          <button
+            onClick={() =>
+              toast.info("Tính năng này sẽ có trong phiên bản sau")
+            }
+            className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Globe className="mr-2 h-4 w-4" />
+            Xuất dữ liệu cá nhân
+          </button>
+
+          <button
+            onClick={() => toast.info("Liên hệ admin để xóa tài khoản")}
+            className="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Yêu cầu xóa tài khoản
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </div>
+
+      {/* Privacy Notice */}
+      <div className="bg-blue-900/50 border border-blue-700 rounded-lg p-4">
+        <p className="text-blue-200 text-sm">
+          <strong>Lưu ý về quyền riêng tư:</strong> Tất cả cài đặt của bạn được
+          lưu trữ an toàn và chỉ được sử dụng để cải thiện trải nghiệm của bạn.
+          Chúng tôi không chia sẻ thông tin cá nhân với bên thứ ba.
+        </p>
       </div>
     </div>
   );
