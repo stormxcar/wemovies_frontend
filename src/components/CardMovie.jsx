@@ -32,10 +32,7 @@ function CardMovie({ movie }) {
               style={{ objectPosition: "top" }}
             />
           </SkeletonWrapper>
-          {/* Watchlist Button - Always visible */}
-          <div className="absolute top-2 right-2 z-10">
-            <WatchlistButton movieId={movie.id} />
-          </div>
+          {/* Watchlist Button moved to action buttons area */}
           <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black to-transparent text-white text-center">
             <SkeletonWrapper loading={!imageLoaded} height={20} width="80%">
               <h3 className="text-sm sm:text-base lg:text-lg line-clamp-2">
@@ -86,6 +83,11 @@ function CardMovie({ movie }) {
                     <button className="mt-2 bg-blue-500 text-white p-2 rounded flex-1 text-sm sm:text-base">
                       Xem ngay
                     </button>
+                  </SkeletonWrapper>
+                  <SkeletonWrapper loading={!imageLoaded} height={40}>
+                    <div className="mt-2 flex-1">
+                      <WatchlistButton movieId={movie.id} />
+                    </div>
                   </SkeletonWrapper>
                   <SkeletonWrapper loading={!imageLoaded} height={40}>
                     <button className="mt-2 bg-transparent text-white p-2 rounded flex-1 border-[1px] border-gray-500 text-sm sm:text-base">

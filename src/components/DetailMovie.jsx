@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson } from "../services/api";
-import { ClipLoader } from "react-spinners";
 import {
   FaChevronRight,
   FaHeart,
@@ -16,6 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useLoading } from "../utils/LoadingContext";
 import { trackMovieView, trackUserAction } from "../services/analytics";
+import { useWatchingTracker } from "../hooks/useWatchingTracker";
 
 const DetailMovie = () => {
   const { id } = useParams();
@@ -35,6 +35,15 @@ const DetailMovie = () => {
   const [scheduleNotes, setScheduleNotes] = useState("");
   const [scheduleReminder, setScheduleReminder] = useState(true);
   const [isScheduled, setIsScheduled] = useState(false);
+  const [isInWatchLater, setIsInWatchLater] = useState(false);
+
+  // Initialize watching tracker
+  const { startWatching } = useWatchingTracker(
+    id,
+    movieDetail?.data?.title,
+    user?.id,
+    isAuthenticated
+  );
 
   const fetchRelatedMovies = useCallback(async (categoryId) => {
     if (!categoryId) {
@@ -69,6 +78,11 @@ const DetailMovie = () => {
     try {
       const scheduled = await fetchJson(`/api/schedules/check/${id}`);
       setIsScheduled(scheduled);
+
+      // Check watch later status
+      const watchLaterList = await fetchJson("/api/schedules/watch-later");
+      const isInList = watchLaterList.some((item) => item.movie.id === id);
+      setIsInWatchLater(isInList);
     } catch (error) {
       console.error("Error checking schedule status:", error);
     }
@@ -128,6 +142,43 @@ const DetailMovie = () => {
       checkScheduleStatus();
     } catch (error) {
       toast.error("Có lỗi xảy ra khi tạo lịch xem");
+    }
+  };
+
+  const handleToggleWatchLater = async () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+      return;
+    }
+
+    try {
+      if (isInWatchLater) {
+        // Remove from watch later
+        await fetchJson(`/api/schedules/watch-later/${id}`, {
+          method: "DELETE",
+        });
+        setIsInWatchLater(false);
+        toast.success("Đã xóa khỏi danh sách xem sau!");
+      } else {
+        // Add to watch later
+        await fetchJson("/api/schedules/watch-later", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ movieId: id }),
+        });
+        setIsInWatchLater(true);
+        toast.success("Đã thêm vào danh sách xem sau!");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
+    }
+  };
+
+  const startWatchingSession = async () => {
+    if (isAuthenticated && movieDetail?.data) {
+      // Estimate duration (in seconds) - default 2 hours if not provided
+      const estimatedDuration = movieDetail.data.duration ? movieDetail.data.duration * 60 : 7200;
+      await startWatching(estimatedDuration);
     }
   };
 
@@ -211,23 +262,66 @@ const DetailMovie = () => {
               </span>
             </div>
           )}
-          <div className="flex items-center space-x-4 mt-4">
-            <Link
-              to={"/movie/watch/" + movieDetail.data.id}
-              state={{ movieDetail: movieDetail.data }}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Xem phim
-            </Link>
-            <WatchlistButton movieId={movieDetail.data.id} size="large" />
-            {movieDetail.data.trailer && (
-              <button
-                onClick={() => setShowModal(true)}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+          <div className="flex items-center justify-between mt-4">
+            {/* Left group - Watch and Trailer buttons */}
+            <div className="flex items-center space-x-4">
+              <Link
+                to={"/movie/watch/" + movieDetail.data.id}
+                state={{ movieDetail: movieDetail.data }}
+                onClick={startWatchingSession}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                Trailer
+                Xem phim
+              </Link>
+              {movieDetail.data.trailer && (
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Trailer
+                </button>
+              )}
+            </div>
+
+            {/* Right group - Like, Watch Later, Share buttons */}
+            <div className="flex items-center space-x-4">
+              <WatchlistButton movieId={movieDetail.data.id} size="large" />
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+                    return;
+                  }
+                  handleToggleWatchLater();
+                }}
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                  isInWatchLater
+                    ? "bg-purple-600 text-white"
+                    : "bg-purple-500 text-white hover:bg-purple-600"
+                }`}
+              >
+                <FaClock />
+                <span>{isInWatchLater ? "Đã thêm" : "Xem sau"}</span>
               </button>
-            )}
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: movieDetail.data.title,
+                      text: `Xem phim ${movieDetail.data.title}`,
+                      url: window.location.href,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link đã được sao chép vào clipboard");
+                  }
+                }}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
+              >
+                <FaShare />
+                <span>Chia sẻ</span>
+              </button>
+            </div>
           </div>
           {showModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -346,7 +440,25 @@ const DetailMovie = () => {
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-4 mt-6 mb-6">
-                <WatchlistButton movieId={movieDetail.data.id} size="medium" />
+                <button
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      toast.error(
+                        "Vui lòng đăng nhập để sử dụng tính năng này"
+                      );
+                      return;
+                    }
+                    handleToggleWatchLater();
+                  }}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    isInWatchLater
+                      ? "bg-purple-600 text-white"
+                      : "bg-purple-500 text-white hover:bg-purple-600"
+                  }`}
+                >
+                  <FaClock />
+                  <span>{isInWatchLater ? "Đã thêm" : "Xem sau"}</span>
+                </button>
                 <button
                   onClick={() => {
                     if (navigator.share) {
@@ -357,7 +469,7 @@ const DetailMovie = () => {
                       });
                     } else {
                       navigator.clipboard.writeText(window.location.href);
-                      alert("Link đã được sao chép vào clipboard");
+                      toast.success("Link đã được sao chép vào clipboard");
                     }
                   }}
                   className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
@@ -365,29 +477,33 @@ const DetailMovie = () => {
                   <FaShare />
                   <span>Chia sẻ</span>
                 </button>
-                {isAuthenticated && (
+                {isScheduled ? (
+                  <span className="flex items-center space-x-2 bg-gray-600 text-gray-400 px-4 py-2 rounded-lg">
+                    <FaCalendarAlt />
+                    <span>Đã lên lịch</span>
+                  </span>
+                ) : (
                   <button
-                    onClick={() => setShowScheduleForm(true)}
-                    disabled={isScheduled}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                      isScheduled
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 text-white hover:bg-blue-600"
-                    }`}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error("Vui lòng đăng nhập để tạo lịch xem");
+                        return;
+                      }
+                      setShowScheduleForm(true);
+                    }}
+                    className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                   >
                     <FaCalendarAlt />
-                    <span>{isScheduled ? "Đã lên lịch" : "Lên lịch xem"}</span>
+                    <span>Lên lịch xem</span>
                   </button>
                 )}
-                {isAuthenticated && (
-                  <button
-                    onClick={() => setShowReviewForm(true)}
-                    className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-                  >
-                    <FaStar />
-                    <span>Đánh giá</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="flex items-center space-x-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                >
+                  <FaStar />
+                  <span>Đánh giá</span>
+                </button>
               </div>
 
               {/* Reviews Section */}

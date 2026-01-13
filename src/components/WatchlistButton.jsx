@@ -58,9 +58,7 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
     }
   };
 
-  if (!isAuthenticated) {
-    return null; // Ẩn button nếu chưa đăng nhập
-  }
+  // Always show button, but require auth for functionality
 
   const buttonSize = size === "large" ? "p-3" : "p-2";
   const iconSize = size === "large" ? "w-6 h-6" : "w-5 h-5";
@@ -70,7 +68,7 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       onClick={handleToggleWatchlist}
       disabled={loading}
       className={`
-        ${buttonSize} rounded transition-all duration-300 
+        ${buttonSize} rounded transition-all w-full duration-300 
         ${
           isInWatchlist
             ? "bg-red-500 hover:bg-red-600 text-white"
@@ -87,11 +85,11 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
         ></div>
       ) : (
         <>
-          <Heart
+          {/* <Heart
             className={`${iconSize} mr-1`}
             fill={isInWatchlist ? "currentColor" : "none"}
             stroke="currentColor"
-          />
+          /> */}
           Thích
         </>
       )}
