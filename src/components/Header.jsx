@@ -14,13 +14,13 @@ import Banner from "./Banner";
 import RegisterForm from "../components/auth/RegisterForm";
 import LoginForm from "../components/auth/LoginForm";
 import MobileMenu from "./MobileMenu";
+import NotificationCenter from "./notifications/NotificationCenter";
 import {
   fetchCategories,
   fetchCountries,
   fetchMovieType,
   fetchJson,
 } from "../services/api";
-import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { useLoading } from "../utils/LoadingContext";
 
@@ -154,53 +154,6 @@ function Header() {
         });
       } catch (error) {
         handleApiError(error, "Lỗi khi lấy phim yêu thích");
-      }
-    },
-    [handleApiError]
-  );
-
-  const handleGoogleLoginSuccess = useCallback(
-    async (credentialResponse) => {
-      try {
-        const response = await fetchJson("/api/auth/google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ idToken: credentialResponse.credential }),
-          credentials: "include",
-        });
-
-        if (response?.accessToken) {
-          const userInfo = {
-            displayName: response.displayName,
-            avatarUrl: response.avatar || "https://via.placeholder.com/40",
-            role: response.role || "user",
-            email: response.email,
-          };
-          setUser(userInfo);
-          localStorage.setItem("user", JSON.stringify(userInfo));
-          setShowLogin(false);
-          toast.success("Đăng nhập bằng Google thành công!");
-
-          try {
-            await fetchJson("/api/watchlist", {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              credentials: "include",
-            });
-          } catch (error) {
-            handleApiError(error, "Lỗi khi lấy phim yêu thích");
-          }
-        } else {
-          throw new Error("Invalid Google login response");
-        }
-      } catch (error) {
-        handleApiError(error, "Lỗi khi đăng nhập bằng Google");
       }
     },
     [handleApiError]
@@ -442,77 +395,80 @@ function Header() {
 
         <div className="flex items-center w-[30%] justify-end">
           {isLoading("search") ? null : user ? (
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowUserModal(!showUserModal);
-                }}
-                className="flex items-center space-x-2"
-              >
-                <img
-                  src={user.avatarUrl}
-                  alt="Avatar"
-                  className="w-10 h-10 rounded-full border-2 border-blue-300"
-                />
-                <span className="text-white">{user.displayName}</span>
-              </button>
-              {showUserModal && (
-                <div
-                  className="absolute top-12 right-0 bg-white text-gray-800 rounded-lg shadow-xl w-64 z-50 border overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
+            <div className="flex items-center space-x-4">
+              <NotificationCenter />
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowUserModal(!showUserModal);
+                  }}
+                  className="flex items-center space-x-2"
                 >
-                  <div className="px-4 py-3 border-b bg-gray-50">
-                    <h3 className="font-semibold text-gray-900">
-                      {user.displayName}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {user.role?.roleName || "User"}
-                    </p>
+                  <img
+                    src={user.avatarUrl}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full border-2 border-blue-300"
+                  />
+                  <span className="text-white">{user.displayName}</span>
+                </button>
+                {showUserModal && (
+                  <div
+                    className="absolute top-12 right-0 bg-white text-gray-800 rounded-lg shadow-xl w-64 z-50 border overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="px-4 py-3 border-b bg-gray-50">
+                      <h3 className="font-semibold text-gray-900">
+                        {user.displayName}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {user.role?.roleName || "User"}
+                      </p>
+                    </div>
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          navigate("/profile");
+                          setShowUserModal(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                      >
+                        <UserCircle className="w-5 h-5 text-gray-600" />
+                        <span>Trang cá nhân</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/profile?tab=watchlist");
+                          setShowUserModal(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                      >
+                        <Heart className="w-5 h-5 text-gray-600" />
+                        <span>Phim yêu thích</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/profile?tab=watching");
+                          setShowUserModal(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                      >
+                        <Settings className="w-5 h-5 text-gray-600" />
+                        <span>Phim đang xem</span>
+                      </button>
+                    </div>
+                    <div className="border-t">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 transition-colors flex items-center space-x-3"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        navigate("/profile");
-                        setShowUserModal(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
-                    >
-                      <UserCircle className="w-5 h-5 text-gray-600" />
-                      <span>Trang cá nhân</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate("/profile?tab=watchlist");
-                        setShowUserModal(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
-                    >
-                      <Heart className="w-5 h-5 text-gray-600" />
-                      <span>Phim yêu thích</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate("/profile?tab=watching");
-                        setShowUserModal(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
-                    >
-                      <Settings className="w-5 h-5 text-gray-600" />
-                      <span>Phim đang xem</span>
-                    </button>
-                  </div>
-                  <div className="border-t">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 transition-colors flex items-center space-x-3"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : (
             <button
@@ -549,21 +505,7 @@ function Header() {
             setShowRegister(true);
           }}
           onLoginSuccess={handleLoginSuccess}
-          googleLoginButton={
-            <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={() =>
-                handleApiError(
-                  new Error("Google login failed"),
-                  "Lỗi khi đăng nhập bằng Google"
-                )
-              }
-              theme="filled_blue"
-              size="large"
-              text="signin_with"
-              width="100%"
-            />
-          }
+          googleLoginButton={null}
         />
       )}
     </header>

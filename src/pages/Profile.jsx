@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getWatchlist } from "../services/api";
+import { getWatchlist, fetchJson } from "../services/api";
 // import { trackUserAction } from "../services/analytics";
 import WatchlistTab from "../components/profile/WatchlistTab";
 import ProfileTab from "../components/profile/ProfileTab";
 import WatchingHistoryTab from "../components/profile/WatchingHistoryTab";
+import WatchLaterTab from "../components/profile/WatchLaterTab";
+import NotificationTab from "../components/profile/NotificationTab";
 import SettingsTab from "../components/profile/SettingsTab";
 
 const Profile = () => {
@@ -16,7 +18,9 @@ const Profile = () => {
   const tabs = [
     { id: "profile", name: "Thông tin cá nhân", icon: "👤" },
     { id: "watchlist", name: "Phim yêu thích", icon: "❤️" },
-    { id: "watching", name: "Phim đang xem", icon: "📺" },
+    { id: "watch-later", name: "Xem sau", icon: "⏰" },
+    { id: "continue-watching", name: "Phim đang xem", icon: "📺" },
+    { id: "notifications", name: "Thông báo", icon: "🔔" },
     { id: "settings", name: "Cài đặt", icon: "⚙️" },
   ];
 
@@ -39,6 +43,8 @@ const Profile = () => {
     return "profile";
   });
   const [watchlist, setWatchlist] = useState([]);
+  const [watchLaterMovies, setWatchLaterMovies] = useState([]);
+  const [continueWatchingMovies, setContinueWatchingMovies] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Update URL when tab changes
@@ -85,6 +91,10 @@ const Profile = () => {
   useEffect(() => {
     if (activeTab === "watchlist") {
       loadWatchlist();
+    } else if (activeTab === "watch-later") {
+      loadWatchLater();
+    } else if (activeTab === "continue-watching") {
+      loadContinueWatching();
     }
   }, [activeTab]);
 
@@ -95,6 +105,46 @@ const Profile = () => {
       setWatchlist(data);
     } catch (error) {
       console.error("Error loading watchlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadWatchLater = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchJson("/api/schedules/watch-later");
+      setWatchLaterMovies(data || []);
+    } catch (error) {
+      console.error("Error loading watch later:", error);
+      setWatchLaterMovies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadContinueWatching = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchJson(
+        `/api/redis-watching/current/${user.id}`
+      );
+      setContinueWatchingMovies(response.watchingMovies || []);
+    } catch (error) {
+      // Handle backend serialization errors gracefully
+      if (
+        error.response?.status === 500 &&
+        error.response?.data?.error?.includes?.("Could not write JSON")
+      ) {
+        console.warn(
+          "⚠️ Backend serialization error - continue watching unavailable"
+        );
+        setContinueWatchingMovies([]);
+        return;
+      }
+
+      console.error("Error loading continue watching:", error);
+      setContinueWatchingMovies([]);
     } finally {
       setLoading(false);
     }
@@ -112,8 +162,24 @@ const Profile = () => {
             onRefresh={loadWatchlist}
           />
         );
-      case "watching":
-        return <WatchingHistoryTab />;
+      case "watch-later":
+        return (
+          <WatchLaterTab
+            movies={watchLaterMovies}
+            loading={loading}
+            onRefresh={loadWatchLater}
+          />
+        );
+      case "continue-watching":
+        return (
+          <WatchingHistoryTab
+            movies={continueWatchingMovies}
+            loading={loading}
+            onRefresh={loadContinueWatching}
+          />
+        );
+      case "notifications":
+        return <NotificationTab />;
       case "settings":
         return <SettingsTab />;
       default:

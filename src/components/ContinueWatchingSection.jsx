@@ -21,11 +21,29 @@ const ContinueWatchingSection = () => {
   const fetchWatchingData = async () => {
     try {
       setLoading(true);
-      const response = await fetchJson(`/api/redis-watching/current/${user.id}`);
+      const response = await fetchJson(
+        `/api/redis-watching/current/${user.id}`
+      );
       // Only show first 6 movies for homepage
       setWatchingMovies((response.watchingMovies || []).slice(0, 6));
     } catch (error) {
+      // Handle backend serialization errors gracefully
+      if (
+        error.response?.status === 500 &&
+        error.response?.data?.error?.includes?.("Could not write JSON")
+      ) {
+        console.warn(
+          "⚠️ Backend serialization error - continue watching unavailable"
+        );
+        setWatchingMovies([]);
+        return;
+      }
+
       console.error("Error fetching watching data:", error);
+      // Don't show error toast for 500 errors to avoid spamming
+      if (error.response?.status !== 500) {
+        toast.error("Không thể tải danh sách phim đang xem");
+      }
       setWatchingMovies([]);
     } finally {
       setLoading(false);
@@ -34,14 +52,33 @@ const ContinueWatchingSection = () => {
 
   const removeFromWatching = async (movieId) => {
     try {
-      await fetchJson(`/api/redis-watching/stop?userId=${user.id}&movieId=${movieId}`, {
-        method: "DELETE",
-      });
+      await fetchJson(
+        `/api/redis-watching/stop?userId=${user.id}&movieId=${movieId}`,
+        {
+          method: "DELETE",
+        }
+      );
       toast.success("Đã xóa khỏi danh sách đang xem!");
       fetchWatchingData(); // Refresh list
     } catch (error) {
+      // Handle backend serialization errors gracefully
+      if (
+        error.response?.status === 500 &&
+        error.response?.data?.error?.includes?.("Could not write JSON")
+      ) {
+        console.warn(
+          "⚠️ Backend serialization error - removing from watching failed"
+        );
+        toast.error("Tính năng đang bị lỗi, vui lòng thử lại sau!");
+        return;
+      }
+
       console.error("Error removing from watching:", error);
-      toast.error("Có lỗi xảy ra!");
+      if (error.response?.status !== 500) {
+        toast.error("Có lỗi xảy ra khi xóa!");
+      } else {
+        console.warn("Server error when removing movie, but continuing...");
+      }
     }
   };
 
@@ -107,12 +144,14 @@ const ContinueWatchingSection = () => {
                 alt={movie.movieTitle}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
-              
+
               {/* Progress overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
                 <div className="w-full bg-gray-600 rounded-full h-1.5 mb-2">
                   <div
-                    className={`h-1.5 rounded-full ${getProgressColor(movie.percentage)}`}
+                    className={`h-1.5 rounded-full ${getProgressColor(
+                      movie.percentage
+                    )}`}
                     style={{ width: `${movie.percentage}%` }}
                   ></div>
                 </div>
@@ -146,13 +185,13 @@ const ContinueWatchingSection = () => {
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Link
                   to={`/watch/${movie.movieId}?t=${movie.currentTime || 0}`}
-                  state={{ 
+                  state={{
                     movieDetail: {
                       id: movie.movieId,
                       title: movie.movieTitle,
-                      thumb_url: movie.moviePoster
+                      thumb_url: movie.moviePoster,
                     },
-                    startTime: movie.currentTime || 0 
+                    startTime: movie.currentTime || 0,
                   }}
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                 >

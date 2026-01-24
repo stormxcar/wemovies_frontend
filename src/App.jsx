@@ -27,6 +27,7 @@ const MovieList = lazy(() => import("./components/MovieList.jsx"));
 const Watch = lazy(() => import("./components/Watch.jsx"));
 const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
+const Notifications = lazy(() => import("./pages/Notifications.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 // Admin components
@@ -45,6 +46,7 @@ const AddCountry = lazy(() => import("./admin/pages/countries/AddCountry"));
 const AddType = lazy(() => import("./admin/pages/types/AddType"));
 const AddMovie = lazy(() => import("./admin/pages/movies/AddMovie"));
 const UpdateMovie = lazy(() => import("./admin/pages/movies/UpdateMovie"));
+// Removed VideoTest as it's been deleted
 
 import {
   useMovies,
@@ -295,6 +297,7 @@ const AppContent = () => {
             <Route path="/search" element={<Search />} />
             <Route path="/allmovies" element={<MovieList />} />
             <Route path="/allmovies/:categoryName" element={<MovieList />} />
+            <Route path="/watch/:id" element={<Watch />} />
             <Route path="/movie/watch/:id" element={<Watch />} />
             <Route
               path="/movie/:id/episode/:episodeIndex"
@@ -306,6 +309,14 @@ const AppContent = () => {
               element={
                 <AuthRoute>
                   <Profile />
+                </AuthRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <AuthRoute>
+                  <Notifications />
                 </AuthRoute>
               }
             />

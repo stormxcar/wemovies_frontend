@@ -5,7 +5,8 @@ import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { ClipLoader } from "react-spinners";
-import axios from "axios";
+import { fetchJson } from "../../services/api";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const { login, isAuthenticated, checkAuthStatus } = useAuth();
@@ -13,6 +14,12 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isForgotPasswordSubmitting, setIsForgotPasswordSubmitting] =
+    useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetPasswordEmail, setResetPasswordEmail] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -30,7 +37,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             email: loginForm.email,
             passWord: loginForm.passWord,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -65,7 +72,15 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           return;
         }
 
-        toast.error(errorMessage);
+        // Fix toast error với proper toast options
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         return;
       }
 
@@ -86,7 +101,14 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         throw new Error(loginResult.message);
       }
 
-      toast.success("Đăng nhập thành công!");
+      toast.success("Đăng nhập thành công!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       if (onLoginSuccess) {
         onLoginSuccess(data.user || data);
       }
@@ -122,9 +144,67 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         errorMessage = error.message;
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handler cho quên mật khẩu
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail.trim()) {
+      toast.error("Vui lòng nhập email", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    setIsForgotPasswordSubmitting(true);
+    try {
+      const response = await fetchJson("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: forgotPasswordEmail.trim(),
+        }),
+      });
+
+      toast.success(
+        "OTP đã được gửi về email của bạn. Vui lòng kiểm tra hộp thư.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        },
+      );
+
+      // Chuyển sang form nhập OTP và reset password
+      setResetPasswordEmail(forgotPasswordEmail.trim());
+      setShowForgotPassword(false);
+      setShowResetPassword(true);
+      setForgotPasswordEmail("");
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại.";
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setIsForgotPasswordSubmitting(false);
     }
   };
 
@@ -133,91 +213,128 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
     const idToken = credentialResponse.credential;
     if (!idToken) {
       console.error("Google ID Token is null or undefined");
-      toast.error("Không nhận được Google ID Token");
+      toast.error("Không nhận được Google ID Token", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
     try {
       console.log("Sending Google ID Token:", idToken);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/google`,
-        {
-          idToken: idToken,
+      const response = await fetchJson("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+        body: JSON.stringify({
+          idToken: idToken,
+        }),
+      });
 
-      console.log("Google API response:", response.data);
-      if (!response.data || !response.data.user) {
-        throw new Error("Google login failed: No user data");
+      console.log("Google API response:", response);
+
+      // Debug response structure
+      console.log("Response keys:", Object.keys(response || {}));
+      console.log("Response.user:", response?.user);
+      console.log("Response direct:", response);
+
+      if (!response) {
+        throw new Error("Google login failed: No response data");
       }
 
-      const verifyResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/auth/verifyUser`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      // Lưu tokens vào localStorage nếu có
+      if (response.accessToken) {
+        localStorage.setItem("jwtToken", response.accessToken);
+      }
+      if (response.refreshToken) {
+        localStorage.setItem("refreshToken", response.refreshToken);
+      }
 
-      const role =
-        verifyResponse.data?.role || verifyResponse.data?.data?.role?.roleName;
+      // Lấy thông tin user từ response
+      const userData = response.user;
+      const role = userData?.role?.roleName || "USER"; // Default to USER for Google login
+
+      // Lưu user info vào localStorage
+      const userInfo = {
+        displayName:
+          userData.fullName || userData.email?.split("@")[0] || "User",
+        avatarUrl: userData.avatarUrl || "https://via.placeholder.com/40",
+        role: role,
+        email: userData.email,
+        id: userData.email, // Sử dụng email làm ID
+      };
+      localStorage.setItem("user", JSON.stringify(userInfo));
+
       if (role === "ADMIN") {
         toast.success("Đăng nhập Admin bằng Google thành công!");
-        onLoginSuccess({
-          displayName:
-            verifyResponse.data.fullName ||
-            response.data.user.email.split("@")[0],
-          avatarUrl:
-            verifyResponse.data.avatar || "https://via.placeholder.com/40",
-          role,
-          email: verifyResponse.data.email,
-        });
+        onLoginSuccess(userInfo);
         navigate("/admin");
       } else if (role === "USER") {
         toast.success("Đăng nhập bằng Google thành công!");
-        onLoginSuccess({
-          displayName:
-            verifyResponse.data.fullName ||
-            response.data.user.email.split("@")[0],
-          avatarUrl:
-            verifyResponse.data.avatar || "https://via.placeholder.com/40",
-          role,
-          email: verifyResponse.data.email,
-        });
+        onLoginSuccess(userInfo);
         navigate("/");
       } else {
-        toast.error("Tài khoản Google không hợp lệ hoặc chưa được xác thực");
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/auth/logout`,
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
+        toast.error("Tài khoản Google không hợp lệ hoặc chưa được xác thực", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        try {
+          await fetchJson("/api/auth/logout", {
+            method: "POST",
+          });
+        } catch (logoutError) {
+          console.warn("Logout failed:", logoutError);
+        }
         onClose();
       }
     } catch (error) {
       console.error("Google login error:", error);
-      toast.error(error.message || "Đăng nhập bằng Google thất bại");
+      console.log("Error response data:", error?.response?.data);
+      console.log("Error status:", error?.response?.status);
+      console.log("Error headers:", error?.response?.headers);
+
+      // Extract error message from response
+      let errorMessage = "Đăng nhập bằng Google thất bại";
+
+      // Handle specific backend database error
+      if (
+        error.response?.data?.accessToken?.includes("pass_word") &&
+        error.response?.data?.accessToken?.includes("cannot be null")
+      ) {
+        errorMessage = "Lỗi hệ thống";
+      } else if (error.response?.data) {
+        if (typeof error.response.data === "string") {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (
+          error.response.data.accessToken &&
+          error.response.data.accessToken.includes("Google login failed")
+        ) {
+          errorMessage =
+            "Lỗi backend khi xử lý Google login. Vui lòng thử lại sau.";
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   const handleGoogleLoginError = () => {
-    toast.error("Đăng nhập bằng Google thất bại");
+    toast.error("Đăng nhập bằng Google thất bại", {
+      position: "top-right",
+      autoClose: 3000,
+    });
   };
 
   const showBlockMessage = (remainingMinutes) => {
@@ -310,6 +427,18 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               "Đăng nhập"
             )}
           </button>
+
+          {/* Nút quên mật khẩu */}
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-blue-300 hover:text-blue-200 text-sm underline"
+              disabled={isSubmitting || isBlocked}
+            >
+              Quên mật khẩu?
+            </button>
+          </div>
         </form>
         <div className="mt-4">
           <GoogleLogin
@@ -321,6 +450,87 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             width="100%"
           />
         </div>
+
+        {/* Modal Quên mật khẩu */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+            <div className="bg-blue-950/90 p-8 rounded-lg shadow-xl w-full max-w-sm relative">
+              <button
+                className="absolute top-2 right-2 text-white hover:text-gray-300"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setForgotPasswordEmail("");
+                }}
+              >
+                <FaTimes />
+              </button>
+
+              <h3 className="text-lg text-white font-semibold mb-4">
+                Quên mật khẩu
+              </h3>
+
+              <p className="text-gray-300 text-sm mb-4">
+                Nhập email của bạn để nhận OTP đặt lại mật khẩu
+              </p>
+
+              <form onSubmit={handleForgotPassword}>
+                <input
+                  type="email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  placeholder="Nhập email của bạn"
+                  disabled={isForgotPasswordSubmitting}
+                  className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
+                  required
+                />
+
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordEmail("");
+                    }}
+                    className="flex-1 bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition-colors"
+                    disabled={isForgotPasswordSubmitting}
+                  >
+                    Hủy
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isForgotPasswordSubmitting}
+                    className="flex-1 bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {isForgotPasswordSubmitting ? (
+                      <>
+                        <ClipLoader
+                          size={16}
+                          color="#000000"
+                          className="mr-2"
+                        />
+                        Đang gửi...
+                      </>
+                    ) : (
+                      "Gửi OTP"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Reset Password với OTP */}
+        {showResetPassword && (
+          <ResetPasswordForm
+            onClose={() => {
+              setShowResetPassword(false);
+              setResetPasswordEmail("");
+            }}
+            userEmail={resetPasswordEmail}
+          />
+        )}
       </div>
     </div>
   );

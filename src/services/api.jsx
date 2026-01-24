@@ -49,7 +49,7 @@ api.interceptors.response.use(
             {
               refreshToken,
             },
-            { withCredentials: true }
+            { withCredentials: true },
           );
 
           if (refreshResponse.data.accessToken) {
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
@@ -77,7 +77,7 @@ export const tryRequest = async (
   baseUrl,
   endpoint,
   options = {},
-  maxRetries = 3
+  maxRetries = 3,
 ) => {
   const fullUrl = `${baseUrl}${endpoint}`;
   const method = (options.method || "GET").toLowerCase();
@@ -88,38 +88,37 @@ export const tryRequest = async (
 
       let response;
       if (method === "get") {
-        response = await axios.get(fullUrl, {
+        response = await api.get(endpoint, {
           ...options,
-          withCredentials: true,
           timeout: 120000,
         });
       } else if (method === "post") {
         const { body, ...config } = options;
-        response = await axios.post(fullUrl, body, {
+        response = await api.post(endpoint, body, {
           ...config,
-          withCredentials: true,
           timeout: 120000,
         });
       } else if (method === "put") {
-        response = await axios.put(fullUrl, options.body, {
+        response = await api.put(endpoint, options.body, {
           ...options,
-          withCredentials: true,
           timeout: 120000,
         });
       } else if (method === "delete") {
-        response = await axios.delete(fullUrl, {
+        response = await api.delete(endpoint, {
           ...options,
-          withCredentials: true,
           timeout: 120000,
         });
       } else {
         // fallback
-        response = await axios({ url: fullUrl, ...options, timeout: 120000 });
+        response = await api({ url: endpoint, ...options, timeout: 120000 });
       }
 
-      if (!response.data) {
+      if (response.data === undefined) {
         throw new Error(`No data returned from ${fullUrl}`);
       }
+
+      // Allow null, false, empty object, empty array as valid responses
+      // Only reject if response.data is undefined
 
       console.log(`✅ Success on attempt ${attempt} for ${fullUrl}`);
       return { success: true, data: response.data };
@@ -130,13 +129,13 @@ export const tryRequest = async (
 
       console.log(
         `❌ Attempt ${attempt} failed for ${fullUrl}:`,
-        error.message
+        error.message,
       );
 
       if (isTimeout && !isLastAttempt) {
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Exponential backoff, max 10s
         console.log(
-          `⏳ Retrying in ${delay / 1000}s... (Server might be sleeping)`
+          `⏳ Retrying in ${delay / 1000}s... (Server might be sleeping)`,
         );
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
@@ -154,7 +153,7 @@ export const tryRequest = async (
 export const fetchJson = async (
   endpoint,
   options = {},
-  showRetryToast = false
+  showRetryToast = false,
 ) => {
   let result = await tryRequest(API_BASE_URL, endpoint, options);
   if (!result.success) {
@@ -162,6 +161,17 @@ export const fetchJson = async (
     throw result.error;
   }
   return result.data !== undefined ? result.data : result;
+};
+
+// Helper function for schedule-related APIs that might return null/false
+export const fetchScheduleData = async (endpoint, defaultValue = null) => {
+  try {
+    const data = await fetchJson(endpoint);
+    return data !== null && data !== undefined ? data : defaultValue;
+  } catch (error) {
+    console.warn(`Schedule API failed (${endpoint}):`, error.message);
+    return defaultValue;
+  }
 };
 
 // Các hàm fetch khác giữ nguyên
@@ -211,7 +221,7 @@ export const fetchMovieType = async () => {
 
 export const fetchMoviesByCategory = (categoryName) =>
   fetchJson(`/api/movies/category/${encodeURIComponent(categoryName)}`).catch(
-    () => []
+    () => [],
   );
 
 export const fetchMovieByHot = async () => {
@@ -227,7 +237,7 @@ export const fetchMovieByHot = async () => {
 export const fetchMovieByCategoryId = async (categoryId) => {
   try {
     const data = await fetchJson(
-      `/api/movies/category/id/${encodeURIComponent(categoryId)}`
+      `/api/movies/category/id/${encodeURIComponent(categoryId)}`,
     );
     return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
@@ -238,13 +248,13 @@ export const fetchMovieByCategoryId = async (categoryId) => {
 
 export const fetchMoviesByCountryAndCategory = async (
   countryName,
-  categoryName
+  categoryName,
 ) => {
   try {
     const data = await fetchJson(
       `/api/movies/country/${encodeURIComponent(
-        countryName
-      )}/category/${encodeURIComponent(categoryName)}`
+        countryName,
+      )}/category/${encodeURIComponent(categoryName)}`,
     );
     return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
@@ -256,7 +266,7 @@ export const fetchMoviesByCountryAndCategory = async (
 export const fetchMoviesByName = async (name) => {
   try {
     const data = await fetchJson(
-      `/api/movies/search/${encodeURIComponent(name)}`
+      `/api/movies/search/${encodeURIComponent(name)}`,
     );
     return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
@@ -284,7 +294,7 @@ export const logout = async () => {
     const response = await axios.post(
       `${API_BASE_URL}/api/auth/logout`,
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
     return response;
   } catch (error) {

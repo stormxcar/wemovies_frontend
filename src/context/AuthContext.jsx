@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { fetchJson } from "../services/api";
 import api from "../services/api";
 import { toast } from "react-toastify";
+import NotificationService from "../services/NotificationService";
 
 const AuthContext = createContext({
   user: null,
@@ -18,6 +19,32 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to decode JWT token
+  const decodeJWT = (token) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join(""),
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error("Error decoding JWT:", error);
+      return null;
+    }
+  };
+
+  // Get user ID from JWT token
+  const getUserIdFromToken = (token) => {
+    const decoded = decodeJWT(token);
+    return decoded?.sub || decoded?.userId || decoded?.id || decoded?.email;
+  };
 
   // Auto logout function với safeguard
   const autoLogout = React.useCallback(
@@ -39,7 +66,7 @@ export const AuthProvider = ({ children }) => {
         window.location.href = "/";
       }, 1500);
     },
-    [isAuthenticated]
+    [isAuthenticated],
   );
 
   // Kiểm tra token expiration thường xuyên (Tắc tạm)
@@ -69,7 +96,7 @@ export const AuthProvider = ({ children }) => {
           ];
           if (
             skipEndpoints.some((endpoint) =>
-              originalRequest.url?.includes(endpoint)
+              originalRequest.url?.includes(endpoint),
             )
           ) {
             return Promise.reject(error);
@@ -90,7 +117,7 @@ export const AuthProvider = ({ children }) => {
               if (refreshResponse.data.accessToken) {
                 localStorage.setItem(
                   "jwtToken",
-                  refreshResponse.data.accessToken
+                  refreshResponse.data.accessToken,
                 );
                 console.log("✅ Token refreshed successfully");
 
@@ -105,13 +132,13 @@ export const AuthProvider = ({ children }) => {
 
           // Tắc tạm auto-logout để debug
           console.log(
-            "⚠️ Disabling auto logout to prevent redirect loop since no /auth route exists"
+            "⚠️ Disabling auto logout to prevent redirect loop since no /auth route exists",
           );
           // autoLogout("Phiên đăng nhập không hợp lệ");
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
@@ -131,20 +158,72 @@ export const AuthProvider = ({ children }) => {
       // Nếu có user data trong localStorage thì dùng luôn
       if (userData) {
         try {
-          const parsedUser = JSON.parse(userData);
+          let parsedUser = JSON.parse(userData);
+
+          // Ensure user has ID from JWT if missing
+          if (!parsedUser.id) {
+            const userId = getUserIdFromToken(token);
+            if (userId) {
+              parsedUser = { ...parsedUser, id: userId };
+              // Update localStorage with userId
+              localStorage.setItem("user", JSON.stringify(parsedUser));
+            }
+          }
+
           setUser(parsedUser);
-          console.log("✅ Loaded user from localStorage:", parsedUser.email);
+          console.log("✅ Loaded user from localStorage:", parsedUser);
+          console.log("👤 User object fields:", Object.keys(parsedUser));
+          console.log("🆔 User ID candidates:", {
+            id: parsedUser.id,
+            userId: parsedUser.userId,
+            sub: parsedUser.sub,
+            email: parsedUser.email,
+          });
+
+          // Try to find user ID from various fields
+          const userId =
+            parsedUser.id ||
+            parsedUser.userId ||
+            parsedUser.sub ||
+            parsedUser.email;
+          if (userId) {
+            console.log(
+              "🔗 Connecting NotificationService with userId:",
+              userId,
+            );
+            // Connect to NotificationService
+            connectNotificationService(userId, token);
+          } else {
+            console.error("❌ No user ID found in user object");
+          }
         } catch (error) {
           console.log("⚠️ Failed to parse user data from localStorage");
         }
       }
     } else {
       console.log("📭 No JWT token found");
+      // Disconnect NotificationService when not authenticated
+      NotificationService.disconnect();
     }
 
     setLoading(false);
     console.log("🔄 Simple auth check completed");
   }, []);
+
+  // Connect to NotificationService
+  const connectNotificationService = async (userId, token) => {
+    try {
+      console.log("🔔 Attempting to connect to NotificationService...");
+      await NotificationService.connect(userId, token);
+      console.log("✅ Connected to NotificationService");
+    } catch (error) {
+      console.warn(
+        "⚠️ NotificationService connection failed (WebSocket may not be enabled on backend):",
+        error.message,
+      );
+      // Don't throw error - allow app to continue without WebSocket
+    }
+  };
 
   const checkCookieConsent = () => {
     // Cookie consent functionality removed for simplification
@@ -177,7 +256,7 @@ export const AuthProvider = ({ children }) => {
             "✅ User restored from localStorage:",
             parsedUser.email,
             "Role:",
-            parsedUser.role?.roleName
+            parsedUser.role?.roleName,
           );
         } catch (error) {
           console.error("❌ Failed to parse user data:", error);
@@ -214,19 +293,34 @@ export const AuthProvider = ({ children }) => {
 
       // Lưu user data vào localStorage
       const userData = data.user || data;
-      if (userData) {
+      if (userData && data.accessToken) {
+        // Add userId from JWT token to userData
+        const userId = getUserIdFromToken(data.accessToken);
+        const userDataWithId = { ...userData, id: userId };
+        localStorage.setItem("user", JSON.stringify(userDataWithId));
+        setUser(userDataWithId);
+      } else if (userData) {
         localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
       }
 
-      // Set user data và authentication state
-      setUser(userData);
+      // Set authentication state
       setIsAuthenticated(true);
+
+      // Connect to NotificationService after successful login
+      const userId = getUserIdFromToken(data.accessToken);
+      if (data.accessToken && userId) {
+        console.log("🔗 Connecting NotificationService with userId:", userId);
+        await connectNotificationService(userId, data.accessToken);
+      } else {
+        console.warn("⚠️ No userId found for NotificationService connection");
+      }
 
       console.log(
         "✅ Login successful, user data set:",
         userData.email,
         "Role:",
-        userData.role?.roleName
+        userData.role?.roleName,
       );
 
       return {
@@ -245,17 +339,41 @@ export const AuthProvider = ({ children }) => {
   const acceptCookies = async (customPreferences = null) => {
     // Cookie consent functionality removed for simplification
     console.log(
-      "🍪 Cookie consent functionality disabled for simplified authentication"
+      "🍪 Cookie consent functionality disabled for simplified authentication",
     );
   };
 
   const logout = async () => {
     try {
+      // Get current user ID before clearing
+      const currentUserId = user?.id || user?.email || user?.sub;
+
+      // Clear all watching data for this user
+      if (currentUserId) {
+        try {
+          // Import and use the watching service to clear user data
+          const { useStartWatching } =
+            await import("../hooks/useStartWatching");
+
+          // Clear all local storage watching data
+          localStorage.removeItem("wemovies_current_session");
+          localStorage.removeItem("wemovies_local_watching");
+          localStorage.removeItem("wemovies_retry_queue");
+
+          console.log("🧹 Cleared watching data for user:", currentUserId);
+        } catch (watchingError) {
+          console.warn("⚠️ Error clearing watching data:", watchingError);
+        }
+      }
+
       // Gọi backend logout API
       await api.post("/api/auth/logout");
     } catch (error) {
       console.error("Logout API error:", error);
     } finally {
+      // Disconnect NotificationService
+      NotificationService.disconnect();
+
       // Clear local storage và state
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("refreshToken");
@@ -271,6 +389,7 @@ export const AuthProvider = ({ children }) => {
         // Ignore cookie clearing errors
       }
 
+      console.log("🔔 Disconnected from NotificationService");
       // Redirect to home or login
       window.location.href = "/";
     }

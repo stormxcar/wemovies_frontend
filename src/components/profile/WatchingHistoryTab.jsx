@@ -3,67 +3,206 @@ import { Link } from "react-router-dom";
 import { Clock, Play, Eye, Calendar, Trash2, CheckCircle } from "lucide-react";
 import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { useStartWatching } from "../../hooks/useStartWatching";
 import { toast } from "react-hot-toast";
 
-const WatchingHistoryTab = () => {
-  const [watchingMovies, setWatchingMovies] = useState([]);
+const WatchingHistoryTab = ({
+  movies,
+  loading,
+  onRefresh,
+  title = "Phim đang xem",
+}) => {
+  const [watchingMovies, setWatchingMovies] = useState(movies || []);
   const [watchingStats, setWatchingStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(loading || true);
   const { user } = useAuth();
+  const { getContinueWatching, getWatchingStats } = useStartWatching();
+
+  // Helper function để get user ID từ user object
+  const getUserId = (userObj) => {
+    if (!userObj) return null;
+    return (
+      userObj.id || userObj.email || userObj.username || userObj.sub || null
+    );
+  };
 
   useEffect(() => {
-    if (user?.id) {
-      fetchWatchingData();
-      fetchWatchingStats();
+    if (movies !== undefined) {
+      setWatchingMovies(movies);
+      setIsLoading(loading || false);
+    } else {
+      const userId = getUserId(user);
+      if (userId) {
+        fetchWatchingData();
+        fetchWatchingStats();
+      }
     }
-  }, [user]);
+  }, [movies, loading, user]);
 
   const fetchWatchingData = async () => {
     try {
-      setLoading(true);
-      const response = await fetchJson(`/api/redis-watching/current/${user.id}`);
-      setWatchingMovies(response.watchingMovies || []);
+      setIsLoading(true);
+      const userId = getUserId(user);
+
+      // Try backend first, fallback to local storage
+      try {
+        const response = await fetchJson(
+          `/api/redis-watching/current/${userId}`,
+        );
+        setWatchingMovies(response.watchingMovies || []);
+        console.log("✅ Loaded watching data from backend");
+        return;
+      } catch (backendError) {
+        console.warn(
+          "⚠️ Backend failed, loading from local storage:",
+          backendError.response?.status,
+        );
+      }
+
+      // Fallback to local storage
+      const localWatchingData = getContinueWatching(userId);
+
+      // Transform local data to match expected format
+      const transformedData = localWatchingData.map((item) => ({
+        movieId: item.movieId,
+        movieTitle: item.movieTitle,
+        currentTime: Math.floor(item.currentTime || 0),
+        totalDuration: item.totalDuration || 7200,
+        percentage: Math.round(item.currentProgress || 0),
+        lastWatched: item.lastUpdateTime,
+        startedAt: item.startTime,
+        isLocal: true, // Mark as local data
+        sessionId: item.sessionId,
+      }));
+
+      setWatchingMovies(transformedData);
+      console.log(
+        `✅ Loaded ${transformedData.length} watching items from local storage`,
+      );
     } catch (error) {
-      console.error("Error fetching watching data:", error);
+      console.error("❌ Error fetching watching data:", error);
       setWatchingMovies([]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const fetchWatchingStats = async () => {
     try {
-      const response = await fetchJson(`/api/redis-watching/stats/${user.id}`);
-      setWatchingStats(response.stats);
+      const userId = getUserId(user);
+
+      // Try backend first, fallback to local
+      try {
+        const response = await fetchJson(`/api/redis-watching/stats/${userId}`);
+        setWatchingStats(response.stats);
+        console.log("✅ Loaded watching stats from backend");
+        return;
+      } catch (backendError) {
+        console.warn(
+          "⚠️ Backend stats failed, using local stats:",
+          backendError.response?.status,
+        );
+      }
+
+      // Fallback to local stats
+      const localStats = getWatchingStats();
+      const localWatchingData = getContinueWatching(userId);
+
+      // Create stats from local data
+      const stats = {
+        totalMovies: localWatchingData.length,
+        totalWatchTime: localWatchingData.reduce(
+          (sum, item) => sum + (item.currentTime || 0),
+          0,
+        ),
+        averageProgress:
+          localWatchingData.length > 0
+            ? localWatchingData.reduce(
+                (sum, item) => sum + (item.currentProgress || 0),
+                0,
+              ) / localWatchingData.length
+            : 0,
+        isLocal: true,
+      };
+
+      setWatchingStats(stats);
+      console.log("✅ Generated local watching stats");
     } catch (error) {
-      console.error("Error fetching watching stats:", error);
+      console.error("❌ Error fetching watching stats:", error);
     }
   };
 
   const removeFromWatching = async (movieId) => {
     try {
-      await fetchJson(`/api/redis-watching/stop?userId=${user.id}&movieId=${movieId}`, {
-        method: "DELETE",
-      });
-      toast.success("Đã xóa khỏi danh sách đang xem!");
-      fetchWatchingData(); // Refresh list
-      fetchWatchingStats(); // Refresh stats
+      const userId = getUserId(user);
+
+      // Try backend first
+      try {
+        await fetchJson(
+          `/api/redis-watching/stop?userId=${userId}&movieId=${movieId}`,
+          {
+            method: "DELETE",
+          },
+        );
+        toast.success("Đã xóa khỏi danh sách đang xem!");
+      } catch (backendError) {
+        console.warn(
+          "⚠️ Backend remove failed, updating local only:",
+          backendError.response?.status,
+        );
+
+        // Fallback to local removal - mark as completed
+        const updatedMovies = watchingMovies.filter(
+          (movie) => movie.movieId !== movieId,
+        );
+        setWatchingMovies(updatedMovies);
+
+        toast.success("Đã xóa khỏi danh sách đang xem (local)!");
+      }
+
+      // Refresh data
+      fetchWatchingData();
+      fetchWatchingStats();
     } catch (error) {
-      console.error("Error removing from watching:", error);
+      console.error("❌ Error removing from watching:", error);
       toast.error("Có lỗi xảy ra khi xóa phim!");
     }
   };
 
   const markAsCompleted = async (movieId) => {
     try {
-      await fetchJson(`/api/redis-watching/complete?userId=${user.id}&movieId=${movieId}`, {
-        method: "POST",
-      });
-      toast.success("Đã đánh dấu hoàn thành!");
+      const userId = getUserId(user);
+
+      // Try backend first
+      try {
+        await fetchJson(
+          `/api/redis-watching/complete?userId=${userId}&movieId=${movieId}`,
+          {
+            method: "POST",
+          },
+        );
+        toast.success("Đã đánh dấu hoàn thành!");
+      } catch (backendError) {
+        console.warn(
+          "⚠️ Backend complete failed, updating local only:",
+          backendError.response?.status,
+        );
+
+        // Fallback to local completion
+        const updatedMovies = watchingMovies.map((movie) =>
+          movie.movieId === movieId
+            ? { ...movie, percentage: 100, isCompleted: true }
+            : movie,
+        );
+        setWatchingMovies(updatedMovies);
+
+        toast.success("Đã đánh dấu hoàn thành (local)!");
+      }
+
       fetchWatchingData();
       fetchWatchingStats();
     } catch (error) {
-      console.error("Error marking as completed:", error);
+      console.error("❌ Error marking as completed:", error);
       toast.error("Có lỗi xảy ra!");
     }
   };
@@ -93,19 +232,21 @@ const WatchingHistoryTab = () => {
     if (diffDays === 1) return "Hôm qua";
     if (diffDays < 7) return `${diffDays} ngày trước`;
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} tuần trước`;
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString("vi-VN");
   };
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${(seconds % 60)
+        .toString()
+        .padStart(2, "0")}`;
     }
-    return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
+    return `${minutes}:${(seconds % 60).toString().padStart(2, "0")}`;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -115,28 +256,53 @@ const WatchingHistoryTab = () => {
 
   return (
     <div>
-      {/* Watching Stats */}
-      {watchingStats && (
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-semibold text-white">{title}</h3>
+          {watchingMovies.some((movie) => movie.isLocal) && (
+            <div className="text-sm text-blue-400 mt-1 flex items-center gap-2">
+              📱 Sử dụng dữ liệu local (backend không khả dụng)
+            </div>
+          )}
+        </div>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Làm mới
+          </button>
+        )}
+      </div>
+
+      {/* Watching Stats - chỉ hiển thị cho continue watching */}
+      {title === "Phim đang xem" && watchingStats && (
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-600 mb-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             📊 Thống kê xem phim
+            {watchingStats.isLocal && (
+              <span className="text-sm text-blue-400 ml-2">(Local)</span>
+            )}
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-500">{watchingStats.currentlyWatching}</div>
+              <div className="text-2xl font-bold text-blue-500">
+                {watchingStats.totalMovies || 0}
+              </div>
               <div className="text-gray-400 text-sm">Đang xem</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-500">{watchingStats.completedMovies}</div>
-              <div className="text-gray-400 text-sm">Đã xem xong</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-500">{watchingStats.totalWatchTimeHours}h</div>
+              <div className="text-2xl font-bold text-yellow-500">
+                {Math.floor((watchingStats.totalWatchTime || 0) / 3600)}h
+              </div>
               <div className="text-gray-400 text-sm">Tổng thời gian</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500">{Math.round(watchingStats.totalWatchTimeHours / 24)}d</div>
-              <div className="text-gray-400 text-sm">Tổng ngày</div>
+              <div className="text-2xl font-bold text-purple-500">
+                {watchingStats.averageProgress?.toFixed(1) || 0}%
+              </div>
+              <div className="text-gray-400 text-sm">TB tiến trình</div>
             </div>
           </div>
         </div>
@@ -186,7 +352,9 @@ const WatchingHistoryTab = () => {
                 {/* Movie Poster */}
                 <div className="flex-shrink-0">
                   <img
-                    src={movie.moviePoster || "https://via.placeholder.com/120x180"}
+                    src={
+                      movie.moviePoster || "https://via.placeholder.com/120x180"
+                    }
                     alt={movie.movieTitle}
                     className="w-20 h-28 object-cover rounded-lg"
                   />
@@ -203,21 +371,30 @@ const WatchingHistoryTab = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="text-white font-semibold text-lg mb-1 line-clamp-1">
-                        {movie.movieTitle}
-                      </h4>
-                      
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-semibold text-lg line-clamp-1">
+                          {movie.movieTitle}
+                        </h4>
+                        {movie.isLocal && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded-full">
+                            📱 Local
+                          </span>
+                        )}
+                      </div>
+
                       {/* Episode info for series */}
                       {movie.episodeNumber && movie.totalEpisodes && (
                         <p className="text-blue-400 text-sm mb-2">
                           Tập {movie.episodeNumber} / {movie.totalEpisodes}
                         </p>
                       )}
-                      
+
                       {/* Last watched */}
                       <div className="flex items-center text-gray-500 text-sm mb-3">
                         <Calendar className="mr-1 h-3 w-3" />
-                        <span>Xem lần cuối: {formatLastWatched(movie.lastWatched)}</span>
+                        <span>
+                          Xem lần cuối: {formatLastWatched(movie.lastWatched)}
+                        </span>
                       </div>
 
                       {/* Progress Bar */}
@@ -232,7 +409,9 @@ const WatchingHistoryTab = () => {
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(movie.percentage)}`}
+                            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
+                              movie.percentage,
+                            )}`}
                             style={{ width: `${movie.percentage}%` }}
                           ></div>
                         </div>
@@ -248,21 +427,23 @@ const WatchingHistoryTab = () => {
                     {/* Action Buttons */}
                     <div className="flex flex-col space-y-2 ml-4">
                       <Link
-                        to={`/watch/${movie.movieId}?t=${movie.currentTime || 0}`}
-                        state={{ 
+                        to={`/watch/${movie.movieId}?t=${
+                          movie.currentTime || 0
+                        }`}
+                        state={{
                           movieDetail: {
                             id: movie.movieId,
                             title: movie.movieTitle,
-                            thumb_url: movie.moviePoster
+                            thumb_url: movie.moviePoster,
                           },
-                          startTime: movie.currentTime || 0 
+                          startTime: movie.currentTime || 0,
                         }}
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                       >
                         <Play className="mr-1 h-4 w-4" />
                         {movie.percentage < 10 ? "Bắt đầu xem" : "Tiếp tục"}
                       </Link>
-                      
+
                       <div className="flex space-x-1">
                         {movie.percentage >= 90 && (
                           <button

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import HorizontalMovies from "./HorizontalMovies";
 import GridMovies from "./GridMovies";
+import ContinueWatchingSection from "./ContinueWatchingSection";
+
 import { fetchMovieByHot, fetchMovies } from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa";
@@ -96,6 +98,9 @@ const ShowMovies = () => {
         />
       )}
 
+      {/* Continue Watching Section */}
+      <ContinueWatchingSection />
+
       {/* Grid Movies Section */}
       {isLoadingMovies ? (
         <div className="space-y-4">
@@ -117,6 +122,8 @@ const ShowMovies = () => {
           moviesPerPage={6}
         />
       )}
+
+  
     </div>
   );
 };
