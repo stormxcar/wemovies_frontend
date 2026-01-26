@@ -56,7 +56,6 @@ const VideoPlayer = ({
 
   // Handle player ready
   const handleReady = useCallback(() => {
-    console.log("🎬 Player ready");
     setIsLoading(false);
     setHasError(false);
 
@@ -72,7 +71,6 @@ const VideoPlayer = ({
   // Handle duration change
   const handleDuration = useCallback(
     (duration) => {
-      console.log("📊 Duration loaded:", duration);
       setDuration(duration);
 
       if (onLoadedMetadata) {
@@ -100,26 +98,22 @@ const VideoPlayer = ({
 
   // Handle play/pause
   const handlePlay = useCallback(() => {
-    console.log("▶️ Video playing");
     setIsPlaying(true);
     if (onPlay) onPlay();
   }, [onPlay]);
 
   const handlePause = useCallback(() => {
-    console.log("⏸️ Video paused");
     setIsPlaying(false);
     if (onPause) onPause();
   }, [onPause]);
 
   const handleEnded = useCallback(() => {
-    console.log("🏁 Video ended");
     setIsPlaying(false);
     if (onEnded) onEnded();
   }, [onEnded]);
 
   // Handle errors with fallback
   const handleError = useCallback((error) => {
-    console.error("❌ Player error:", error);
     setHasError(true);
     setIsLoading(false);
   }, []);

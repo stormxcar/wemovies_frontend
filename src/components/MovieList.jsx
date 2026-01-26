@@ -24,22 +24,13 @@ function MovieList({ movies = [], onMovieClick }) {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        console.log("🎭 Fetching movie types...");
         const typesResponse = await fetchMovieType();
 
         const typesArray = Array.isArray(typesResponse) ? typesResponse : [];
         setTypes(typesArray);
-
-        console.log("✅ MovieList fetch data:", {
-          typesCount: typesArray.length,
-          stateMovies: stateMovies?.length || 0,
-          propsMovies: movies?.length || 0,
-        });
       } catch (error) {
         if (error.name === "AbortError") {
-          console.error("⏰ Fetch aborted due to timeout:", error.message);
         } else {
-          console.error("❌ Error fetching MovieList data:", error.message);
         }
 
         setTypes([]);
@@ -52,9 +43,7 @@ function MovieList({ movies = [], onMovieClick }) {
     try {
       const movies = await fetchJson(`/api/movies/category/id/${categoryId}`);
       setFilteredMovies(Array.isArray(movies.data) ? movies.data : []);
-    } catch (error) {
-      console.error("Error fetching movies for category:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -115,6 +104,10 @@ function MovieList({ movies = [], onMovieClick }) {
               alt={movie.title}
               className="rounded-lg w-full h-full object-cover"
               style={{ objectPosition: "top" }}
+              loading="lazy"
+              onError={(e) => {
+                e.target.src = "/placeholder-professional.svg";
+              }}
             />
             <div className="w-full p-2 text-white text-center">
               <h3 className="text-lg">{movie.title}</h3>
@@ -131,6 +124,10 @@ function MovieList({ movies = [], onMovieClick }) {
                 alt={movie.title}
                 className="rounded-lg w-full h-[70%] object-cover"
                 style={{ objectPosition: "top" }}
+                loading="lazy"
+                onError={(e) => {
+                  e.target.src = "/placeholder-professional.svg";
+                }}
               />
               <div className="px-6 py-2 flex justify-end flex-col">
                 <h3 className="text-lg font-bold">{movie.title}</h3>
@@ -251,7 +248,7 @@ function MovieList({ movies = [], onMovieClick }) {
                     >
                       {item}
                     </li>
-                  )
+                  ),
                 )}
               </ul>
             </div>
@@ -298,7 +295,7 @@ function MovieList({ movies = [], onMovieClick }) {
                     >
                       {item}
                     </li>
-                  )
+                  ),
                 )}
               </ul>
             </div>

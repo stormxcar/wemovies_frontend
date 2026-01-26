@@ -12,7 +12,6 @@ export const getCookieConsent = () => {
     const consent = localStorage.getItem("cookieConsent");
     return consent ? JSON.parse(consent) : null;
   } catch (error) {
-    console.error("Error parsing cookie consent:", error);
     return null;
   }
 };
@@ -71,7 +70,6 @@ export const trackIfConsented = (analyticsFunction) => {
   if (hasConsentForCookie("analytics")) {
     analyticsFunction();
   } else {
-    console.log("📊 Analytics tracking skipped - no consent");
   }
 };
 
@@ -83,6 +81,5 @@ export const marketingIfConsented = (marketingFunction) => {
   if (hasConsentForCookie("marketing")) {
     marketingFunction();
   } else {
-    console.log("📢 Marketing tracking skipped - no consent");
   }
 };

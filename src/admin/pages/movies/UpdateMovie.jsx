@@ -94,7 +94,6 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           countriesData.map((c) => ({ value: c.id, label: c.name }))
         );
       } catch (err) {
-        console.error("Error fetching options:", err);
         toast.error("Không thể tải dữ liệu. Vui lòng thử lại.");
       } finally {
         setLoading("fetchOptions", false);
@@ -106,14 +105,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // Sync formData with selected item and fetch episode links
   useEffect(() => {
     const syncData = async () => {
-      console.log(
-        "syncData called with selectedId:",
-        selectedId,
-        "items length:",
-        items.length
-      );
       if (!selectedId || selectedId === "") {
-        console.log("No selectedId, resetting form");
         dispatchFormData({
           type: "RESET",
           payload: {
@@ -145,20 +137,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       }
       setLoading("loadMovie", true, "Đang tải thông tin phim...");
       // selectedId is now UUID string, no need to parse
-      console.log(
-        "Looking for item with id:",
-        selectedId,
-        "type:",
-        typeof selectedId
-      );
-      console.log(
-        "Items:",
-        items.map((item) => ({ id: item.id, type: typeof item.id }))
-      );
       const item = items.find((item) => item.id === selectedId);
-      console.log("Found item:", item);
       if (!item) {
-        console.log("Item not found, resetting");
         setSelectedId("");
         dispatchFormData({
           type: "RESET",
@@ -191,7 +171,6 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         return;
       }
       if (item) {
-        console.log("Fetched item.link:", item.link);
         const movieTypeIds = Array.isArray(item.movieTypes)
           ? item.movieTypes.map((t) => t.id || t.movie_type_id).filter(Boolean)
           : [];
@@ -468,10 +447,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       formData.categoryIds.forEach((id) =>
         formDataToSend.append("categoryIds", id)
       );
-
-      console.log("FormData contents:");
       for (let [key, value] of formDataToSend.entries()) {
-        console.log(key, value);
       }
 
       const response = await fetchJson(`${updateEndpoint}/${formData.id}`, {
@@ -479,17 +455,9 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         body: formDataToSend,
         credentials: "include",
       });
-
-      console.log("====================================");
-      console.log("response", response);
-      console.log("====================================");
       toast.success(`${title} đã được cập nhật`);
       navigate(`/admin/movies`);
     } catch (error) {
-      console.error(
-        "Error updating item:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data || `Lỗi khi cập nhật ${title}`);
     } finally {
       setLoading("submitMovie", false);

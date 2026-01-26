@@ -16,15 +16,16 @@ class NotificationService {
     this.lastKnownUnreadCount = undefined;
     // Flag to enable/disable WebSocket (set to false if backend doesn't support WebSocket)
     this.websocketEnabled = true; // Set to true to enable WebSocket
+
+    // Performance optimization - throttle callbacks
+    this.throttleDelay = 100;
+    this.lastCallbackTime = 0;
   }
 
   connect(userId, token) {
     return new Promise((resolve, reject) => {
       // Check if WebSocket is enabled
       if (!this.websocketEnabled) {
-        console.log(
-          "🔕 WebSocket disabled - notifications will work via polling",
-        );
         resolve("WebSocket disabled");
         return;
       }
@@ -33,7 +34,7 @@ class NotificationService {
         const socket = new SockJS(
           "https://wemovies-backend.onrender.com/ws-notifications",
         );
-        this.stompClient = Stomp.over(socket);
+        this.stompClient = Stomp.over(() => socket);
 
         // Configure STOMP client
         this.stompClient.debug = () => {}; // Disable debug logging
@@ -56,7 +57,6 @@ class NotificationService {
               if (this.stompClient && this.stompClient.connected) {
                 this.setupSubscriptions(userId);
               } else {
-                console.error("❌ STOMP client not connected after timeout");
               }
             }, 100);
 
@@ -77,7 +77,6 @@ class NotificationService {
           },
         );
       } catch (error) {
-        console.error("❌ WebSocket Setup Error:", error);
         reject(error);
       }
     });
@@ -111,7 +110,19 @@ class NotificationService {
               return;
             }
 
-            this.handleNewNotification(notification);
+            // Use requestIdleCallback for performance optimization
+            if (typeof requestIdleCallback !== "undefined") {
+              requestIdleCallback(
+                () => {
+                  this.handleNewNotification(notification);
+                },
+                { timeout: 100 },
+              );
+            } else {
+              setTimeout(() => {
+                this.handleNewNotification(notification);
+              }, 0);
+            }
           } catch (error) {
             // Silent error handling
           }
@@ -148,7 +159,19 @@ class NotificationService {
         (message) => {
           try {
             const notification = JSON.parse(message.body);
-            this.handleNewNotification(notification);
+            // Use requestIdleCallback for performance optimization
+            if (typeof requestIdleCallback !== "undefined") {
+              requestIdleCallback(
+                () => {
+                  this.handleNewNotification(notification);
+                },
+                { timeout: 100 },
+              );
+            } else {
+              setTimeout(() => {
+                this.handleNewNotification(notification);
+              }, 0);
+            }
           } catch (error) {
             // Silent error handling
           }
@@ -161,7 +184,19 @@ class NotificationService {
         (message) => {
           try {
             const notification = JSON.parse(message.body);
-            this.handleNewNotification(notification);
+            // Use requestIdleCallback for performance optimization
+            if (typeof requestIdleCallback !== "undefined") {
+              requestIdleCallback(
+                () => {
+                  this.handleNewNotification(notification);
+                },
+                { timeout: 100 },
+              );
+            } else {
+              setTimeout(() => {
+                this.handleNewNotification(notification);
+              }, 0);
+            }
           } catch (error) {
             // Silent error handling
           }
@@ -174,7 +209,19 @@ class NotificationService {
         (message) => {
           try {
             const data = JSON.parse(message.body);
-            this.handleUnreadCountUpdate(data.count);
+            // Use requestIdleCallback for performance optimization
+            if (typeof requestIdleCallback !== "undefined") {
+              requestIdleCallback(
+                () => {
+                  this.handleUnreadCountUpdate(data.count);
+                },
+                { timeout: 100 },
+              );
+            } else {
+              setTimeout(() => {
+                this.handleUnreadCountUpdate(data.count);
+              }, 0);
+            }
           } catch (error) {
             // Silent error handling
           }
@@ -292,14 +339,32 @@ class NotificationService {
       },
     );
 
-    // Notify listeners with processed notification
-    this.onNewNotificationCallbacks.forEach((callback) => {
-      try {
-        callback(processedNotification);
-      } catch (error) {
-        console.error("Error in notification callback:", error);
-      }
-    });
+    // Notify listeners with processed notification - use requestIdleCallback for performance
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(
+        () => {
+          this.onNewNotificationCallbacks.forEach((callback) => {
+            try {
+              callback(processedNotification);
+            } catch (error) {
+              // Silent error handling
+            }
+          });
+        },
+        { timeout: 100 },
+      );
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        this.onNewNotificationCallbacks.forEach((callback) => {
+          try {
+            callback(processedNotification);
+          } catch (error) {
+            // Silent error handling
+          }
+        });
+      }, 0);
+    }
   }
 
   getNotificationIcon(type) {
@@ -317,16 +382,38 @@ class NotificationService {
   }
 
   handleUnreadCountUpdate(count) {
-    console.log("📊 Unread count updated:", count);
+    // Skip if count hasn't changed to prevent unnecessary re-renders
+    if (count === this.lastKnownUnreadCount) {
+      return;
+    }
+    this.lastKnownUnreadCount = count;
 
-    // Notify listeners
-    this.onUnreadCountUpdateCallbacks.forEach((callback) => {
-      try {
-        callback(count);
-      } catch (error) {
-        console.error("Error in unread count callback:", error);
-      }
-    });
+    // Use requestIdleCallback for performance optimization
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(
+        () => {
+          this.onUnreadCountUpdateCallbacks.forEach((callback) => {
+            try {
+              callback(count);
+            } catch (error) {
+              // Silent error handling
+            }
+          });
+        },
+        { timeout: 100 },
+      );
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        this.onUnreadCountUpdateCallbacks.forEach((callback) => {
+          try {
+            callback(count);
+          } catch (error) {
+            // Silent error handling
+          }
+        });
+      }, 0);
+    }
   }
 
   showBrowserNotification(notification) {
@@ -397,7 +484,6 @@ class NotificationService {
   // Send test message (for development)
   sendTestMessage(message) {
     if (!this.websocketEnabled) {
-      console.log("🔕 WebSocket disabled - cannot send test message");
       return;
     }
 

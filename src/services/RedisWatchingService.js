@@ -52,7 +52,6 @@ class RedisWatchingService {
       throw new Error(response?.message || "Failed to start session");
     } catch (error) {
       if (error.response?.status !== 500) {
-        console.error("Redis backend error:", error.message);
       }
       throw error;
     }
@@ -80,7 +79,6 @@ class RedisWatchingService {
         source: "redis",
       };
     } catch (error) {
-      console.error("Error updating Redis progress:", error);
       return { success: false, error: error.message, source: "redis" };
     }
   }
@@ -111,7 +109,6 @@ class RedisWatchingService {
         source: "redis",
       };
     } catch (error) {
-      console.error("Error getting Redis resume info:", error);
       return {
         success: false,
         data: { resumeTime: 0 },
@@ -134,7 +131,6 @@ class RedisWatchingService {
         source: "redis",
       };
     } catch (error) {
-      console.error("Error stopping Redis session:", error);
       return { success: false, error: error.message, source: "redis" };
     }
   }
@@ -160,7 +156,6 @@ class RedisWatchingService {
         source: "redis",
       };
     } catch (error) {
-      console.error("Error getting watching history:", error);
       return {
         success: false,
         data: [],

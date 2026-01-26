@@ -76,7 +76,6 @@ const Home = () => {
         setCountries(countriesData || []);
         setTypes(typesData || []);
       } catch (error) {
-        console.error("Error fetching data:", error);
         setError("Không thể tải dữ liệu dashboard");
       } finally {
         setLoading(false);

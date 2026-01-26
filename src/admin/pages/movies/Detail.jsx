@@ -33,7 +33,6 @@ const MovieDetail = () => {
         const response = await fetchJson(`/api/movies/${id}`);
         setMovie(response.data);
       } catch (err) {
-        console.error("Error fetching movie detail:", err);
         setError("Không thể tải thông tin phim. Vui lòng thử lại sau.");
       } finally {
         setLoading(false);

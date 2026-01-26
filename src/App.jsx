@@ -124,9 +124,7 @@ const AppContent = () => {
   const handleDeleteMovie = async (id) => {
     try {
       await deleteMovieMutation.mutateAsync(id);
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-    }
+    } catch (error) {}
   };
 
   const handleAddMovie = (data) => {
@@ -145,9 +143,7 @@ const AppContent = () => {
   const handleDeleteCategory = async (id) => {
     try {
       await deleteCategoryMutation.mutateAsync(id);
-    } catch (error) {
-      console.error("Error deleting category:", error);
-    }
+    } catch (error) {}
   };
 
   const handleAddCategory = (data) => {
@@ -166,9 +162,7 @@ const AppContent = () => {
   const handleDeleteCountry = async (id) => {
     try {
       await deleteCountryMutation.mutateAsync(id);
-    } catch (error) {
-      console.error("Error deleting country:", error);
-    }
+    } catch (error) {}
   };
 
   const handleAddCountry = (data) => {
@@ -197,9 +191,7 @@ const AppContent = () => {
   const handleDeleteUser = async (id) => {
     try {
       await deleteUserMutation.mutateAsync(id);
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
+    } catch (error) {}
   };
 
   const handleAddUser = (data) => {
@@ -489,7 +481,7 @@ const AppContent = () => {
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <LoadingProvider>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

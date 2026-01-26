@@ -23,10 +23,6 @@ const AddCategory = () => {
       setFormData({ name: "" });
       navigate("/admin/categories");
     } catch (error) {
-      console.error(
-        "Error adding category:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data?.message || "Lỗi khi thêm danh mục");
     } finally {
       setLoading(false);

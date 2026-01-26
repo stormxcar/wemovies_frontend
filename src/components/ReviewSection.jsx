@@ -17,7 +17,6 @@ const ReviewSection = ({ movieId }) => {
       const reviewsData = await fetchJson(`/api/reviews/${movieId}/reviews`);
       setReviews(reviewsData?.data || reviewsData || []);
     } catch (error) {
-      console.error("Error fetching reviews:", error);
       setReviews([]);
     }
 
@@ -28,7 +27,6 @@ const ReviewSection = ({ movieId }) => {
       // Handle case where backend returns no data or empty response
       setAverageRating(ratingData?.data ?? ratingData ?? 0);
     } catch (error) {
-      console.log("Average rating not available, setting to 0");
       setAverageRating(0);
     }
   }, [movieId]);
@@ -46,40 +44,22 @@ const ReviewSection = ({ movieId }) => {
 
     try {
       // Log data trước khi gửi
-      console.log("=== FRONTEND REVIEW SUBMIT DEBUG ===");
-      console.log("MovieId:", movieId);
-      console.log("Rating:", userRating);
-      console.log("Comment:", userComment);
-      console.log("Sẽ gửi như query/form parameters");
-      console.log("===================================");
-
       // Gửi như form data hoặc query parameters
       const formData = new FormData();
       formData.append("rating", userRating.toString());
       if (userComment && userComment.trim()) {
         formData.append("comment", userComment.trim());
       }
-
-      console.log("Form data:", {
-        rating: userRating.toString(),
-        comment: userComment ? userComment.trim() : null,
-      });
-
       await fetchJson(`/api/reviews/${movieId}/review`, {
         method: "POST",
         body: formData, // Form data sẽ được gửi như multipart/form-data
       });
-
-      console.log("Response received successfully");
       toast.success("Đánh giá thành công!");
       setShowReviewForm(false);
       setUserRating(0);
       setUserComment("");
       fetchReviews();
     } catch (error) {
-      console.error("Lỗi khi gửi đánh giá:", error);
-      console.error("Error details:", error.response?.data || error.message);
-
       // Hiển thị lỗi chi tiết hơn
       if (error.response?.status === 500) {
         toast.error("Lỗi server nội bộ - kiểm tra backend logs");

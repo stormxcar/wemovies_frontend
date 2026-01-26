@@ -83,7 +83,6 @@ const Notifications = () => {
         setConnectionStatus("connected");
       }
     } catch (error) {
-      console.error("Failed to connect to notification service:", error);
       setConnectionStatus("disconnected");
     }
   };
@@ -152,7 +151,6 @@ const Notifications = () => {
       setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
     } catch (error) {
-      console.error("Failed to load notifications:", error);
       toast.error("Không thể tải danh sách thông báo");
     } finally {
       setLoading(false);
@@ -183,7 +181,6 @@ const Notifications = () => {
         read: Math.max(0, read),
       });
     } catch (error) {
-      console.error("Failed to load stats:", error);
       setStats({ total: 0, unread: 0, read: 0 });
     }
   };
@@ -215,7 +212,6 @@ const Notifications = () => {
       loadStats();
       toast.success("Đã đánh dấu đã đọc");
     } catch (error) {
-      console.error("Failed to mark as read:", error);
       toast.error("Có lỗi xảy ra");
     }
   };
@@ -249,7 +245,6 @@ const Notifications = () => {
       loadStats();
       toast.success(`Đã đánh dấu ${selectedIds.length} thông báo là đã đọc`);
     } catch (error) {
-      console.error("Failed to mark selected as read:", error);
       toast.error("Có lỗi xảy ra");
     }
   };
@@ -279,7 +274,6 @@ const Notifications = () => {
       loadStats();
       toast.success(`Đã xóa ${selectedIds.length} thông báo`);
     } catch (error) {
-      console.error("Failed to delete selected:", error);
       toast.error("Có lỗi xảy ra");
     }
   };

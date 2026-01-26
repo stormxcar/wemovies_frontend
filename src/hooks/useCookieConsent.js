@@ -36,8 +36,6 @@ export const useCookieConsent = () => {
     } else {
       analyticsService.onConsentWithdrawn();
     }
-
-    console.log("🍪 Cookie consent updated:", newConsent);
   };
 
   // Reset consent (for testing or user request)
@@ -46,7 +44,6 @@ export const useCookieConsent = () => {
     setConsent(null);
     setHasConsented(false);
     analyticsService.onConsentWithdrawn();
-    console.log("🍪 Cookie consent reset");
   };
 
   // Accept all cookies

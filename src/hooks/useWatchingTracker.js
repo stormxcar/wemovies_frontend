@@ -15,18 +15,10 @@ export const useWatchingTracker = (
   // Start watching session
   const startWatching = async (totalDuration) => {
     if (!isAuthenticated || !userId || !movieId) {
-      console.warn("⚠️ Skip watching tracker - missing required data:", {
-        isAuthenticated,
-        userId,
-        movieId,
-      });
       return;
     }
 
     try {
-      // 🔍 FIRST: Check if there's existing resume info
-      console.log("🔍 Checking for existing resume info...");
-
       try {
         const resumeResponse = await fetchJson(
           `/api/redis-watching/resume/${encodeURIComponent(userId)}/${encodeURIComponent(movieId)}`,
@@ -37,8 +29,6 @@ export const useWatchingTracker = (
           resumeResponse?.status === "SUCCESS" &&
           resumeResponse.resumeTime !== undefined
         ) {
-          console.log("🎯 Found existing watching session:", resumeResponse);
-
           // Return existing session info without creating new one
           watchingSessionRef.current = {
             movieId,
@@ -52,8 +42,6 @@ export const useWatchingTracker = (
             lastWatched: resumeResponse.lastWatched,
             isFromResume: true,
           };
-
-          console.log("✅ Resumed existing watching session");
           return {
             success: true,
             source: "redis-resume",
@@ -62,17 +50,9 @@ export const useWatchingTracker = (
           };
         }
       } catch (resumeError) {
-        console.log("ℹ️ No existing session found, creating new one");
       }
 
       // 🆕 If no resume info, create NEW session
-      console.log("🎬 Starting NEW watching session:", {
-        userId,
-        movieId,
-        movieTitle,
-        totalDuration: Math.round(totalDuration),
-      });
-
       const payload = {
         userId,
         movieId,
@@ -98,8 +78,6 @@ export const useWatchingTracker = (
           startedAt: new Date().toISOString(),
           isFromResume: false,
         };
-
-        console.log("✅ New watching session created");
         return {
           success: true,
           source: "redis-new",
@@ -107,19 +85,11 @@ export const useWatchingTracker = (
           session: watchingSessionRef.current,
         };
       } else {
-        console.warn("⚠️ Watching session response not successful:", response);
         return { success: false, error: "Failed to create session" };
       }
     } catch (error) {
-      console.error("❌ Lỗi khi bắt đầu theo dõi:", {
-        error: error.message,
-        status: error.response?.status,
-        userId,
-        movieId,
-      });
       // Don't show error toast for 500 errors
       if (error.response?.status !== 500) {
-        console.warn("Failed to start Redis watching session");
       }
       return {
         success: false,
@@ -155,14 +125,7 @@ export const useWatchingTracker = (
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      console.log(
-        `📊 Cập nhật tiến độ: ${((currentTime / totalDuration) * 100).toFixed(
-          1,
-        )}%`,
-      );
     } catch (error) {
-      console.error("❌ Lỗi cập nhật tiến độ:", error);
     }
   };
 
@@ -179,9 +142,7 @@ export const useWatchingTracker = (
       );
 
       watchingSessionRef.current = false;
-      console.log("⏹️ Dừng theo dõi tiến độ xem phim");
     } catch (error) {
-      console.error("❌ Lỗi khi dừng theo dõi:", error);
     }
   };
 

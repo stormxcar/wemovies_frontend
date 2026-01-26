@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }) => {
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error("Error decoding JWT:", error);
       return null;
     }
   };
@@ -51,8 +50,6 @@ export const AuthProvider = ({ children }) => {
     (reason = "Phiên đăng nhập đã hết hạn") => {
       // Tránh multiple logout calls
       if (!isAuthenticated) return;
-
-      console.log("🚪 Auto logout:", reason);
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
@@ -101,9 +98,6 @@ export const AuthProvider = ({ children }) => {
           ) {
             return Promise.reject(error);
           }
-
-          console.log("🚪 Received 401/403, attempting token refresh...");
-
           originalRequest._retry = true;
 
           // Thử refresh token trước
@@ -119,21 +113,15 @@ export const AuthProvider = ({ children }) => {
                   "jwtToken",
                   refreshResponse.data.accessToken,
                 );
-                console.log("✅ Token refreshed successfully");
-
                 // Backend đã tự động set HttpOnly cookie, không cần retry với header
                 // Request tiếp theo sẽ tự động dùng cookie mới
                 return Promise.resolve(); // Không retry request cũ vì cookie đã được update
               }
             } catch (refreshError) {
-              console.error("❌ Refresh token failed:", refreshError);
             }
           }
 
           // Tắc tạm auto-logout để debug
-          console.log(
-            "⚠️ Disabling auto logout to prevent redirect loop since no /auth route exists",
-          );
           // autoLogout("Phiên đăng nhập không hợp lệ");
         }
 
@@ -152,7 +140,6 @@ export const AuthProvider = ({ children }) => {
     const userData = localStorage.getItem("user");
 
     if (token) {
-      console.log("🔍 Found JWT token - user is authenticated");
       setIsAuthenticated(true);
 
       // Nếu có user data trong localStorage thì dùng luôn
@@ -171,15 +158,6 @@ export const AuthProvider = ({ children }) => {
           }
 
           setUser(parsedUser);
-          console.log("✅ Loaded user from localStorage:", parsedUser);
-          console.log("👤 User object fields:", Object.keys(parsedUser));
-          console.log("🆔 User ID candidates:", {
-            id: parsedUser.id,
-            userId: parsedUser.userId,
-            sub: parsedUser.sub,
-            email: parsedUser.email,
-          });
-
           // Try to find user ID from various fields
           const userId =
             parsedUser.id ||
@@ -187,40 +165,26 @@ export const AuthProvider = ({ children }) => {
             parsedUser.sub ||
             parsedUser.email;
           if (userId) {
-            console.log(
-              "🔗 Connecting NotificationService with userId:",
-              userId,
-            );
             // Connect to NotificationService
             connectNotificationService(userId, token);
           } else {
-            console.error("❌ No user ID found in user object");
           }
         } catch (error) {
-          console.log("⚠️ Failed to parse user data from localStorage");
         }
       }
     } else {
-      console.log("📭 No JWT token found");
       // Disconnect NotificationService when not authenticated
       NotificationService.disconnect();
     }
 
     setLoading(false);
-    console.log("🔄 Simple auth check completed");
   }, []);
 
   // Connect to NotificationService
   const connectNotificationService = async (userId, token) => {
     try {
-      console.log("🔔 Attempting to connect to NotificationService...");
       await NotificationService.connect(userId, token);
-      console.log("✅ Connected to NotificationService");
     } catch (error) {
-      console.warn(
-        "⚠️ NotificationService connection failed (WebSocket may not be enabled on backend):",
-        error.message,
-      );
       // Don't throw error - allow app to continue without WebSocket
     }
   };
@@ -240,38 +204,25 @@ export const AuthProvider = ({ children }) => {
       const userData = localStorage.getItem("user");
 
       if (!token) {
-        console.log("📭 No JWT token found in localStorage");
         setLoading(false);
         return;
       }
-
-      console.log("🔍 JWT token found, checking user data...");
-
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
           setIsAuthenticated(true);
-          console.log(
-            "✅ User restored from localStorage:",
-            parsedUser.email,
-            "Role:",
-            parsedUser.role?.roleName,
-          );
         } catch (error) {
-          console.error("❌ Failed to parse user data:", error);
           // Clear invalid data
           localStorage.removeItem("user");
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("refreshToken");
         }
       } else {
-        console.log("⚠️ No user data found in localStorage, clearing tokens");
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("refreshToken");
       }
     } catch (error) {
-      console.error("Auth check failed:", error);
     } finally {
       setLoading(false);
     }
@@ -310,19 +261,9 @@ export const AuthProvider = ({ children }) => {
       // Connect to NotificationService after successful login
       const userId = getUserIdFromToken(data.accessToken);
       if (data.accessToken && userId) {
-        console.log("🔗 Connecting NotificationService with userId:", userId);
         await connectNotificationService(userId, data.accessToken);
       } else {
-        console.warn("⚠️ No userId found for NotificationService connection");
       }
-
-      console.log(
-        "✅ Login successful, user data set:",
-        userData.email,
-        "Role:",
-        userData.role?.roleName,
-      );
-
       return {
         success: true,
         message: data.message || "Login successful",
@@ -338,9 +279,6 @@ export const AuthProvider = ({ children }) => {
 
   const acceptCookies = async (customPreferences = null) => {
     // Cookie consent functionality removed for simplification
-    console.log(
-      "🍪 Cookie consent functionality disabled for simplified authentication",
-    );
   };
 
   const logout = async () => {
@@ -359,17 +297,13 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem("wemovies_current_session");
           localStorage.removeItem("wemovies_local_watching");
           localStorage.removeItem("wemovies_retry_queue");
-
-          console.log("🧹 Cleared watching data for user:", currentUserId);
         } catch (watchingError) {
-          console.warn("⚠️ Error clearing watching data:", watchingError);
         }
       }
 
       // Gọi backend logout API
       await api.post("/api/auth/logout");
     } catch (error) {
-      console.error("Logout API error:", error);
     } finally {
       // Disconnect NotificationService
       NotificationService.disconnect();
@@ -388,8 +322,6 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         // Ignore cookie clearing errors
       }
-
-      console.log("🔔 Disconnected from NotificationService");
       // Redirect to home or login
       window.location.href = "/";
     }

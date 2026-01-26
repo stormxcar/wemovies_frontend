@@ -37,7 +37,6 @@ const SettingsTab = () => {
   };
 
   const handleSaveSettings = () => {
-    // TODO: Implement save settings API
     toast.success("Cài đặt đã được lưu!");
   };
 
@@ -46,7 +45,6 @@ const SettingsTab = () => {
       "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác."
     );
     if (confirmed) {
-      // TODO: Implement delete account API
       toast.error("Chức năng xóa tài khoản đang được phát triển");
     }
   };

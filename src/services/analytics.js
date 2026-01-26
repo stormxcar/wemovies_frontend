@@ -16,7 +16,6 @@ class AnalyticsService {
     if (hasConsentForCookie("analytics")) {
       this.setupAnalytics();
     } else {
-      console.log("📊 Analytics not initialized - no user consent");
     }
   }
 
@@ -29,10 +28,8 @@ class AnalyticsService {
           cookie_flags: "max-age=7200;secure;samesite=strict",
         });
         this.isInitialized = true;
-        console.log("📊 Analytics initialized with user consent");
       }
     } catch (error) {
-      console.error("Analytics setup error:", error);
     }
   }
 
@@ -45,7 +42,6 @@ class AnalyticsService {
           page_location: window.location.href,
           page_path: path,
         });
-        console.log("📊 Page view tracked:", path);
       }
     });
   }
@@ -60,7 +56,6 @@ class AnalyticsService {
           event_category: "movie",
           event_label: movieTitle,
         });
-        console.log("📊 Movie view tracked:", movieTitle);
       }
     });
   }
@@ -74,7 +69,6 @@ class AnalyticsService {
           custom_parameter_results_count: resultsCount,
           event_category: "search",
         });
-        console.log("📊 Search tracked:", query);
       }
     });
   }
@@ -87,7 +81,6 @@ class AnalyticsService {
           event_category: category,
           event_label: label,
         });
-        console.log("📊 User action tracked:", action);
       }
     });
   }
@@ -101,7 +94,6 @@ class AnalyticsService {
           fatal: false,
           custom_parameter_context: context,
         });
-        console.log("📊 Error tracked:", error);
       }
     });
   }
@@ -127,8 +119,6 @@ class AnalyticsService {
         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
       }
     });
-
-    console.log("📊 Analytics consent withdrawn - tracking stopped");
   }
 }
 

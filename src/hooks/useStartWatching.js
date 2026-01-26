@@ -43,7 +43,6 @@ export const useStartWatching = () => {
         }
       } catch (error) {
         if (error.response?.status !== 500) {
-          console.warn("Redis service unavailable, using local fallback");
         }
       }
 
@@ -122,14 +121,12 @@ export const useStartWatching = () => {
           return redisResult.data;
         }
       } catch (error) {
-        console.warn("⚠️ Redis getContinueWatching failed:", error.message);
       }
 
       // Fallback to local
       try {
         return LocalWatchingService.getContinueWatchingList(userId);
       } catch (error) {
-        console.error("❌ Error getting continue watching list:", error);
         return [];
       }
     },
@@ -146,7 +143,6 @@ export const useStartWatching = () => {
         redis: redisStats,
       };
     } catch (error) {
-      console.error("❌ Error getting watching stats:", error);
       return {};
     }
   }, [redisService]);
@@ -159,11 +155,8 @@ export const useStartWatching = () => {
 
         // End local session
         LocalWatchingService.endCurrentSession();
-
-        console.log("🛑 Watching session stopped:", movieId);
         return true;
       } catch (error) {
-        console.error("❌ Error stopping watching session:", error);
         return false;
       }
     },
@@ -181,7 +174,6 @@ export const useStartWatching = () => {
 
         return redisResult.success || true; // Local always succeeds
       } catch (error) {
-        console.error("❌ Error marking as completed:", error);
         return false;
       }
     },
@@ -202,7 +194,6 @@ export const useStartWatching = () => {
 
         return redisResult.success || true; // Local always succeeds
       } catch (error) {
-        console.error("❌ Error removing from watching list:", error);
         return false;
       }
     },
@@ -219,7 +210,6 @@ export const useStartWatching = () => {
           return redisResult;
         }
       } catch (error) {
-        console.warn("⚠️ Redis resume info failed:", error.message);
       }
 
       // Fallback to local
@@ -231,7 +221,6 @@ export const useStartWatching = () => {
           source: "local",
         };
       } catch (error) {
-        console.error("❌ Local resume info failed:", error);
         return { success: false, currentTime: 0 };
       }
     },
@@ -241,8 +230,6 @@ export const useStartWatching = () => {
   const clearAllUserData = useCallback(
     (userId) => {
       try {
-        console.log("🧹 Clearing all watching data for user:", userId);
-
         // Stop Redis sync
         redisService.stopProgressSync();
 
@@ -253,11 +240,8 @@ export const useStartWatching = () => {
         localStorage.removeItem("wemovies_current_session");
         localStorage.removeItem("wemovies_local_watching");
         localStorage.removeItem("wemovies_retry_queue");
-
-        console.log("✅ All watching data cleared");
         return true;
       } catch (error) {
-        console.error("❌ Error clearing user data:", error);
         return false;
       }
     },
@@ -268,13 +252,11 @@ export const useStartWatching = () => {
     try {
       const currentSession = LocalWatchingService.getCurrentSession();
       if (currentSession && currentSession.userId !== userId) {
-        console.warn("⚠️ Session user mismatch, clearing old session");
         LocalWatchingService.endCurrentSession();
         return false;
       }
       return true;
     } catch (error) {
-      console.error("❌ Error validating user session:", error);
       return false;
     }
   }, []);

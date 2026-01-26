@@ -11,22 +11,12 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated || !user) {
-        console.log(
-          "🚫 ProtectedRoute: User not authenticated, redirecting to home"
-        );
         toast.info("Vui lòng đăng nhập để truy cập trang này!");
         navigate("/");
         return;
       }
 
       const userRole = user?.role?.roleName || user?.roleName || user?.role;
-      console.log(
-        "🔐 ProtectedRoute - User role:",
-        userRole,
-        "Full user:",
-        user
-      );
-
       if (userRole !== "ADMIN") {
         toast.error("Chỉ admin mới có quyền truy cập!");
         navigate("/");
@@ -35,7 +25,6 @@ const ProtectedRoute = ({ children }) => {
   }, [user, isAuthenticated, loading, navigate]);
 
   if (loading) {
-    console.log("⏳ ProtectedRoute: Still loading...");
     return (
       <div className="flex justify-center items-center">
         <ClipLoader color="#ffffff" size={50} />

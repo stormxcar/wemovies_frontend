@@ -23,10 +23,6 @@ const AddType = () => {
       setFormData({ name: "" });
       navigate("/admin/types");
     } catch (error) {
-      console.error(
-        "Error adding type:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data?.message || "Lỗi khi thêm loai");
     } finally {
       setLoading(false);

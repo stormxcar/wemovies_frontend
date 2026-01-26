@@ -10,46 +10,29 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Update component mounted - props:", {
-      title,
-      items,
-      fields,
-      updateEndpoint,
-      onUpdate,
-    });
-    console.log("Items structure:", items);
   }, [title, items, fields, updateEndpoint, onUpdate]);
 
   useEffect(() => {
     if (!selectedId || selectedId === "") {
-      console.log("selectedId is empty, skipping sync");
       setFormData({});
       return;
     }
     // Find item directly with string ID (UUID)
     const item = items.find((item) => item.id === selectedId);
-    console.log("Syncing formData with selectedId:", {
-      selectedId,
-      item,
-    });
     setFormData(item || {});
   }, [selectedId, items]);
 
   const handleSelect = (id) => {
-    console.log("Received ID:", id, "Type:", typeof id);
     if (!id || id === "") {
-      console.log("Empty ID selected, resetting formData");
       setSelectedId("");
       setFormData({});
       return;
     }
     // Keep ID as string (UUID) instead of parsing to number
     const item = items.find((item) => item.id === id);
-    console.log("Found item:", item);
     if (item) {
       setSelectedId(id);
     } else {
-      console.warn(`No item found for ID: ${id}`);
       setSelectedId("");
       toast.error("Mục không hợp lệ, vui lòng chọn lại.");
     }
@@ -74,14 +57,9 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
         formData
       );
       toast.success(`${title} đã được cập nhật`);
-      console.log("Updated Item:", response.data);
       navigate(`/admin/${updateEndpoint.split("/").slice(-2, -1)[0]}`);
       if (onUpdate) onUpdate(response.data);
     } catch (error) {
-      console.error(
-        "Error updating item:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data?.message || `Lỗi khi cập nhật ${title}`);
     } finally {
       setLoading(false);
@@ -105,12 +83,6 @@ const Update = ({ title, items, fields, updateEndpoint, onUpdate }) => {
       <select
         value={selectedId || ""}
         onChange={(e) => {
-          console.log(
-            "Dropdown selected value:",
-            e.target.value,
-            "Type:",
-            typeof e.target.value
-          );
           handleSelect(e.target.value);
         }}
         className="w-full p-2 mb-4 border rounded disabled:bg-gray-100 disabled:cursor-not-allowed"

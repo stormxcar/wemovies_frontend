@@ -36,7 +36,6 @@ const ShowMovies = () => {
           setMovieHot(Array.isArray(hot) ? hot : []);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
         if (isMounted) {
           setMovieList([]);
           setMovieHot([]);
@@ -123,7 +122,6 @@ const ShowMovies = () => {
         />
       )}
 
-  
     </div>
   );
 };

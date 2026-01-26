@@ -27,8 +27,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
       return setTimeout(() => {
         setImageLoadedMap((prev) => {
           if (!prev[movie.id]) {
-            // console.log(`Timeout: Forcing image load for movie ${movie.id}`);
-            return { ...prev, [movie.id]: true };
+            // return { ...prev, [movie.id]: true };
           }
           return prev;
         });
@@ -69,8 +68,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
   const handleImageLoad = (movieId) => {
     setImageLoadedMap((prev) => {
       const newMap = { ...prev, [movieId]: true };
-      // console.log(`Image loaded for movie ${movieId}:`, newMap);
-      return newMap;
+      // return newMap;
     });
   };
 

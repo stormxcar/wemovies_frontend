@@ -25,7 +25,6 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       const inList = await checkIsInWatchlist(movieId);
       setIsInWatchlist(inList);
     } catch (error) {
-      console.error("❌ Error checking watchlist status:", error);
       // AuthContext sẽ tự động handle 401/403 và logout nếu cần
     }
   };
@@ -51,7 +50,6 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
         toast.success("Đã thêm vào danh sách yêu thích");
       }
     } catch (error) {
-      console.error("❌ Error toggling watchlist:", error);
       toast.error("Có lỗi xảy ra. Vui lòng thử lại");
     } finally {
       setLoading(false);
@@ -68,7 +66,7 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       onClick={handleToggleWatchlist}
       disabled={loading}
       className={`
-        ${buttonSize} rounded transition-all w-full duration-300 
+        ${buttonSize} rounded transition-all w-full duration-300
         ${
           isInWatchlist
             ? "bg-red-500 hover:bg-red-600 text-white"

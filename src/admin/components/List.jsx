@@ -67,7 +67,6 @@ const List = ({
         await Promise.all(selectedItems.map((id) => onDelete(id)));
         setSelectedItems([]);
       } catch (error) {
-        console.error("Error deleting items:", error);
       }
     }
   };

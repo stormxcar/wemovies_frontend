@@ -28,7 +28,6 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       );
       setScheduledMovies(scheduledResponse || []);
     } catch (error) {
-      console.error("Error loading schedules:", error);
       toast.error("Có lỗi khi tải danh sách phim!");
     } finally {
       setTabLoading(false);
@@ -47,7 +46,6 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       toast.success("Đã xóa khỏi danh sách xem sau!");
       loadSchedules(); // Refresh data
     } catch (error) {
-      console.error("Error removing from watch later:", error);
       toast.error("Có lỗi xảy ra khi xóa phim!");
     }
   };
@@ -60,7 +58,6 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       toast.success("Đã xóa lịch xem phim!");
       loadSchedules(); // Refresh data
     } catch (error) {
-      console.error("Error removing schedule:", error);
       toast.error("Có lỗi xảy ra khi xóa lịch!");
     }
   };

@@ -50,21 +50,13 @@ const ContinueWatching = ({
           watchingList = redisResult.data;
           source = "redis";
           setLastSync(new Date());
-          console.log(`📺 Loaded ${watchingList.length} items from Redis`);
         }
       } catch (redisError) {
-        console.warn(
-          "⚠️ Redis failed, falling back to local:",
-          redisError.message,
-        );
       }
 
       // Fallback to local storage if Redis failed or empty
       if (watchingList.length === 0) {
         watchingList = getContinueWatching(userId);
-        console.log(
-          `📺 Loaded ${watchingList.length} items from local storage`,
-        );
       }
 
       // Process and limit items
@@ -80,12 +72,8 @@ const ContinueWatching = ({
       setContinueWatchingList(processedList);
 
       if (processedList.length > 0) {
-        console.log(
-          `✅ Continue watching loaded: ${processedList.length} items (${source})`,
-        );
       }
     } catch (error) {
-      console.error("❌ Error loading continue watching:", error);
       setContinueWatchingList([]);
       toast.error("Không thể tải danh sách phim đang xem");
     } finally {
@@ -147,7 +135,6 @@ const ContinueWatching = ({
 
       toast.success(`Tiếp tục xem ${item.movieTitle}`);
     } catch (error) {
-      console.error("❌ Error continuing movie:", error);
       toast.error("Không thể tiếp tục xem phim");
     }
   };
@@ -167,7 +154,6 @@ const ContinueWatching = ({
         toast.error("Không thể xóa khỏi danh sách");
       }
     } catch (error) {
-      console.error("❌ Error removing item:", error);
       toast.error("Không thể xóa khỏi danh sách");
     }
   };
@@ -319,7 +305,6 @@ const LocalStorageInfo = () => {
         const watchingStats = getWatchingStats();
         setStats(watchingStats);
       } catch (error) {
-        console.error("❌ Error loading stats:", error);
       }
     };
 

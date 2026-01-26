@@ -17,8 +17,6 @@ const UnifiedVideoPlayer = ({
   // Determine best player mode based on URL
   useEffect(() => {
     const determinePlayerMode = () => {
-      console.log("🎯 Determining player mode for:", src);
-
       if (!src) {
         setError("No video URL provided");
         return;
@@ -26,7 +24,6 @@ const UnifiedVideoPlayer = ({
 
       // If ReactPlayer can handle it directly (YouTube, Vimeo, direct files)
       if (ReactPlayer.canPlay(src)) {
-        console.log("✅ Using ReactPlayer for:", src);
         setPlayerMode("reactplayer");
         return;
       }
@@ -37,13 +34,11 @@ const UnifiedVideoPlayer = ({
         src.includes("streamtape") ||
         src.includes("/share/")
       ) {
-        console.log("🎭 Using iframe mode for streaming site:", src);
         setPlayerMode("iframe");
         return;
       }
 
       // For unknown URLs, try ReactPlayer first
-      console.log("❓ Unknown URL type, trying ReactPlayer:", src);
       setPlayerMode("reactplayer");
     };
 
@@ -61,25 +56,20 @@ const UnifiedVideoPlayer = ({
   };
 
   const handleReactPlayerPlay = () => {
-    console.log("▶️ ReactPlayer: Video played");
     if (onPlay) onPlay();
   };
 
   const handleReactPlayerPause = () => {
-    console.log("⏸️ ReactPlayer: Video paused");
     if (onPause) onPause();
   };
 
   const handleReactPlayerEnded = () => {
     const duration = reactPlayerRef.current?.getDuration() || 0;
-    console.log("🏁 ReactPlayer: Video ended, duration:", duration);
     if (onEnded) onEnded({ duration });
   };
 
   // Handle iframe player events (limited tracking)
   const handleIframeLoad = () => {
-    console.log("✅ Iframe player loaded");
-
     // Simulate play event for iframe (since we can't detect real events)
     if (onPlay) {
       setTimeout(() => {
@@ -160,12 +150,10 @@ const UnifiedVideoPlayer = ({
           onReady={() => {
             // Seek to start time when player is ready
             if (startTime > 0 && reactPlayerRef.current) {
-              console.log("⏯️ Seeking to start time:", startTime);
               reactPlayerRef.current.seekTo(startTime, "seconds");
             }
           }}
           onError={(error) => {
-            console.error("❌ ReactPlayer error:", error);
             setError("ReactPlayer failed to load video");
           }}
           config={{

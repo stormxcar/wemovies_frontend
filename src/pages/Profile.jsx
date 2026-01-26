@@ -24,7 +24,6 @@ const Profile = () => {
     { id: "settings", name: "Cài đặt", icon: "⚙️" },
   ];
 
-  // Validate tab - if invalid tab, redirect to profile
   const isValidTab = (tabId) => {
     return tabs.some((tab) => tab.id === tabId);
   };
@@ -34,12 +33,11 @@ const Profile = () => {
 
   const [activeTab, setActiveTab] = useState(() => {
     const urlTab = urlParams.get("tab");
-    console.log("🔍 Initial URL tab:", urlTab);
+
     if (urlTab && isValidTab(urlTab)) {
-      console.log("✅ Valid tab from URL:", urlTab);
       return urlTab;
     }
-    console.log("🔄 Falling back to profile tab");
+
     return "profile";
   });
   const [watchlist, setWatchlist] = useState([]);
@@ -49,9 +47,7 @@ const Profile = () => {
 
   // Update URL when tab changes
   const handleTabChange = (tabId) => {
-    console.log("🔄 Changing tab to:", tabId);
     if (!isValidTab(tabId)) {
-      console.warn(`❌ Invalid tab: ${tabId}`);
       return;
     }
 
@@ -63,27 +59,18 @@ const Profile = () => {
     const newUrl = `/profile${
       newParams.toString() ? "?" + newParams.toString() : ""
     }`;
-    console.log("🔗 Navigating to:", newUrl);
+
     navigate(newUrl, { replace: true });
 
     // Track tab navigation
-    // trackUserAction('profile_tab_change', 'profile', tabId);
   };
 
   // Sync activeTab with URL changes
   useEffect(() => {
     const urlTab = urlParams.get("tab") || "profile";
-    console.log(
-      "🔍 URL changed, tab:",
-      urlTab,
-      "current activeTab:",
-      activeTab
-    );
     if (isValidTab(urlTab) && urlTab !== activeTab) {
-      console.log("✅ Updating activeTab to:", urlTab);
       setActiveTab(urlTab);
     } else if (!isValidTab(urlTab) && urlTab !== "profile") {
-      console.warn("❌ Invalid tab in URL, redirecting to profile");
       navigate("/profile", { replace: true });
     }
   }, [location.search, navigate, activeTab, isValidTab]);
@@ -104,7 +91,6 @@ const Profile = () => {
       const data = await getWatchlist();
       setWatchlist(data);
     } catch (error) {
-      console.error("Error loading watchlist:", error);
     } finally {
       setLoading(false);
     }
@@ -116,7 +102,6 @@ const Profile = () => {
       const data = await fetchJson("/api/schedules/watch-later");
       setWatchLaterMovies(data || []);
     } catch (error) {
-      console.error("Error loading watch later:", error);
       setWatchLaterMovies([]);
     } finally {
       setLoading(false);
@@ -127,7 +112,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const response = await fetchJson(
-        `/api/redis-watching/current/${user.id}`
+        `/api/redis-watching/current/${user.id}`,
       );
       setContinueWatchingMovies(response.watchingMovies || []);
     } catch (error) {
@@ -136,14 +121,9 @@ const Profile = () => {
         error.response?.status === 500 &&
         error.response?.data?.error?.includes?.("Could not write JSON")
       ) {
-        console.warn(
-          "⚠️ Backend serialization error - continue watching unavailable"
-        );
         setContinueWatchingMovies([]);
         return;
       }
-
-      console.error("Error loading continue watching:", error);
       setContinueWatchingMovies([]);
     } finally {
       setLoading(false);
@@ -196,7 +176,7 @@ const Profile = () => {
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
               <div className="relative">
                 <img
-                  src={user?.avatarUrl || "https://via.placeholder.com/80"}
+                  src={user?.avatarUrl || "/placeholder-professional.svg"}
                   alt="Avatar"
                   className="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg"
                 />

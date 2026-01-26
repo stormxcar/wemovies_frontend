@@ -67,7 +67,6 @@ const AddMovie = () => {
           countriesData.map((c) => ({ value: c.id, label: c.name }))
         );
       } catch (err) {
-        console.error("Error fetching options:", err);
         setError("Không thể tải dữ liệu. Vui lòng thử lại.");
       } finally {
         setLoading(false);
@@ -239,10 +238,7 @@ const AddMovie = () => {
       formData.categoryIds.forEach((id) =>
         formDataToSend.append("categoryIds", id)
       );
-
-      console.log("FormData contents:");
       for (let [key, value] of formDataToSend.entries()) {
-        console.log(key, value);
       }
 
       const response = await api.post("/api/movies/add", formDataToSend, {
@@ -280,7 +276,6 @@ const AddMovie = () => {
       setBannerData({ type: "url", value: "" });
       navigate("/admin/movies");
     } catch (err) {
-      console.error("Error adding movie:", err);
       setError(err.message || "Lỗi khi thêm phim. Vui lòng thử lại.");
       setLoading(false);
     }

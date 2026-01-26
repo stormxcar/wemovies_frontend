@@ -126,7 +126,6 @@ const NotificationTab = () => {
         read: Math.max(0, read), // Ensure read count is never negative
       });
     } catch (error) {
-      console.error("Failed to load stats:", error);
       setStats({ total: 0, unread: 0, read: 0 });
     }
   };
@@ -270,7 +269,6 @@ const NotificationTab = () => {
 
       toast.success("Đã xóa thông báo");
     } catch (error) {
-      console.error("Failed to delete notification:", error);
       toast.error("Có lỗi xảy ra");
     }
   };

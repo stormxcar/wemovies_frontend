@@ -25,7 +25,6 @@ export const useCrudOperations = (title, onRefresh) => {
         onRefresh(); // Refresh data after delete
       }
     } catch (error) {
-      console.error("Lỗi khi xóa:", error);
       if (error.response?.status === 403) {
         toast.error("Bạn không có quyền thực hiện hành động này");
       } else if (error.response?.status === 401) {
@@ -49,7 +48,6 @@ export const useCrudOperations = (title, onRefresh) => {
       }
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi thêm:", error);
       toast.error(
         `Lỗi khi thêm ${title}: ${
           error.response?.data?.message || error.message
@@ -68,7 +66,6 @@ export const useCrudOperations = (title, onRefresh) => {
       }
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi cập nhật:", error);
       toast.error(
         `Lỗi khi cập nhật ${title}: ${
           error.response?.data?.message || error.message
@@ -85,7 +82,6 @@ export const useCrudOperations = (title, onRefresh) => {
         toast.success("Dữ liệu đã được làm mới");
       }
     } catch (error) {
-      console.error("Lỗi khi làm mới:", error);
       toast.error("Lỗi khi làm mới dữ liệu");
     }
   };

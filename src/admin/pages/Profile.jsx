@@ -46,7 +46,6 @@ const Profile = () => {
       });
       setPreviewAvatar(data.avatar);
     } catch (error) {
-      console.error("Error fetching profile:", error);
       toast.error("Không thể tải thông tin profile");
     } finally {
       setLoading(false);
@@ -119,7 +118,6 @@ const Profile = () => {
 
       toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast.error(
         error.response?.data?.message || "Cập nhật thông tin thất bại"
       );
@@ -155,7 +153,6 @@ const Profile = () => {
         confirmPassword: "",
       });
     } catch (error) {
-      console.error("Error changing password:", error);
       toast.error(error.response?.data?.message || "Đổi mật khẩu thất bại");
     } finally {
       setLoading(false);

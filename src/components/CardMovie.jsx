@@ -30,6 +30,12 @@ function CardMovie({ movie }) {
               alt={movie.title}
               className="rounded-lg w-full h-full object-cover"
               style={{ objectPosition: "top" }}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={(e) => {
+                e.target.src = "/placeholder-professional.svg";
+                setImageLoaded(true);
+              }}
             />
           </SkeletonWrapper>
           {/* Watchlist Button moved to action buttons area */}
@@ -62,6 +68,10 @@ function CardMovie({ movie }) {
                   objectPosition: "top",
                   objectFit: "cover",
                   backgroundRepeat: "no-repeat",
+                }}
+                loading="lazy"
+                onError={(e) => {
+                  e.target.src = "/placeholder-professional.svg";
                 }}
               />
             </SkeletonWrapper>

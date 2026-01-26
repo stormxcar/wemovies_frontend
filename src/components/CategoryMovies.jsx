@@ -20,11 +20,7 @@ const CategoryMovies = () => {
   // Lấy state từ location
   const { state } = location;
 
-  // console.log('====================================');
-  // console.log("state:", state);
-  // console.log('====================================');
-
-  // Fetch countries once
+  // // // // Fetch countries once
   useEffect(() => {
     fetchJson(`/api/countries`)
       .then((data) => setCountries(Array.isArray(data.data) ? data.data : []))
@@ -41,16 +37,11 @@ const CategoryMovies = () => {
           selectedCountry,
           categoryName
         );
-
-        console.log("====================================");
-        console.log("data by country and category", data);
-        console.log("====================================");
       } else {
         data = await fetchMoviesByCategory(categoryName);
       }
       setMovies(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching movies:", error);
       setMovies([]);
     } finally {
       setLoading("categoryMovies", false);
@@ -61,9 +52,6 @@ const CategoryMovies = () => {
   useEffect(() => {
     if (state?.movies && Array.isArray(state.movies)) {
       // Nếu có movies trong state, sử dụng nó
-      console.log("====================================");
-      console.log("Using movies from state:", state.movies);
-      console.log("====================================");
       setMovies(state.movies);
       setLoading("categoryMovies", false);
     } else {

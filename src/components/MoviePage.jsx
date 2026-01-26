@@ -56,7 +56,6 @@ function MoviePage() {
   ];
 
   const handleMovieClick = (movieId) => {
-    console.log(`Navigating to movie with ID: ${movieId}`);
     // Add navigation logic here
   };
 

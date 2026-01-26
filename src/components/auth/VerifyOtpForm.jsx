@@ -4,9 +4,6 @@ import { toast } from "react-toastify";
 import { fetchJson } from "../../services/api";
 
 function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
-    console.log('====================================');
-    console.log("verify otp form email:", email);
-    console.log('====================================');
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {

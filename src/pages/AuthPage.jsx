@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { fetchJson } from "./services/api";
+import { fetchJson } from "../services/api";
 
 const RegisterForm = ({ setStep, setEmail }) => {
   const [formData, setFormData] = useState({
@@ -29,19 +29,16 @@ const RegisterForm = ({ setStep, setEmail }) => {
         body: JSON.stringify(formData),
         credentials: "include", // Add this for cookie support
       };
-      console.log("Request Payload:", formData);
       const response = await fetchJson("/api/auth/request-otp", options);
       // Handle both JSON and text responses
       const message =
         typeof response === "string"
           ? response
           : response?.message || "OTP đã được gửi đến email của bạn";
-      console.log("Response Message:", message);
       toast.success(message);
       setEmail(formData.email);
       setStep("verify");
     } catch (error) {
-      console.error("Error in handleSubmit:", error.message);
       toast.error(error.message || "Lỗi khi gửi OTP");
     }
   };
@@ -173,11 +170,6 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      console.log("Login Request Payload:", {
-        email: formDataLogin.email,
-        passWord: formDataLogin.passWord,
-      });
-
       const options = {
         method: "POST",
         headers: {
@@ -192,8 +184,6 @@ const LoginForm = () => {
       };
 
       const loginResponse = await fetchJson("/api/auth/login", options);
-      console.log("Login Response:", loginResponse);
-
       if (!loginResponse) {
         throw new Error("Login failed: No response data");
       }
@@ -201,23 +191,18 @@ const LoginForm = () => {
       // Lưu tokens vào localStorage
       if (loginResponse.accessToken) {
         localStorage.setItem("jwtToken", loginResponse.accessToken);
-        console.log("💾 Saved accessToken to localStorage");
       }
       if (loginResponse.refreshToken) {
         localStorage.setItem("refreshToken", loginResponse.refreshToken);
-        console.log("💾 Saved refreshToken to localStorage");
       }
 
       // Lưu user data vào localStorage luôn để tránh verify lại
       if (loginResponse.user) {
         localStorage.setItem("user", JSON.stringify(loginResponse.user));
-        console.log("💾 Saved user data to localStorage");
       }
 
       // Kiểm tra role từ login response
       const role = loginResponse.user?.role?.roleName;
-      console.log("🎭 User role:", role);
-
       if (role === "ADMIN") {
         toast.success("Đăng nhập Admin thành công!");
         navigate("/admin");
@@ -229,11 +214,6 @@ const LoginForm = () => {
         localStorage.removeItem("refreshToken");
       }
     } catch (error) {
-      console.error("Login Error:", {
-        message: error.message,
-        stack: error.stack,
-        response: error.response,
-      });
       toast.error(error.message || "Đăng nhập thất bại");
     }
   };

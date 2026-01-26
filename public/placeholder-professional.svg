@@ -1,0 +1,62 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" rx="8" fill="url(#modernGradient)"/>
+  
+  <!-- Geometric pattern background -->
+  <g opacity="0.1">
+    <path d="M0 0L400 400M400 0L0 400" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <circle cx="100" cy="100" r="50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <circle cx="300" cy="300" r="50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  </g>
+  
+  <!-- Main icon container -->
+  <g transform="translate(200, 200)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="80" fill="none" stroke="url(#ringGradient)" stroke-width="2" opacity="0.6"/>
+    <circle cx="0" cy="0" r="65" fill="none" stroke="url(#ringGradient)" stroke-width="1" opacity="0.4"/>
+    
+    <!-- Icon background -->
+    <circle cx="0" cy="0" r="45" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    
+    <!-- Camera/Image icon -->
+    <g transform="scale(0.8)">
+      <!-- Main body -->
+      <rect x="-25" y="-15" width="50" height="35" rx="4" fill="rgba(255,255,255,0.9)" />
+      <!-- Lens -->
+      <circle cx="0" cy="3" r="12" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
+      <circle cx="0" cy="3" r="8" fill="rgba(255,255,255,0.1)"/>
+      <circle cx="0" cy="3" r="4" fill="rgba(255,255,255,0.6)"/>
+      <!-- Viewfinder -->
+      <rect x="-8" y="-25" width="16" height="8" rx="2" fill="rgba(255,255,255,0.8)"/>
+      <!-- Flash -->
+      <circle cx="15" cy="-8" r="3" fill="rgba(255,255,255,0.6)"/>
+      <!-- Shutter button -->
+      <circle cx="0" cy="-20" r="2" fill="rgba(255,255,255,0.8)"/>
+    </g>
+  </g>
+  
+  <!-- Decorative elements -->
+  <g opacity="0.3">
+    <circle cx="50" cy="50" r="2" fill="#ffffff"/>
+    <circle cx="350" cy="80" r="1.5" fill="#ffffff"/>
+    <circle cx="80" cy="350" r="1.5" fill="#ffffff"/>
+    <circle cx="320" cy="350" r="2" fill="#ffffff"/>
+  </g>
+  
+  <defs>
+    <!-- Modern gradient background -->
+    <linearGradient id="modernGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="30%" stop-color="#764ba2"/>
+      <stop offset="70%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#f093fb"/>
+    </linearGradient>
+    
+    <!-- Ring gradient -->
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -56,9 +56,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
           >
             <div className="relative">
               <img
-                src={
-                  item.movie.posterUrl || "https://via.placeholder.com/300x450"
-                }
+                src={item.movie.posterUrl || "/placeholder-professional.svg"}
                 alt={item.movie.title}
                 className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-200"
               />

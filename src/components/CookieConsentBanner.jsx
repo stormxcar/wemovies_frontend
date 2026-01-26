@@ -21,19 +21,16 @@ const CookieConsentBanner = () => {
   const handleAcceptAll = () => {
     acceptAllCookies();
     setShowBanner(false);
-    console.log("🍪 All cookies accepted");
   };
 
   const handleAcceptNecessary = () => {
     acceptNecessaryOnly();
     setShowBanner(false);
-    console.log("🍪 Only necessary cookies accepted");
   };
 
   const handleReject = () => {
     acceptNecessaryOnly(); // Reject = only necessary
     setShowBanner(false);
-    console.log("🍪 Cookies rejected (necessary only)");
   };
 
   if (!showBanner) {

@@ -22,7 +22,7 @@ const ContinueWatchingSection = () => {
     try {
       setLoading(true);
       const response = await fetchJson(
-        `/api/redis-watching/current/${user.id}`
+        `/api/redis-watching/current/${user.id}`,
       );
       // Only show first 6 movies for homepage
       setWatchingMovies((response.watchingMovies || []).slice(0, 6));
@@ -32,14 +32,9 @@ const ContinueWatchingSection = () => {
         error.response?.status === 500 &&
         error.response?.data?.error?.includes?.("Could not write JSON")
       ) {
-        console.warn(
-          "⚠️ Backend serialization error - continue watching unavailable"
-        );
         setWatchingMovies([]);
         return;
       }
-
-      console.error("Error fetching watching data:", error);
       // Don't show error toast for 500 errors to avoid spamming
       if (error.response?.status !== 500) {
         toast.error("Không thể tải danh sách phim đang xem");
@@ -56,7 +51,7 @@ const ContinueWatchingSection = () => {
         `/api/redis-watching/stop?userId=${user.id}&movieId=${movieId}`,
         {
           method: "DELETE",
-        }
+        },
       );
       toast.success("Đã xóa khỏi danh sách đang xem!");
       fetchWatchingData(); // Refresh list
@@ -66,18 +61,12 @@ const ContinueWatchingSection = () => {
         error.response?.status === 500 &&
         error.response?.data?.error?.includes?.("Could not write JSON")
       ) {
-        console.warn(
-          "⚠️ Backend serialization error - removing from watching failed"
-        );
         toast.error("Tính năng đang bị lỗi, vui lòng thử lại sau!");
         return;
       }
-
-      console.error("Error removing from watching:", error);
       if (error.response?.status !== 500) {
         toast.error("Có lỗi xảy ra khi xóa!");
       } else {
-        console.warn("Server error when removing movie, but continuing...");
       }
     }
   };
@@ -140,7 +129,7 @@ const ContinueWatchingSection = () => {
             {/* Movie Poster */}
             <div className="relative aspect-[2/3]">
               <img
-                src={movie.moviePoster || "https://via.placeholder.com/300x450"}
+                src={movie.moviePoster || "/placeholder-professional.svg"}
                 alt={movie.movieTitle}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
@@ -150,7 +139,7 @@ const ContinueWatchingSection = () => {
                 <div className="w-full bg-gray-600 rounded-full h-1.5 mb-2">
                   <div
                     className={`h-1.5 rounded-full ${getProgressColor(
-                      movie.percentage
+                      movie.percentage,
                     )}`}
                     style={{ width: `${movie.percentage}%` }}
                   ></div>

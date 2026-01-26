@@ -61,7 +61,6 @@ const Watch = React.memo(() => {
         );
       }
     } catch (error) {
-      console.error("Error parsing localStorage user:", error);
     }
 
     try {
@@ -88,7 +87,6 @@ const Watch = React.memo(() => {
         );
       }
     } catch (error) {
-      console.error("Error decoding JWT token:", error);
     }
 
     return null;
@@ -104,7 +102,6 @@ const Watch = React.memo(() => {
       const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
       setRelatedMovies(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
-      console.error("Error fetching related movies:", error);
       setRelatedMovies([]);
     }
   }, []);
@@ -134,7 +131,6 @@ const Watch = React.memo(() => {
           return sessionResult;
         }
       } catch (error) {
-        console.warn("Failed to start watching session:", error);
       }
     },
     [user, startWatchingMovie, validateUserSession],
@@ -163,7 +159,6 @@ const Watch = React.memo(() => {
           duration,
         );
       } catch (error) {
-        console.error("Error updating progress:", error);
       }
     },
     [
@@ -254,7 +249,6 @@ const Watch = React.memo(() => {
 
         await startWatchingSession(data.data);
       } catch (error) {
-        console.error("Failed to fetch movie details:", error);
       }
     };
 

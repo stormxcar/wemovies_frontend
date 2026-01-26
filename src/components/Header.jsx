@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -42,11 +42,9 @@ function Header() {
 
   // Centralized API error handler
   const handleApiError = useCallback((error, message) => {
-    console.error(message, error);
     toast.error(`${message}`);
   }, []);
 
-  // Fetch categories, countries, and types
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -78,7 +76,7 @@ function Header() {
     setLoading("search", true, "Đang tìm kiếm...");
     try {
       const response = await fetchJson(
-        `/api/movies/search?keyword=${encodeURIComponent(query)}`
+        `/api/movies/search?keyword=${encodeURIComponent(query)}`,
       );
 
       // Handle different response formats
@@ -117,7 +115,6 @@ function Header() {
   const handleLoginSuccess = useCallback(
     async (userData) => {
       if (!userData) {
-        console.error("userData is undefined in handleLoginSuccess");
         return;
       }
 
@@ -127,7 +124,7 @@ function Header() {
         avatarUrl:
           userData.avatarUrl ||
           userData.avatar ||
-          "https://via.placeholder.com/40",
+          "/placeholder-professional.svg",
         role: userData.role || userData.roleName || "USER",
       };
       setUser(userInfo);
@@ -156,17 +153,15 @@ function Header() {
         handleApiError(error, "Lỗi khi lấy phim yêu thích");
       }
     },
-    [handleApiError]
+    [handleApiError],
   );
 
   const handleLogout = useCallback(async () => {
     try {
-      await logout(); // Sử dụng AuthContext logout
       setShowUserModal(false);
       toast.success("Đăng xuất thành công!");
       navigate("/");
     } catch (error) {
-      console.error("Logout error:", error);
       // Vẫn logout ngay cả khi có lỗi
       logout();
       setShowUserModal(false);
@@ -178,7 +173,6 @@ function Header() {
   const navigateToMovies = useCallback(
     async (endpoint, name) => {
       try {
-        console.log(`🎬 Fetching movies from: ${endpoint}`);
         const response = await fetchJson(endpoint);
 
         // Handle different response formats
@@ -194,11 +188,9 @@ function Header() {
         ) {
           movies = response.movies;
         } else {
-          console.log("⚠️ Unexpected response format:", response);
           movies = [];
         }
 
-        console.log(`✅ Found ${movies.length} movies for ${name}`);
         navigate(`/movies/${name}`, {
           state: {
             movies,
@@ -207,7 +199,6 @@ function Header() {
         });
         closeModal();
       } catch (error) {
-        console.error(`❌ Failed to fetch movies for ${name}:`, error);
         handleApiError(error, `Lỗi khi tải phim cho ${name}`);
 
         // Navigate anyway with empty movies array to show the page
@@ -220,7 +211,7 @@ function Header() {
         closeModal();
       }
     },
-    [navigate, handleApiError, closeModal]
+    [navigate, handleApiError, closeModal],
   );
 
   return (
@@ -286,7 +277,7 @@ function Header() {
             </div>
           )}
 
-          <div className="hidden md:flex items-center w-full max-w-md">
+          <div className="hidden md:flex items-center search-container">
             <input
               type="text"
               value={query}
@@ -295,7 +286,7 @@ function Header() {
               placeholder="Tìm kiếm phim..."
               className={`w-full px-4 py-2 rounded-lg text-white ${
                 isScrolled ? "bg-gray-800" : "bg-gray-900/50"
-              } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors`}
+              } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-400`}
             />
           </div>
 
@@ -324,7 +315,7 @@ function Header() {
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/types/id/${item.id}`,
-                          item.name
+                          item.name,
                         )
                       }
                     >
@@ -344,7 +335,7 @@ function Header() {
                     onClick={() =>
                       navigateToMovies(
                         `/api/movies/category/id/${item.id}`,
-                        item.name
+                        item.name,
                       )
                     }
                   >
@@ -359,7 +350,7 @@ function Header() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveModal((prev) =>
-                    prev === "countries" ? null : "countries"
+                    prev === "countries" ? null : "countries",
                   );
                 }}
                 className="flex items-center hover:text-blue-300 transition-colors"
@@ -380,7 +371,7 @@ function Header() {
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/country/${item.id}`,
-                          item.name
+                          item.name,
                         )
                       }
                     >
@@ -512,4 +503,4 @@ function Header() {
   );
 }
 
-export default Header;
+export default memo(Header);

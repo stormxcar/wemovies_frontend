@@ -10,9 +10,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
     try {
       await logout();
       window.location.reload();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -68,7 +66,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
           >
             {user ? (
               <img
-                src={user.avatarUrl || "https://via.placeholder.com/40"}
+                src={user.avatarUrl || "/placeholder-professional.svg"}
                 alt="Avatar"
                 className="w-10 h-10 rounded-full border-2 border-white"
               />

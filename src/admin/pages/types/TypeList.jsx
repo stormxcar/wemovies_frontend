@@ -59,7 +59,6 @@ const TypeList = () => {
         );
         setSelectedItems([]);
       } catch (error) {
-        console.error("Error deleting types:", error);
         toast.error("Lỗi khi xóa loại phim");
       }
     }
@@ -125,12 +124,10 @@ const TypeList = () => {
 
   const handleSave = async () => {
     try {
-      console.log("Saving type with data:", currentType);
       const response = await api.put(
         `/api/types/update/${currentType.id}`,
         currentType
       );
-      console.log("Update successful, response:", response.data);
       toast.success("Loại phim đã được cập nhật");
 
       // Refetch data to update the list
@@ -138,11 +135,6 @@ const TypeList = () => {
 
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Error updating type:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
       toast.error(
         error.response?.data?.message ||
           error.response?.data ||
@@ -155,7 +147,6 @@ const TypeList = () => {
     try {
       await deleteTypeMutation.mutateAsync(id);
     } catch (error) {
-      console.error("Error deleting type:", error);
       toast.error("Lỗi khi xóa loại phim");
     }
   };

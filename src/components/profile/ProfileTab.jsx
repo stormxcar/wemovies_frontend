@@ -88,7 +88,6 @@ const ProfileTab = () => {
         avatar: data.avatar || "",
       });
     } catch (error) {
-      console.error("Error loading profile:", error);
       toast.error("Không thể tải thông tin profile");
     } finally {
       setLoading(false);
@@ -157,7 +156,6 @@ const ProfileTab = () => {
       // Reload profile data
       loadProfile();
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast.error(error.message || "Có lỗi xảy ra. Vui lòng thử lại!");
     } finally {
       setIsSubmitting(false);
@@ -203,7 +201,6 @@ const ProfileTab = () => {
       setPasswordErrors({}); // Clear all errors
       setShowChangePassword(false);
     } catch (error) {
-      console.error("Error changing password:", error);
       toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
     }
   };
@@ -259,7 +256,6 @@ const ProfileTab = () => {
       // Reload profile to get new avatar URL
       loadProfile();
     } catch (error) {
-      console.error("Error uploading avatar:", error);
       toast.error("Có lỗi xảy ra khi upload avatar");
     } finally {
       setUploadingAvatar(false);

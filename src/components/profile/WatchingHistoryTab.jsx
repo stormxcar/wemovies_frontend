@@ -50,14 +50,8 @@ const WatchingHistoryTab = ({
           `/api/redis-watching/current/${userId}`,
         );
         setWatchingMovies(response.watchingMovies || []);
-        console.log("✅ Loaded watching data from backend");
         return;
-      } catch (backendError) {
-        console.warn(
-          "⚠️ Backend failed, loading from local storage:",
-          backendError.response?.status,
-        );
-      }
+      } catch (backendError) {}
 
       // Fallback to local storage
       const localWatchingData = getContinueWatching(userId);
@@ -76,11 +70,7 @@ const WatchingHistoryTab = ({
       }));
 
       setWatchingMovies(transformedData);
-      console.log(
-        `✅ Loaded ${transformedData.length} watching items from local storage`,
-      );
     } catch (error) {
-      console.error("❌ Error fetching watching data:", error);
       setWatchingMovies([]);
     } finally {
       setIsLoading(false);
@@ -95,14 +85,8 @@ const WatchingHistoryTab = ({
       try {
         const response = await fetchJson(`/api/redis-watching/stats/${userId}`);
         setWatchingStats(response.stats);
-        console.log("✅ Loaded watching stats from backend");
         return;
-      } catch (backendError) {
-        console.warn(
-          "⚠️ Backend stats failed, using local stats:",
-          backendError.response?.status,
-        );
-      }
+      } catch (backendError) {}
 
       // Fallback to local stats
       const localStats = getWatchingStats();
@@ -126,10 +110,7 @@ const WatchingHistoryTab = ({
       };
 
       setWatchingStats(stats);
-      console.log("✅ Generated local watching stats");
-    } catch (error) {
-      console.error("❌ Error fetching watching stats:", error);
-    }
+    } catch (error) {}
   };
 
   const removeFromWatching = async (movieId) => {
@@ -146,11 +127,6 @@ const WatchingHistoryTab = ({
         );
         toast.success("Đã xóa khỏi danh sách đang xem!");
       } catch (backendError) {
-        console.warn(
-          "⚠️ Backend remove failed, updating local only:",
-          backendError.response?.status,
-        );
-
         // Fallback to local removal - mark as completed
         const updatedMovies = watchingMovies.filter(
           (movie) => movie.movieId !== movieId,
@@ -164,7 +140,6 @@ const WatchingHistoryTab = ({
       fetchWatchingData();
       fetchWatchingStats();
     } catch (error) {
-      console.error("❌ Error removing from watching:", error);
       toast.error("Có lỗi xảy ra khi xóa phim!");
     }
   };
@@ -183,11 +158,6 @@ const WatchingHistoryTab = ({
         );
         toast.success("Đã đánh dấu hoàn thành!");
       } catch (backendError) {
-        console.warn(
-          "⚠️ Backend complete failed, updating local only:",
-          backendError.response?.status,
-        );
-
         // Fallback to local completion
         const updatedMovies = watchingMovies.map((movie) =>
           movie.movieId === movieId
@@ -202,7 +172,6 @@ const WatchingHistoryTab = ({
       fetchWatchingData();
       fetchWatchingStats();
     } catch (error) {
-      console.error("❌ Error marking as completed:", error);
       toast.error("Có lỗi xảy ra!");
     }
   };
@@ -352,9 +321,7 @@ const WatchingHistoryTab = ({
                 {/* Movie Poster */}
                 <div className="flex-shrink-0">
                   <img
-                    src={
-                      movie.moviePoster || "https://via.placeholder.com/120x180"
-                    }
+                    src={movie.moviePoster || "/placeholder-professional.svg"}
                     alt={movie.movieTitle}
                     className="w-20 h-28 object-cover rounded-lg"
                   />

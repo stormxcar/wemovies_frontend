@@ -21,7 +21,7 @@ export const LoadingProvider = ({ children }) => {
   const setLoading = useCallback((key, isLoading, message = null) => {
     setLoadingStates((prev) => {
       const newState = { ...prev, [key]: isLoading };
-      console.log(`Setting loading for ${key} to ${isLoading}`, newState);
+
       return newState;
     });
 
@@ -57,7 +57,7 @@ export const LoadingProvider = ({ children }) => {
         setTimeout(hidePageLoading, 300);
       }, delay);
     },
-    [navigate, showPageLoading, hidePageLoading]
+    [navigate, showPageLoading, hidePageLoading],
   );
 
   // Auto-hide page loading on route change
@@ -80,7 +80,7 @@ export const LoadingProvider = ({ children }) => {
         setLoading(key, false);
       }
     },
-    [setLoading]
+    [setLoading],
   );
 
   const value = {

@@ -18,17 +18,14 @@ const EpisodeDetail = () => {
       try {
         const stateMovieDetail = location.state?.movieDetail;
         if (stateMovieDetail) {
-          console.log("Using state movieDetail:", stateMovieDetail);
           if (isMounted) setMovieDetail({ data: stateMovieDetail });
         } else {
           const response = await fetchJson(`/api/movies/${id}`);
           if (!response.ok) throw new Error("Network response was not ok");
           const data = await response.json();
-          console.log(`Fetched movie detail for ID: ${id}`, data);
           if (isMounted) setMovieDetail(data);
         }
       } catch (error) {
-        console.error("Error fetching movie detail:", error);
         if (isMounted) setMovieDetail(null);
       }
     };
@@ -41,24 +38,17 @@ const EpisodeDetail = () => {
 
   const fetchRelatedMovies = useCallback(async (categoryId) => {
     if (!categoryId) {
-      console.log("No valid categoryId provided");
       setRelatedMovies([]);
       return;
     }
     try {
-      console.log("Fetching related movies for categoryId:", categoryId);
       const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
 
       setRelatedMovies(Array.isArray(data.data) ? data.data : []);
     } catch (e) {
-      console.error("Error fetching related movies:", e);
       setRelatedMovies([]);
     }
   }, []);
-
-  // console.log('====================================');
-  // console.log("data apisoe related", relatedMovies);
-  // console.log('====================================');
 
   useEffect(() => {
     const fetchMovieDetail = async () => {
@@ -81,10 +71,6 @@ const EpisodeDetail = () => {
 
   const episodeLink =
     movieDetail.data?.episodes?.[Number(episodeIndex)]?.link || "";
-  console.log("====================================");
-  console.log("Movie episodeLink:", episodeLink);
-  console.log("====================================");
-
   const episodeLinks =
     Array.isArray(movieDetail.data.episodes) &&
     movieDetail.data.episodes?.map((episode) => ({

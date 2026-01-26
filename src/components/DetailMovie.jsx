@@ -43,17 +43,14 @@ const DetailMovie = () => {
 
   const fetchRelatedMovies = useCallback(async (categoryId) => {
     if (!categoryId) {
-      console.log("No valid categoryId provided");
       setRelatedMovies([]);
       return;
     }
     try {
-      console.log("Fetching related movies for categoryId:", categoryId);
       const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
 
       setRelatedMovies(Array.isArray(data.data) ? data.data : []);
     } catch (e) {
-      console.error("Error fetching related movies:", e);
       setRelatedMovies([]);
     }
   }, []);
@@ -78,7 +75,6 @@ const DetailMovie = () => {
         : false;
       setIsInWatchLater(isInList);
     } catch (error) {
-      console.error("Error checking schedule status:", error);
       // Set defaults on error
       setIsScheduled(false);
       setIsInWatchLater(false);
@@ -130,12 +126,6 @@ const DetailMovie = () => {
         toast.success("Đã xóa khỏi danh sách xem sau!");
       } else {
         // Add to watch later
-        console.log("=== ADD TO WATCH LATER DEBUG ===");
-        console.log("MovieId to send:", id);
-        console.log("Request body:", JSON.stringify({ movieId: id }));
-        console.log("User authenticated:", isAuthenticated);
-        console.log("User object:", user);
-
         try {
           // Send a far future date instead of null to avoid database constraint
           const farFutureDate = "2099-12-31T23:59:59";
@@ -150,14 +140,9 @@ const DetailMovie = () => {
               notes: "Added to watch later",
             }),
           });
-
-          console.log("Watch later response:", response);
           setIsInWatchLater(true);
           toast.success("Đã thêm vào danh sách xem sau!");
         } catch (error) {
-          console.error("Watch later error:", error);
-          console.error("Error response:", error.response?.data);
-
           // Check if it's a "already exists" error
           if (
             error.response?.status === 400 &&
@@ -235,14 +220,9 @@ const DetailMovie = () => {
   const category = movieDetail.data.movieCategories?.[0];
 
   const handleMovieClick = (movieId) => {
-    // console.log(`Navigating to movie with ID: ${movieId}`);
-    navigate(`/movie/${movieId}`);
+    // navigate(`/movie/${movieId}`);
     // Add navigation logic here
   };
-
-  // console.log('====================================');
-  // console.log("relatedMovies:", relatedMovies);
-  // console.log('====================================');
 
   return (
     <div className="bg-gray-800 w-full flex-1">

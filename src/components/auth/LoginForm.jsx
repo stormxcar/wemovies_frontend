@@ -117,15 +117,12 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         (data.user || data)?.role?.roleName ||
         (data.user || data)?.roleName ||
         (data.user || data)?.role;
-      console.log("User role:", userRole, "Full user:", data.user || data);
       if (userRole === "ADMIN") {
         navigate("/admin");
       } else {
         navigate("/");
       }
     } catch (error) {
-      console.error("Login error:", error);
-
       // Improved error handling
       let errorMessage = "Đăng nhập thất bại";
 
@@ -194,7 +191,6 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       setShowResetPassword(true);
       setForgotPasswordEmail("");
     } catch (error) {
-      console.error("Forgot password error:", error);
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
@@ -209,10 +205,8 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
-    console.log("Google credentialResponse:", credentialResponse);
     const idToken = credentialResponse.credential;
     if (!idToken) {
-      console.error("Google ID Token is null or undefined");
       toast.error("Không nhận được Google ID Token", {
         position: "top-right",
         autoClose: 3000,
@@ -221,7 +215,6 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
     }
 
     try {
-      console.log("Sending Google ID Token:", idToken);
       const response = await fetchJson("/api/auth/google", {
         method: "POST",
         headers: {
@@ -231,14 +224,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           idToken: idToken,
         }),
       });
-
-      console.log("Google API response:", response);
-
       // Debug response structure
-      console.log("Response keys:", Object.keys(response || {}));
-      console.log("Response.user:", response?.user);
-      console.log("Response direct:", response);
-
       if (!response) {
         throw new Error("Google login failed: No response data");
       }
@@ -259,7 +245,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       const userInfo = {
         displayName:
           userData.fullName || userData.email?.split("@")[0] || "User",
-        avatarUrl: userData.avatarUrl || "https://via.placeholder.com/40",
+        avatarUrl: userData.avatarUrl || "/placeholder-professional.svg",
         role: role,
         email: userData.email,
         id: userData.email, // Sử dụng email làm ID
@@ -283,17 +269,10 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           await fetchJson("/api/auth/logout", {
             method: "POST",
           });
-        } catch (logoutError) {
-          console.warn("Logout failed:", logoutError);
-        }
+        } catch (logoutError) {}
         onClose();
       }
     } catch (error) {
-      console.error("Google login error:", error);
-      console.log("Error response data:", error?.response?.data);
-      console.log("Error status:", error?.response?.status);
-      console.log("Error headers:", error?.response?.headers);
-
       // Extract error message from response
       let errorMessage = "Đăng nhập bằng Google thất bại";
 

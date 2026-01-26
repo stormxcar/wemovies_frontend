@@ -6,7 +6,6 @@ class LocalWatchingService {
       localStorage.setItem("watchingSessions", JSON.stringify(sessions));
       return true;
     } catch (error) {
-      console.error("Error caching session:", error);
       return false;
     }
   }
@@ -16,7 +15,6 @@ class LocalWatchingService {
       const sessions = this.getCachedSessions();
       return sessions[sessionId] || null;
     } catch (error) {
-      console.error("Error getting cached session:", error);
       return null;
     }
   }
@@ -25,7 +23,6 @@ class LocalWatchingService {
     try {
       return JSON.parse(localStorage.getItem("watchingSessions") || "{}");
     } catch (error) {
-      console.error("Error parsing cached sessions:", error);
       return {};
     }
   }
@@ -86,7 +83,6 @@ class LocalWatchingService {
 
       localStorage.setItem("watchingSessions", JSON.stringify(sessions));
     } catch (error) {
-      console.error("Error clearing old sessions:", error);
     }
   }
 }

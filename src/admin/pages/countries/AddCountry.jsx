@@ -23,10 +23,6 @@ const AddCountry = () => {
       setFormData({ name: "" });
       navigate("/admin/countries");
     } catch (error) {
-      console.error(
-        "Error adding country:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data?.message || "Lỗi khi thêm Quốc gia");
     } finally {
       setLoading(false);

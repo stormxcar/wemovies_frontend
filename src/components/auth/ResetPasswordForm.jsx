@@ -66,7 +66,6 @@ function ResetPasswordForm({ onClose, userEmail }) {
 
       onClose();
     } catch (error) {
-      console.error("Reset password error:", error);
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
