@@ -1,22 +1,14 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useSettings } from "../../context/SettingsContext";
 import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsTab = () => {
   const { logout } = useAuth();
-  const { isDarkMode, setTheme } = useTheme();
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    movieRecommendations: true,
-    newReleaseAlerts: true,
-    language: "vi",
-    autoPlay: false,
-    downloadQuality: "hd",
-    dataUsage: "normal",
-  });
+  const { isDarkMode, setTheme, themeClasses } = useTheme();
+  const { settings, updateSetting } = useSettings();
 
   const handleSettingChange = (key, value) => {
     if (key === 'darkMode') {
@@ -25,11 +17,14 @@ const SettingsTab = () => {
       return;
     }
     
-    setSettings((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-    toast.success("Cài đặt đã được cập nhật!");
+    updateSetting(key, value);
+    
+    // Special messages for certain settings
+    if (key === 'autoPlay') {
+      toast.success(value ? "Đã bật tự động phát video!" : "Đã tắt tự động phát video!");
+    } else {
+      toast.success("Cài đặt đã được cập nhật!");
+    }
   };
 
   const handleLogout = async () => {
@@ -59,8 +54,8 @@ const SettingsTab = () => {
   return (
     <div className="space-y-6">
       {/* Notification Settings */}
-      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+      <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
+        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
           <Bell className="mr-2 h-5 w-5" />
           Thông báo
         </h3>
@@ -68,8 +63,8 @@ const SettingsTab = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Email thông báo</h4>
-              <p className="text-gray-400 text-sm">Nhận thông báo qua email</p>
+              <h4 className={`${themeClasses.textPrimary} font-medium`}>Email thông báo</h4>
+              <p className={`${themeClasses.textMuted} text-sm`}>Nhận thông báo qua email</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -143,8 +138,8 @@ const SettingsTab = () => {
       </div>
 
       {/* Appearance Settings */}
-      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+      <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
+        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
           <Palette className="mr-2 h-5 w-5" />
           Giao diện
         </h3>
@@ -169,11 +164,11 @@ const SettingsTab = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-medium mb-2">Ngôn ngữ</h4>
+            <h4 className={`${themeClasses.textPrimary} font-medium mb-2`}>Ngôn ngữ</h4>
             <select
               value={settings.language}
               onChange={(e) => handleSettingChange("language", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 ${themeClasses.secondary} border ${themeClasses.border} rounded-lg ${themeClasses.textPrimary} focus:ring-2 focus:ring-blue-500`}
             >
               <option value="vi">Tiếng Việt</option>
               <option value="en">English</option>
@@ -185,8 +180,8 @@ const SettingsTab = () => {
       </div>
 
       {/* Playback Settings */}
-      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+      <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
+        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
           <Settings className="mr-2 h-5 w-5" />
           Phát video
         </h3>
@@ -194,9 +189,9 @@ const SettingsTab = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Tự động phát</h4>
-              <p className="text-gray-400 text-sm">
-                Tự động phát video khi tải trang
+              <h4 className={`${themeClasses.textPrimary} font-medium`}>Tự động phát</h4>
+              <p className={`${themeClasses.textMuted} text-sm`}>
+                Tự động phát video khi tải trang (video sẽ bị tắt tiếng)
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -212,29 +207,13 @@ const SettingsTab = () => {
             </label>
           </div>
 
-          <div>
-            <h4 className="text-white font-medium mb-2">
-              Chất lượng tải xuống
-            </h4>
-            <select
-              value={settings.downloadQuality}
-              onChange={(e) =>
-                handleSettingChange("downloadQuality", e.target.value)
-              }
-              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="sd">SD (480p)</option>
-              <option value="hd">HD (720p)</option>
-              <option value="fhd">Full HD (1080p)</option>
-              <option value="4k">4K (2160p)</option>
-            </select>
-          </div>
+         
         </div>
       </div>
 
       {/* Account Management */}
-      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+      <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
+        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
           <Shield className="mr-2 h-5 w-5" />
           Quản lý tài khoản
         </h3>

@@ -14,6 +14,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import { LoadingProvider, useLoading } from "./context/UnifiedLoadingContext";
 import { QueryProvider } from "./utils/queryClient";
 import PageLoader from "./components/loading/PageLoader";
@@ -490,15 +491,17 @@ function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
-        <AuthProvider>
-          <LoadingProvider>
-            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-              <QueryProvider>
-                <AppContent />
-              </QueryProvider>
-            </GoogleOAuthProvider>
-          </LoadingProvider>
-        </AuthProvider>
+        <SettingsProvider>
+          <AuthProvider>
+            <LoadingProvider>
+              <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+                <QueryProvider>
+                  <AppContent />
+                </QueryProvider>
+              </GoogleOAuthProvider>
+            </LoadingProvider>
+          </AuthProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </Router>
   );

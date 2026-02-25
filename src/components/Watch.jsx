@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { useStartWatching } from "../hooks/useStartWatching";
 import { fetchJson } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
@@ -14,6 +15,9 @@ const Watch = React.memo(() => {
   const { movieDetail, id = paramId } = location.state || {};
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { autoPlay } = useSettings();
+  
+  console.log('🎬 Watch component autoPlay setting:', autoPlay);
 
   // Set document title for watching page
   useDocumentTitle(
@@ -341,6 +345,7 @@ const Watch = React.memo(() => {
                 key={currentMovieData.id}
                 src={videoSrc}
                 startTime={startTime}
+                autoPlay={autoPlay}
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={handleVideoPlay}
                 onPause={handleVideoPause}
@@ -351,6 +356,7 @@ const Watch = React.memo(() => {
             currentMovieData.id,
             currentMovieData.link,
             startTime,
+            autoPlay,
             handleTimeUpdate,
             handleVideoPlay,
             handleVideoPause,

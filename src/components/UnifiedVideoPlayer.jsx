@@ -4,6 +4,7 @@ import ReactPlayer from "react-player";
 const UnifiedVideoPlayer = ({
   src,
   startTime = 0,
+  autoPlay = false,
   onTimeUpdate,
   onPlay,
   onPause,
@@ -11,8 +12,11 @@ const UnifiedVideoPlayer = ({
 }) => {
   const [playerMode, setPlayerMode] = useState("determining");
   const [error, setError] = useState(null);
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(autoPlay);
   const reactPlayerRef = useRef(null);
   const iframeRef = useRef(null);
+
+  console.log('🎬 UnifiedVideoPlayer autoPlay prop:', autoPlay);
 
   // Determine best player mode based on URL
   useEffect(() => {
@@ -142,15 +146,20 @@ const UnifiedVideoPlayer = ({
           width="100%"
           height="400px"
           controls={true}
-          playing={false}
-          onProgress={handleReactPlayerTimeUpdate}
+          playing={autoPlay}          muted={shouldAutoPlay} // Muted required for autoplay in most browsers          onProgress={handleReactPlayerTimeUpdate}
           onPlay={handleReactPlayerPlay}
           onPause={handleReactPlayerPause}
           onEnded={handleReactPlayerEnded}
           onReady={() => {
+            console.log('🎬 Video ready, autoPlay was:', autoPlay);
             // Seek to start time when player is ready
             if (startTime > 0 && reactPlayerRef.current) {
               reactPlayerRef.current.seekTo(startTime, "seconds");
+            }
+            // Try to enable autoplay after ready
+            if (autoPlay && reactPlayerRef.current) {
+              console.log('🎬 Attempting autoplay...'); 
+              setShouldAutoPlay(true);
             }
           }}
           onError={(error) => {
@@ -160,6 +169,8 @@ const UnifiedVideoPlayer = ({
             file: {
               attributes: {
                 crossOrigin: "anonymous",
+                autoPlay: autoPlay,
+                muted: autoPlay, // Mute for autoplay support
                 onTimeUpdate: (e) => {
                   if (onTimeUpdate) {
                     onTimeUpdate({
