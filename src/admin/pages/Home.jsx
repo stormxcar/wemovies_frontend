@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLoading } from "../../context/UnifiedLoadingContext";
+import useDocumentTitle from "../../hooks/useDocumentTitle";
 
 import {
   fetchCategories as getCategories,
@@ -51,6 +52,9 @@ const Home = () => {
   const [types, setTypes] = useState([]);
   const [error, setError] = useState(null);
   const { setLoading } = useLoading();
+
+  // Set document title for admin dashboard
+  useDocumentTitle("Bảng điều khiển", "Admin");
 
   useEffect(() => {
     const fetchData = async () => {

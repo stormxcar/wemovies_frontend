@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
 
 const AddCategory = () => {
   const navigate = useNavigate();
+
+  // Set document title for add category page
+  useDocumentTitle("Thêm danh mục", "Admin");
+
   const [formData, setFormData] = useState({ name: "" });
   const [loading, setLoading] = useState(false);
 

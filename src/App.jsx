@@ -6,6 +6,7 @@ import {
   Outlet,
   useNavigate,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,7 +28,6 @@ const MovieList = lazy(() => import("./components/MovieList.jsx"));
 const Watch = lazy(() => import("./components/Watch.jsx"));
 const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
-const Notifications = lazy(() => import("./pages/Notifications.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 // Admin components
@@ -267,7 +267,6 @@ const AppContent = () => {
   return (
     <>
       {pageLoading && <PageLoader message={pageLoadingMessage} />}
-      <ToastContainer position="top-right" autoClose={3000} />
       <Suspense fallback={<LazyLoadingFallback />}>
         <Routes>
           {/* User Routes */}
@@ -308,7 +307,7 @@ const AppContent = () => {
               path="/notifications"
               element={
                 <AuthRoute>
-                  <Notifications />
+                  <Navigate to="/profile?tab=notifications" replace />
                 </AuthRoute>
               }
             />
@@ -464,13 +463,20 @@ const AppContent = () => {
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
-        newestOnTop={false}
+        newestOnTop
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
         theme="dark"
+        limit={3}
+        closeButton={true}
+        toastStyle={{
+          backgroundColor: "#1e293b",
+          color: "#fff",
+          border: "1px solid #475569",
+        }}
       />
 
       {/* Cookie Consent Banner */}

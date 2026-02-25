@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
 
 const AddCountry = () => {
   const navigate = useNavigate();
+
+  // Set document title for add country page
+  useDocumentTitle("Thêm quốc gia", "Admin");
+
   const [formData, setFormData] = useState({ name: "" });
   const [loading, setLoading] = useState(false);
 

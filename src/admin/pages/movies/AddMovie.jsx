@@ -4,6 +4,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import {
   fetchMovieType as getTypes,
   fetchCategories as getCategories,
@@ -15,6 +16,10 @@ import ImageUpload from "../../../components/ui/ImageUpload";
 
 const AddMovie = () => {
   const navigate = useNavigate();
+
+  // Set document title for add movie page
+  useDocumentTitle("Thêm phim mới", "Admin");
+
   // Initialize form data state
   const [formData, setFormData] = useState({
     title: "",
@@ -64,7 +69,7 @@ const AddMovie = () => {
         setMovieTypes(typesData.map((t) => ({ value: t.id, label: t.name })));
         setCategories(catsData.map((c) => ({ value: c.id, label: c.name })));
         setCountries(
-          countriesData.map((c) => ({ value: c.id, label: c.name }))
+          countriesData.map((c) => ({ value: c.id, label: c.name })),
         );
       } catch (err) {
         setError("Không thể tải dữ liệu. Vui lòng thử lại.");
@@ -90,8 +95,8 @@ const AddMovie = () => {
           ? selectedOptions.map((o) => o.value)
           : selectedOptions.value
         : name === "countryId"
-        ? null
-        : [],
+          ? null
+          : [],
     }));
   };
 
@@ -168,27 +173,27 @@ const AddMovie = () => {
       formDataToSend.append("duration", parseInt(formData.duration) || 0);
       formDataToSend.append(
         "hot",
-        formData.hot === "true" || formData.hot === true
+        formData.hot === "true" || formData.hot === true,
       );
       formDataToSend.append("link", formData.link);
       formDataToSend.append("quality", formData.quality);
       formDataToSend.append(
         "release_year",
-        parseInt(formData.release_year) || 2000
+        parseInt(formData.release_year) || 2000,
       );
       formDataToSend.append("status", formData.status);
       formDataToSend.append("titleByLanguage", formData.titleByLanguage);
       formDataToSend.append("trailer", formData.trailer);
       formDataToSend.append(
         "vietSub",
-        formData.vietSub === "true" || formData.vietSub === true
+        formData.vietSub === "true" || formData.vietSub === true,
       );
 
       // Handle totalEpisodes
       if (formData.totalEpisodes && formData.totalEpisodes.trim() !== "") {
         formDataToSend.append(
           "totalEpisodes",
-          parseInt(formData.totalEpisodes)
+          parseInt(formData.totalEpisodes),
         );
       }
 
@@ -217,7 +222,7 @@ const AddMovie = () => {
         formDataToSend.append("actors", ""); // Send at least one empty actor
       } else {
         filteredActors.forEach((actor) =>
-          formDataToSend.append("actors", actor)
+          formDataToSend.append("actors", actor),
         );
       }
 
@@ -233,10 +238,10 @@ const AddMovie = () => {
         formDataToSend.append("countryId", formData.countryId);
       }
       formData.movieTypeIds.forEach((id) =>
-        formDataToSend.append("movieTypeIds", id)
+        formDataToSend.append("movieTypeIds", id),
       );
       formData.categoryIds.forEach((id) =>
-        formDataToSend.append("categoryIds", id)
+        formDataToSend.append("categoryIds", id),
       );
       for (let [key, value] of formDataToSend.entries()) {
       }
@@ -479,7 +484,7 @@ const AddMovie = () => {
             }
             value={
               movieTypes.filter((opt) =>
-                formData.movieTypeIds.includes(opt.value)
+                formData.movieTypeIds.includes(opt.value),
               ) || []
             }
             isDisabled={loading}
@@ -498,7 +503,7 @@ const AddMovie = () => {
             onChange={(selected) => handleSelectChange("categoryIds", selected)}
             value={
               categories.filter((opt) =>
-                formData.categoryIds.includes(opt.value)
+                formData.categoryIds.includes(opt.value),
               ) || []
             }
             isDisabled={loading}

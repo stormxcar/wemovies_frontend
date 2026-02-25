@@ -4,6 +4,7 @@ import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
 import { fetchJson, fetchCategories, fetchMovieType } from "../services/api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 function MovieList({ movies = [], onMovieClick }) {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ function MovieList({ movies = [], onMovieClick }) {
 
   const [types, setTypes] = useState([]); // Thể loại (categories) - Drama, Action, etc.
   const [movieTypes, setMovieTypes] = useState([]); // Loại phim (movie types) - Phim lẻ, Phim bộ, etc.
+
+  // Set document title based on category or title
+  useDocumentTitle(title || categoryName || "Danh sách phim");
 
   // Filter states
   const [selectedCountry, setSelectedCountry] = useState("Tất cả");

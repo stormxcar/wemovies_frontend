@@ -223,18 +223,7 @@ const SettingsTab = () => {
             </select>
           </div>
 
-          <div>
-            <h4 className="text-white font-medium mb-2">Sử dụng dữ liệu</h4>
-            <select
-              value={settings.dataUsage}
-              onChange={(e) => handleSettingChange("dataUsage", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="low">Tiết kiệm</option>
-              <option value="normal">Bình thường</option>
-              <option value="high">Cao nhất</option>
-            </select>
-          </div>
+         
         </div>
       </div>
 
@@ -246,23 +235,9 @@ const SettingsTab = () => {
         </h3>
 
         <div className="space-y-4">
-          <button
-            onClick={clearCache}
-            className="w-full flex items-center justify-center px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Xóa cache và dữ liệu tạm thời
-          </button>
+          
 
-          <button
-            onClick={() =>
-              toast.info("Tính năng này sẽ có trong phiên bản sau")
-            }
-            className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Globe className="mr-2 h-4 w-4" />
-            Xuất dữ liệu cá nhân
-          </button>
+          
 
           <button
             onClick={() => toast.info("Liên hệ admin để xóa tài khoản")}

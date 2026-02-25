@@ -66,14 +66,14 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       onClick={handleToggleWatchlist}
       disabled={loading}
       className={`
-        ${buttonSize} rounded transition-all w-full duration-300
+        ${buttonSize} rounded-lg transition-all w-full duration-300 font-medium
         ${
           isInWatchlist
-            ? "bg-red-500 hover:bg-red-600 text-white"
-            : " text-white border-[1px] border-gray-500"
+            ? "bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white shadow-lg"
+            : "bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white border border-slate-600 hover:border-slate-500"
         }
-        ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-110"}
-        flex items-center justify-center
+        ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-105 hover:shadow-lg"}
+        flex items-center justify-center space-x-2
       `}
       title={isInWatchlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
     >
@@ -83,12 +83,12 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
         ></div>
       ) : (
         <>
-          {/* <Heart
-            className={`${iconSize} mr-1`}
+          <Heart
+            className={`${iconSize}`}
             fill={isInWatchlist ? "currentColor" : "none"}
             stroke="currentColor"
-          /> */}
-          Thích
+          />
+          <span>{isInWatchlist ? "Đã thích" : "Yêu thích"}</span>
         </>
       )}
     </button>

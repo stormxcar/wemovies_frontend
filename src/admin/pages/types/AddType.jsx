@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
 
 const AddType = () => {
   const navigate = useNavigate();
+
+  // Set document title for add type page
+  useDocumentTitle("Thêm loại phim", "Admin");
+
   const [formData, setFormData] = useState({ name: "" });
   const [loading, setLoading] = useState(false);
 

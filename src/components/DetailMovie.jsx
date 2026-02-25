@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson, fetchScheduleData } from "../services/api";
@@ -16,6 +16,7 @@ import { useLoading } from "../context/UnifiedLoadingContext";
 import { trackMovieView, trackUserAction } from "../services/analytics";
 import { useWatchingTracker } from "../hooks/useWatchingTracker";
 import ReviewSection from "./ReviewSection";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const DetailMovie = () => {
   const { id } = useParams();
@@ -23,6 +24,11 @@ const DetailMovie = () => {
   const { isAuthenticated, user } = useAuth();
   const { setLoading, isLoading } = useLoading();
   const [movieDetail, setMovieDetail] = useState(null);
+  const toastTimeoutRef = useRef(null);
+
+  // Set document title based on movie title
+  useDocumentTitle(movieDetail?.data?.title || "Chi tiết phim");
+  // Initialize watching tracker
   const [relatedMovies, setRelatedMovies] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
@@ -33,7 +39,14 @@ const DetailMovie = () => {
   const [scheduleNotes, setScheduleNotes] = useState("");
   const [scheduleReminder, setScheduleReminder] = useState(true);
 
-  // Initialize watching tracker
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
   const { startWatching } = useWatchingTracker(
     id,
     movieDetail?.data?.title,
@@ -251,23 +264,43 @@ const DetailMovie = () => {
                 to={"/movie/watch/" + movieDetail.data.id}
                 state={{ movieDetail: movieDetail.data }}
                 onClick={startWatchingSession}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
               >
-                Xem phim
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Xem phim</span>
               </Link>
               {movieDetail.data.trailer && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                  className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
                 >
-                  Trailer
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                  <span>Trailer</span>
                 </button>
               )}
             </div>
 
             {/* Right group - Like, Watch Later, Share buttons */}
-            <div className="flex items-center space-x-4">
-              <WatchlistButton movieId={movieDetail.data.id} size="large" />
+            <div className="flex items-center space-x-3">
+              <div className="min-w-[120px]">
+                <WatchlistButton movieId={movieDetail.data.id} size="large" />
+              </div>
               <button
                 onClick={() => {
                   if (!isAuthenticated) {
@@ -276,10 +309,10 @@ const DetailMovie = () => {
                   }
                   handleToggleWatchLater();
                 }}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2 ${
                   isInWatchLater
-                    ? "bg-purple-600 text-white"
-                    : "bg-purple-500 text-white hover:bg-purple-600"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                    : "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-amber-500 hover:to-orange-500 text-white"
                 }`}
               >
                 <FaClock />
@@ -298,7 +331,7 @@ const DetailMovie = () => {
                     toast.success("Link đã được sao chép vào clipboard");
                   }
                 }}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
               >
                 <FaShare />
                 <span>Chia sẻ</span>
@@ -395,7 +428,7 @@ const DetailMovie = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center space-x-4 mt-6 mb-6">
+              <div className="flex items-center flex-wrap gap-3 mt-6 mb-6">
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
@@ -406,10 +439,10 @@ const DetailMovie = () => {
                     }
                     handleToggleWatchLater();
                   }}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                     isInWatchLater
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-500 text-white hover:bg-purple-600"
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                      : "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-amber-500 hover:to-orange-500 text-white"
                   }`}
                 >
                   <FaClock />
@@ -428,13 +461,13 @@ const DetailMovie = () => {
                       toast.success("Link đã được sao chép vào clipboard");
                     }
                   }}
-                  className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   <FaShare />
                   <span>Chia sẻ</span>
                 </button>
                 {isScheduled ? (
-                  <span className="flex items-center space-x-2 bg-gray-600 text-gray-400 px-4 py-2 rounded-lg">
+                  <span className="flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 px-4 py-2.5 rounded-lg font-medium">
                     <FaCalendarAlt />
                     <span>Đã lên lịch</span>
                   </span>
@@ -447,7 +480,7 @@ const DetailMovie = () => {
                       }
                       setShowScheduleForm(true);
                     }}
-                    className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   >
                     <FaCalendarAlt />
                     <span>Lên lịch xem</span>
@@ -457,13 +490,13 @@ const DetailMovie = () => {
 
               <ReviewSection movieId={id} />
 
-              <div className="flex flex-row flex-wrap mt-8">
+              <div className="flex flex-row flex-wrap mt-8 gap-3">
                 {episodeLinks.length > 0
                   ? episodeLinks.map((link, idx) => (
-                      <div key={idx} className="my-2">
+                      <div key={idx} className="">
                         <Link
                           to={`/movie/${id}/episode/${idx}`}
-                          className="text-white bg-gray-300/50 py-4 px-12 mr-3 mb-3 rounded-lg text-xl"
+                          className="inline-block text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-blue-600 hover:to-blue-700 py-3 px-6 rounded-lg text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                           state={{ movieDetail: movieDetail.data }}
                         >
                           Tập {link.episodeNumber}
@@ -492,53 +525,61 @@ const DetailMovie = () => {
       {/* Schedule Form Modal */}
       {showScheduleForm && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md relative">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-md relative border border-slate-600">
             <button
-              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-700"
               onClick={() => setShowScheduleForm(false)}
             >
-              ✕
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
-            <h3 className="text-xl text-white font-semibold mb-4">
+            <h3 className="text-xl text-white font-semibold mb-6 pr-8">
               Lên lịch xem phim
             </h3>
-            <form onSubmit={handleCreateSchedule}>
-              <div className="mb-4">
-                <label className="block text-white mb-2">Thời gian xem:</label>
+            <form onSubmit={handleCreateSchedule} className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">
+                  Thời gian xem:
+                </label>
                 <input
                   type="datetime-local"
                   value={scheduleDateTime}
                   onChange={(e) => setScheduleDateTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-white mb-2">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">
                   Ghi chú (tùy chọn):
                 </label>
                 <textarea
                   value={scheduleNotes}
                   onChange={(e) => setScheduleNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  rows="2"
+                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                  rows="3"
                   placeholder="Ghi chú cho lịch xem..."
                 />
               </div>
-              <div className="mb-4">
-                <label className="flex items-center text-white">
+              <div>
+                <label className="flex items-center text-gray-300 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={scheduleReminder}
                     onChange={(e) => setScheduleReminder(e.target.checked)}
-                    className="mr-2"
+                    className="mr-3 w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                   />
-                  Nhắc nhở trước 30 phút
+                  <span className="font-medium">Nhắc nhở trước 30 phút</span>
                 </label>
               </div>
               <button
                 type="submit"
-                className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg mt-6"
               >
                 Tạo lịch xem
               </button>

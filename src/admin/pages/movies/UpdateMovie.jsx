@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import {
   fetchJson,
   fetchMovieType as getTypes,
@@ -38,6 +39,10 @@ const formReducer = (state, action) => {
 
 const UpdateMovie = ({ title, items, updateEndpoint }) => {
   const { setLoading, isLoading } = useLoading();
+
+  // Set document title for update movie page
+  useDocumentTitle("Cập nhật phim", "Admin");
+
   const [selectedId, setSelectedId] = useState("");
   const [formData, dispatchFormData] = useReducer(formReducer, {
     id: "",

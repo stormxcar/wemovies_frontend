@@ -317,9 +317,6 @@ const NotificationCenter = () => {
             <h3 className="text-white font-semibold text-lg flex items-center">
               <FaBell className="mr-2" />
               Thông báo
-              {connectionStatus === "connected" && (
-                <span className="ml-2 text-green-400 text-xs">🟢 Live</span>
-              )}
             </h3>
             <div className="flex items-center space-x-2">
               {unreadCount > 0 && (

@@ -3,12 +3,16 @@ import Banner from "../components/Banner";
 import ShowMovies from "../components/ShowMovies";
 import PageLoader from "../components/loading/PageLoader";
 import { useGlobalLoading } from "../context/UnifiedLoadingContext";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Home = () => {
   const [bannerLoaded, setBannerLoaded] = useState(false);
   const [moviesLoaded, setMoviesLoaded] = useState(false);
   const [allContentReady, setAllContentReady] = useState(false);
   const { updateProgress } = useGlobalLoading();
+
+  // Set document title for homepage
+  useDocumentTitle("Trang chủ");
 
   console.log("🏠 Home component mounted");
 

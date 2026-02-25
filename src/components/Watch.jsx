@@ -6,6 +6,7 @@ import { useStartWatching } from "../hooks/useStartWatching";
 import { fetchJson } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
 import ReviewSection from "./ReviewSection";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Watch = React.memo(() => {
   const location = useLocation();
@@ -13,6 +14,11 @@ const Watch = React.memo(() => {
   const { movieDetail, id = paramId } = location.state || {};
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Set document title for watching page
+  useDocumentTitle(
+    movieDetail?.title ? `Xem phim - ${movieDetail.title}` : "Xem phim",
+  );
 
   const searchParams = useMemo(
     () => new URLSearchParams(location.search),
