@@ -8,6 +8,8 @@ import {
   UserCircle,
   Heart,
   Settings,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import RegisterForm from "../components/auth/RegisterForm";
@@ -21,6 +23,7 @@ import {
   fetchJson,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useLoading } from "../context/UnifiedLoadingContext";
 
 function Header() {
@@ -38,6 +41,7 @@ function Header() {
 
   const navigate = useNavigate();
   const { user, setUser, logout, isAuthenticated, loading } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   // Centralized API error handler
   const handleApiError = useCallback((error, message) => {
@@ -386,6 +390,21 @@ function Header() {
         <div className="flex items-center w-[30%] justify-end">
           {isLoading("search") ? null : user ? (
             <div className="flex items-center space-x-4">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTheme();
+                }}
+                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
+                title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+              >
+                {isDarkMode ? (
+                  <Sun className="h-5 w-5 text-yellow-400" />
+                ) : (
+                  <Moon className="h-5 w-5 text-blue-300" />
+                )}
+              </button>
               <NotificationCenter />
               <div className="relative">
                 <button
@@ -461,18 +480,35 @@ function Header() {
               </div>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowLogin(true);
-              }}
-              className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
-              aria-label="Đăng nhập"
-            >
-              Đăng nhập
-            </button>
+            <div className="flex items-center space-x-3">
+              {/* Theme Toggle Button for non-logged in users */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTheme();
+                }}
+                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
+                title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+              >
+                {isDarkMode ? (
+                  <Sun className="h-5 w-5 text-yellow-400" />
+                ) : (
+                  <Moon className="h-5 w-5 text-blue-300" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowLogin(true);
+                }}
+                className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
+                aria-label="Đăng nhập"
+              >
+                Đăng nhập
+              </button>
+            </div>
           )}
         </div>
       </div>

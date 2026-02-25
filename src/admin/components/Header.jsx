@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { Moon, Sun } from "lucide-react";
 
 // Header Component
 const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme, themeClasses } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -14,11 +17,11 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   return (
-    <header className="fixed top-0 w-full bg-gray-800 text-white p-4 flex justify-between items-center z-50">
+    <header className={`fixed top-0 w-full ${themeClasses.secondary} ${themeClasses.textPrimary} p-4 flex justify-between items-center z-50 ${themeClasses.border} border-b`}>
       <div className="flex items-center space-x-4">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-1 hover:bg-gray-700 rounded"
+          className={`p-1 hover:${themeClasses.tertiary} rounded`}
         >
           <svg
             className="w-6 h-6"
@@ -37,6 +40,18 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
         <div className="text-xl font-bold">Movie Admin</div>
       </div>
       <div className="flex items-center space-x-4">
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className={`p-2 rounded-lg ${themeClasses.tertiary} hover:${themeClasses.secondary} transition-colors`}
+          title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+        >
+          {isDarkMode ? (
+            <Sun className="h-5 w-5 text-yellow-400" />
+          ) : (
+            <Moon className="h-5 w-5 text-blue-500" />
+          )}
+        </button>
         <div className="relative">
           {/* <button className="focus:outline-none">
             <svg

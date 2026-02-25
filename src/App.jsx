@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { LoadingProvider, useLoading } from "./context/UnifiedLoadingContext";
 import { QueryProvider } from "./utils/queryClient";
 import PageLoader from "./components/loading/PageLoader";
@@ -488,15 +489,17 @@ const AppContent = () => {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AuthProvider>
-        <LoadingProvider>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <QueryProvider>
-              <AppContent />
-            </QueryProvider>
-          </GoogleOAuthProvider>
-        </LoadingProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <LoadingProvider>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <QueryProvider>
+                <AppContent />
+              </QueryProvider>
+            </GoogleOAuthProvider>
+          </LoadingProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 
@@ -45,6 +46,7 @@ const QuickAction = ({ title, icon, link, color }) => (
 
 // Home Component
 const Home = () => {
+  const { themeClasses } = useTheme();
   const [movies, setMovies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
@@ -112,20 +114,20 @@ const Home = () => {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className={`min-h-screen ${themeClasses.primary}`}>
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className={`${themeClasses.card} shadow-sm border-b`}>
         <div className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className={`text-3xl font-bold ${themeClasses.textPrimary}`}>
                 Dashboard Quản Trị
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className={`${themeClasses.textSecondary} mt-1`}>
                 Chào mừng đến với hệ thống quản lý WeMovies
               </p>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className={`text-sm ${themeClasses.textMuted}`}>
               {new Date().toLocaleDateString("vi-VN", {
                 weekday: "long",
                 year: "numeric",

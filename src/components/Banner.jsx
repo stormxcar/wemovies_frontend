@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { fetchMovies } from "../services/api";
+import { useTheme } from "../context/ThemeContext";
 import SkeletonWrapper from "./SkeletonWrapper";
 import { FaPlay } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -17,6 +18,7 @@ function Banner({ onDataLoaded }) {
   const [loading, setLoading] = useState(false);
   const [movies, setMovies] = useState([]);
   const { setComponentsLoaded, updateProgress } = useGlobalLoading();
+  const { themeClasses } = useTheme();
 
   console.log("🎬 Banner component mounted with onDataLoaded:", !!onDataLoaded);
 
@@ -57,7 +59,7 @@ function Banner({ onDataLoaded }) {
   }, []); // FIXED: Empty dependency array to prevent infinite re-renders
 
   return (
-    <div className="relative w-full h-[90vh] overflow-hidden flex-1 bg-gray-800">
+    <div className={`relative w-full h-[90vh] overflow-hidden flex-1 ${themeClasses.primary}`}>
       {movies.length > 0 && (
         <Swiper
           scrollbar={{

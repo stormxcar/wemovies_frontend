@@ -3,6 +3,7 @@ import HorizontalMovies from "./HorizontalMovies";
 import GridMovies from "./GridMovies";
 import ContinueWatchingSection from "./ContinueWatchingSection";
 import PageLoader from "./loading/PageLoader";
+import { useTheme } from "../context/ThemeContext";
 
 import { fetchMovieByHot, fetchMovies } from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +12,7 @@ import { useLoading, useGlobalLoading } from "../context/UnifiedLoadingContext";
 
 const ShowMovies = ({ onDataLoaded }) => {
   const navigate = useNavigate();
+  const { themeClasses } = useTheme();
   const { setComponentLoading, isComponentLoading } = useLoading();
   const { setComponentsLoaded, updateProgress } = useGlobalLoading();
   const [movieList, setMovieList] = useState([]);
@@ -115,7 +117,7 @@ const ShowMovies = ({ onDataLoaded }) => {
     // When used standalone, show individual loading
     if (isLoadingMovies || !allDataLoaded) {
       return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className={`min-h-screen ${themeClasses.primary} flex items-center justify-center`}>
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-white">Đang chuẩn bị nội dung...</p>
@@ -126,7 +128,7 @@ const ShowMovies = ({ onDataLoaded }) => {
   }
 
   return (
-    <div className="px-4 sm:px-6 md:px-8 lg:px-10 bg-gray-800 w-full">
+    <div className={`px-4 sm:px-6 md:px-8 lg:px-10 ${themeClasses.secondary} w-full`}>
       {/* Remove animation when used in Home wrapper */}
       <nav className="flex items-center space-x-2 py-4">
         <Link to="/" className="text-white text-lg sm:text-xl font-semibold">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getWatchlist, fetchJson } from "../services/api";
 // import { trackUserAction } from "../services/analytics";
@@ -14,6 +15,7 @@ const Profile = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { themeClasses } = useTheme();
 
   const tabs = [
     { id: "profile", name: "Thông tin cá nhân", icon: "👤" },
@@ -168,10 +170,10 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8">
+    <div className={`min-h-screen ${themeClasses.primary} py-8`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         {/* Header */}
-        <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-6 mb-6">
+        <div className={`${themeClasses.card} rounded-lg shadow-xl p-6 mb-6`}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
               <div className="relative">
@@ -180,7 +182,7 @@ const Profile = () => {
                   alt="Avatar"
                   className="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg"
                 />
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 ${themeClasses.secondary} rounded-full`}></div>
               </div>
               <div className="text-white">
                 <h1 className="text-3xl font-bold mb-1">
@@ -218,7 +220,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <nav className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-4">
+            <nav className={`${themeClasses.card} rounded-lg shadow-xl p-4`}>
               <h2 className="text-white font-semibold mb-4 text-lg">
                 Điều hướng
               </h2>
@@ -230,7 +232,7 @@ const Profile = () => {
                       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                         activeTab === tab.id
                           ? "bg-blue-600 text-white shadow-lg transform scale-105 border-l-4 border-blue-400"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-102"
+                          : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary} hover:scale-102`
                       }`}
                     >
                       <span
@@ -253,7 +255,7 @@ const Profile = () => {
             </nav>
 
             {/* Quick Stats */}
-            <div className="mt-6 bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-4">
+            <div className={`mt-6 ${themeClasses.card} rounded-lg shadow-xl p-4`}>
               <h3 className="text-white font-semibold mb-3">Thống kê</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
@@ -276,7 +278,7 @@ const Profile = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-6 min-h-[500px]">
+            <div className={`${themeClasses.card} rounded-lg shadow-xl p-6 min-h-[500px]`}>
               {renderTabContent()}
             </div>
           </div>

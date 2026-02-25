@@ -1,9 +1,11 @@
 import React, { useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
   const { user } = useAuth();
+  const { themeClasses } = useTheme();
   const location = useLocation();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
@@ -33,7 +35,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
       "w-full text-left p-2 rounded transition-colors duration-200";
     const activeClasses = "bg-blue-600 text-white";
     const parentActiveClasses = "bg-blue-500 text-white";
-    const inactiveClasses = "hover:bg-gray-700";
+    const inactiveClasses = `hover:${themeClasses.tertiary}`;
 
     if (isParent) {
       return `${baseClasses} ${
@@ -51,9 +53,9 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
   return (
     <div className="relative">
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-900 text-white w-64 p-4 overflow-y-auto transition-transform duration-300 transform ${
+        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] ${themeClasses.primary} ${themeClasses.textPrimary} w-64 p-4 overflow-y-auto transition-transform duration-300 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${themeClasses.border} border-r`}
       >
         <nav>
           <ul className="space-y-2">

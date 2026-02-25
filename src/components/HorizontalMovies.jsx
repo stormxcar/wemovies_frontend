@@ -5,6 +5,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
 import CardMovie from "./CardMovie";
 
 function HorizontalMovies({
@@ -15,6 +16,7 @@ function HorizontalMovies({
   onMovieClick,
 }) {
   const navigate = useNavigate();
+  const { themeClasses } = useTheme();
   const validMovies = Array.isArray(movies) ? movies : [];
 
   const handleClickToDetail = (movieId) => {
@@ -48,7 +50,7 @@ function HorizontalMovies({
         {to && (
           <button
             onClick={handleSeeAllMovies}
-            className="text-white hover:bg-blue-700 rounded px-3 py-2 flex items-center text-sm sm:text-base"
+            className={`${themeClasses.textPrimary} hover:${themeClasses.tertiary} rounded px-3 py-2 flex items-center text-sm sm:text-base transition-colors`}
           >
             Xem tất cả
             <FaChevronRight className="inline ml-2" />
@@ -63,12 +65,12 @@ function HorizontalMovies({
         >
           <div className="relative">
             <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10 -ml-2 sm:-ml-4">
-              <button className="review-swiper-button-prev text-black bg-white rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-gray-100 transition-colors">
+              <button className={`review-swiper-button-prev ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}>
                 <FaChevronLeft size={16} className="sm:w-5 sm:h-5" />
               </button>
             </div>
             <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10 -mr-2 sm:-mr-4">
-              <button className="review-swiper-button-next text-black bg-white rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-gray-100 transition-colors">
+              <button className={`review-swiper-button-next ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}>
                 <FaChevronRight size={16} className="sm:w-5 sm:h-5" />
               </button>
             </div>

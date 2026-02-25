@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsTab = () => {
   const { logout } = useAuth();
+  const { isDarkMode, setTheme } = useTheme();
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
     movieRecommendations: true,
     newReleaseAlerts: true,
-    darkMode: true,
     language: "vi",
     autoPlay: false,
     downloadQuality: "hd",
@@ -18,6 +19,12 @@ const SettingsTab = () => {
   });
 
   const handleSettingChange = (key, value) => {
+    if (key === 'darkMode') {
+      setTheme(value);
+      toast.success(value ? "Đã chuyển sang chế độ tối!" : "Đã chuyển sang chế độ sáng!");
+      return;
+    }
+    
     setSettings((prev) => ({
       ...prev,
       [key]: value,
@@ -42,7 +49,7 @@ const SettingsTab = () => {
 
   const handleDeleteAccount = () => {
     const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác."
+      "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.",
     );
     if (confirmed) {
       toast.error("Chức năng xóa tài khoản đang được phát triển");
@@ -151,7 +158,7 @@ const SettingsTab = () => {
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={settings.darkMode}
+                checked={isDarkMode}
                 onChange={(e) =>
                   handleSettingChange("darkMode", e.target.checked)
                 }
@@ -222,8 +229,6 @@ const SettingsTab = () => {
               <option value="4k">4K (2160p)</option>
             </select>
           </div>
-
-         
         </div>
       </div>
 
@@ -235,10 +240,6 @@ const SettingsTab = () => {
         </h3>
 
         <div className="space-y-4">
-          
-
-          
-
           <button
             onClick={() => toast.info("Liên hệ admin để xóa tài khoản")}
             className="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"

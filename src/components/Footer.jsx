@@ -1,9 +1,13 @@
 import React from "react";
 import { memo } from "react";
+import { useTheme } from "../context/ThemeContext";
 // import { Link } from "react-router-dom";
 
-const Footer = memo(() => (
-  <footer className="bg-gray-900 text-white py-6 w-full pt-20">
+const Footer = memo(() => {
+  const { themeClasses } = useTheme();
+  
+  return (
+  <footer className={`${themeClasses.secondary} ${themeClasses.textPrimary} py-6 w-full pt-20`}>
     <div className="container flex flex-col space-y-4 pl-[2.5rem] pt-4">
       {/* Logo and Social Media */}
       <div className="flex items-center space-x-4">
@@ -101,6 +105,7 @@ const Footer = memo(() => (
       </div>
     </div>
   </footer>
-));
+  );
+});
 
 export default Footer;

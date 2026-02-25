@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
 import SkeletonWrapper from "./SkeletonWrapper";
 
 function GridMovies({ title, movies = [], moviesPerPage }) {
   const navigate = useNavigate();
+  const { themeClasses } = useTheme();
   const [currentPage, setCurrentPage] = useState(1);
   const validMovies = useMemo(
     () => (Array.isArray(movies) ? movies : []),
@@ -167,7 +169,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
           <button
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
-            className="px-4 py-4 bg-gray-300 text-black items-center flex justify-center rounded-full"
+            className={`px-4 py-4 ${themeClasses.cardSecondary} ${themeClasses.textPrimary} items-center flex justify-center rounded-full hover:opacity-80`}
           >
             <FaChevronLeft className="inline" />
           </button>
@@ -177,7 +179,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
           <button
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
-            className="px-4 py-4 bg-gray-300 rounded-full text-black items-center flex justify-center"
+            className={`px-4 py-4 ${themeClasses.cardSecondary} rounded-full ${themeClasses.textPrimary} items-center flex justify-center hover:opacity-80`}
           >
             <FaChevronRight className="inline" />
           </button>
