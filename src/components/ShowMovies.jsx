@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import HorizontalMovies from "./HorizontalMovies";
 import GridMovies from "./GridMovies";
 import ContinueWatchingSection from "./ContinueWatchingSection";
@@ -13,6 +14,7 @@ import { useLoading, useGlobalLoading } from "../context/UnifiedLoadingContext";
 const ShowMovies = ({ onDataLoaded }) => {
   const navigate = useNavigate();
   const { themeClasses } = useTheme();
+  const { t } = useTranslation();
   const { setComponentLoading, isComponentLoading } = useLoading();
   const { setComponentsLoaded, updateProgress } = useGlobalLoading();
   const [movieList, setMovieList] = useState([]);
@@ -31,11 +33,11 @@ const ShowMovies = ({ onDataLoaded }) => {
     const fetchAll = async () => {
       try {
         console.log("📽️ ShowMovies: Starting data fetch...");
-        setComponentLoading("showMovies", true, "Đang tải danh sách phim...");
+        setComponentLoading("showMovies", true, t("common.loading"));
         setAllDataLoaded(false);
 
         // Update global progress
-        updateProgress(80, "Tải danh sách phim...");
+        updateProgress(80, t("common.loading"));
 
         // Load movies data
         console.log("🔍 Fetching movies and hot movies...");
@@ -117,7 +119,9 @@ const ShowMovies = ({ onDataLoaded }) => {
     // When used standalone, show individual loading
     if (isLoadingMovies || !allDataLoaded) {
       return (
-        <div className={`min-h-screen ${themeClasses.primary} flex items-center justify-center`}>
+        <div
+          className={`min-h-screen ${themeClasses.primary} flex items-center justify-center`}
+        >
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-white">Đang chuẩn bị nội dung...</p>
@@ -128,7 +132,9 @@ const ShowMovies = ({ onDataLoaded }) => {
   }
 
   return (
-    <div className={`px-4 sm:px-6 md:px-8 lg:px-10 ${themeClasses.secondary} w-full`}>
+    <div
+      className={`px-4 sm:px-6 md:px-8 lg:px-10 ${themeClasses.secondary} w-full`}
+    >
       {/* Remove animation when used in Home wrapper */}
       <nav className="flex items-center space-x-2 py-4">
         <Link to="/" className="text-white text-lg sm:text-xl font-semibold">
@@ -136,13 +142,13 @@ const ShowMovies = ({ onDataLoaded }) => {
         </Link>
         <span className="text-white">{<FaChevronRight />}</span>
         <span className="text-blue-500 text-lg sm:text-xl font-semibold">
-          danh mục phổ biến
+          {t("navigation.trending")}
         </span>
       </nav>
 
       {/* Hot Movies Section */}
       <HorizontalMovies
-        title="Phim hot"
+        title={t("navigation.trending")}
         movies={movieHot}
         to="/allmovies"
         onMovieClick={handleMovieClick}
@@ -151,7 +157,7 @@ const ShowMovies = ({ onDataLoaded }) => {
 
       {/* Popular Movies Section */}
       <HorizontalMovies
-        title="Phim thịnh hành | đề xuất"
+        title={t("navigation.top_rated")}
         movies={movieList}
         to="/allmovies"
         onMovieClick={handleMovieClick}
@@ -163,7 +169,7 @@ const ShowMovies = ({ onDataLoaded }) => {
 
       {/* Grid Movies Section */}
       <GridMovies
-        title="Phim mới | Phim lẻ"
+        title={t("navigation.movies")}
         movies={movieList}
         moviesPerPage={6}
       />

@@ -16,7 +16,7 @@ const UnifiedVideoPlayer = ({
   const reactPlayerRef = useRef(null);
   const iframeRef = useRef(null);
 
-  console.log('🎬 UnifiedVideoPlayer autoPlay prop:', autoPlay);
+  console.log("🎬 UnifiedVideoPlayer autoPlay prop:", autoPlay);
 
   // Determine best player mode based on URL
   useEffect(() => {
@@ -146,19 +146,20 @@ const UnifiedVideoPlayer = ({
           width="100%"
           height="400px"
           controls={true}
-          playing={autoPlay}          muted={shouldAutoPlay} // Muted required for autoplay in most browsers          onProgress={handleReactPlayerTimeUpdate}
+          playing={autoPlay}
+          muted={shouldAutoPlay} // Muted required for autoplay in most browsers          onProgress={handleReactPlayerTimeUpdate}
           onPlay={handleReactPlayerPlay}
           onPause={handleReactPlayerPause}
           onEnded={handleReactPlayerEnded}
           onReady={() => {
-            console.log('🎬 Video ready, autoPlay was:', autoPlay);
+            console.log("🎬 Video ready, autoPlay was:", autoPlay);
             // Seek to start time when player is ready
             if (startTime > 0 && reactPlayerRef.current) {
               reactPlayerRef.current.seekTo(startTime, "seconds");
             }
             // Try to enable autoplay after ready
             if (autoPlay && reactPlayerRef.current) {
-              console.log('🎬 Attempting autoplay...'); 
+              console.log("🎬 Attempting autoplay...");
               setShouldAutoPlay(true);
             }
           }}

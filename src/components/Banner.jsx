@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { fetchMovies } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
+import { useTranslation } from "react-i18next";
 import SkeletonWrapper from "./SkeletonWrapper";
 import { FaPlay } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -19,6 +20,7 @@ function Banner({ onDataLoaded }) {
   const [movies, setMovies] = useState([]);
   const { setComponentsLoaded, updateProgress } = useGlobalLoading();
   const { themeClasses } = useTheme();
+  const { t } = useTranslation();
 
   console.log("🎬 Banner component mounted with onDataLoaded:", !!onDataLoaded);
 
@@ -59,7 +61,9 @@ function Banner({ onDataLoaded }) {
   }, []); // FIXED: Empty dependency array to prevent infinite re-renders
 
   return (
-    <div className={`relative w-full h-[90vh] overflow-hidden flex-1 ${themeClasses.primary}`}>
+    <div
+      className={`relative w-full h-[90vh] overflow-hidden flex-1 ${themeClasses.primary}`}
+    >
       {movies.length > 0 && (
         <Swiper
           scrollbar={{
@@ -120,7 +124,9 @@ function Banner({ onDataLoaded }) {
                       <span className="bg-yellow-500 rounded-full flex items-center justify-center w-[60px] h-[60px]">
                         <FaPlay size={30} className="text-black" />
                       </span>
-                      <span className="font-semibold text-xl">Xem ngay</span>
+                      <span className="font-semibold text-xl">
+                        {t("movie.watch_now")}
+                      </span>
                     </Link>
                   </SkeletonWrapper>
                 </div>

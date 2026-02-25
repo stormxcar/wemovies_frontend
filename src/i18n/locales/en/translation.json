@@ -1,0 +1,161 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "back": "Back",
+    "all": "All"
+  },
+  "header": {
+    "search_placeholder": "Search movies...",
+    "search_button": "Search",
+    "searching": "Searching...",
+    "categories": "Genres",
+    "countries": "Countries",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile",
+    "favorites": "Favorites",
+    "continue_watching": "Continue Watching",
+    "settings": "Settings"
+  },
+  "navigation": {
+    "home": "Home",
+    "movies": "Movies",
+    "tv_shows": "TV Shows",
+    "genres": "Genres",
+    "trending": "Trending",
+    "top_rated": "Top Rated"
+  },
+  "auth": {
+    "login_title": "Login",
+    "register_title": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "register_now": "Register now",
+    "login_now": "Login now"
+  },
+  "profile": {
+    "tabs": {
+      "profile": "Personal Info",
+      "watchlist": "Favorites",
+      "watch_later": "Watch Later",
+      "continue_watching": "Continue Watching",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "notifications": {
+      "title": "Notifications",
+      "email_notifications": "Email notifications",
+      "email_description": "Receive notifications via email",
+      "push_notifications": "Push notifications",
+      "push_description": "Receive browser notifications",
+      "movie_recommendations": "Movie recommendations",
+      "movie_description": "Receive personalized movie suggestions",
+      "new_releases": "New releases",
+      "release_description": "Notify when new movies are available"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "dark_mode": "Dark mode",
+      "dark_description": "Use dark interface",
+      "language": "Language",
+      "language_description": "Select display language"
+    },
+    "playback": {
+      "title": "Playback",
+      "auto_play": "Auto play",
+      "auto_play_description": "Auto play video when page loads (video will be muted)",
+      "download_quality": "Download quality",
+      "quality_sd": "SD (480p)",
+      "quality_hd": "HD (720p)",
+      "quality_fhd": "Full HD (1080p)",
+      "quality_4k": "4K (2160p)"
+    },
+    "account": {
+      "title": "Account Management",
+      "delete_account": "Request account deletion",
+      "logout": "Logout",
+      "logout_confirm": "Are you sure you want to logout?"
+    },
+    "messages": {
+      "updated": "Settings have been updated!",
+      "dark_mode_on": "Switched to dark mode!",
+      "dark_mode_off": "Switched to light mode!",
+      "autoplay_on": "Auto play enabled!",
+      "autoplay_off": "Auto play disabled!",
+      "language_changed": "Language changed!"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "no_notifications": "No new notifications",
+    "mark_as_read": "Mark as read",
+    "mark_all_read": "Mark all as read",
+    "delete_all": "Delete all"
+  },
+  "movie": {
+    "watch_now": "Watch Now",
+    "add_to_favorites": "Add to Favorites",
+    "remove_from_favorites": "Remove from Favorites",
+    "watch_later": "Watch Later",
+    "continue_watching": "Continue Watching",
+    "rating": "Rating",
+    "duration": "Duration",
+    "release_date": "Release Date",
+    "genre": "Genre",
+    "country": "Country",
+    "director": "Director",
+    "cast": "Cast"
+  },
+  "search": {
+    "no_results": "No movies found"
+  },
+  "common": {
+    "no_data": "No movies available",
+    "error": "Error"
+  },
+  "notfound": {
+    "search": {
+      "no_results": "No movies found"
+    },
+    "notfound": {
+      "title": "Page not found",
+      "message": "Sorry, the page you're looking for doesn’t exist or has been moved. Go back home to discover great movies!",
+      "home_button": "Go Home",
+      "search_button": "Search Movies",
+      "view_all_movies": "View All Movies",
+      "advanced_search": "Advanced Search"
+    },
+    "filter": {
+      "newest": "Newest",
+      "label": "Filter movies:",
+      "apply": "Apply"
+    },
+    "continue": {
+      "title": "Continue Watching",
+      "view_all": "View All",
+      "error_loading": "Unable to load continue watching list",
+      "removed": "Removed from continue watching!"
+    },
+    "footer": {
+      "description": "With a user-friendly interface, rich movie collection and fast loading speed, we will bring you the best entertainment experience.",
+      "copyright": "© 2025 wemovies"
+    }
+  }
+}

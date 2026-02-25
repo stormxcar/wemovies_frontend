@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import HorizontalMovies from "./HorizontalMovies";
 import { fetchJson, fetchScheduleData } from "../services/api";
 import {
@@ -23,6 +24,7 @@ const DetailMovie = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { setLoading, isLoading } = useLoading();
+  const { t } = useTranslation();
   const [movieDetail, setMovieDetail] = useState(null);
   const toastTimeoutRef = useRef(null);
 
@@ -154,7 +156,7 @@ const DetailMovie = () => {
             }),
           });
           setIsInWatchLater(true);
-          toast.success("Đã thêm vào danh sách xem sau!");
+          toast.success(t("movie.add_to_favorites"));
         } catch (error) {
           // Check if it's a "already exists" error
           if (
@@ -408,17 +410,17 @@ const DetailMovie = () => {
                 <span className="text-white">{movieDetail.data.director}</span>
               </div>
               <div className="my-3">
-                <span className="text-white">Diễn viên: </span>
+                <span className="text-white">{t("movie.cast")}: </span>
                 <span className="text-white">{movieDetail.data.actors}</span>
               </div>
               <div className="my-3">
-                <span className="text-white">Thời lượng: </span>
+                <span className="text-white">{t("movie.duration")}: </span>
                 <span className="text-white">
                   {movieDetail.data.duration} phút
                 </span>
               </div>
               <div className="my-3">
-                <span className="text-white">Mô tả: </span>
+                <span className="text-white">Description: </span>
                 <span
                   className="text-white"
                   dangerouslySetInnerHTML={{

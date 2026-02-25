@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Home, Search, Film, ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center px-4">
@@ -31,11 +33,10 @@ const NotFound = () => {
             404
           </h1>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Trang không tồn tại
+            {t("notfound.title")}
           </h2>
           <p className="text-gray-300 text-lg md:text-xl max-w-md mx-auto leading-relaxed">
-            Xin lỗi, trang bạn tìm kiếm không tồn tại hoặc đã được di chuyển.
-            Hãy quay về trang chủ để khám phá những bộ phim hay nhé!
+            {t("notfound.message")}
           </p>
         </div>
 
@@ -46,7 +47,7 @@ const NotFound = () => {
             className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200"
           >
             <Home className="w-5 h-5" />
-            Về trang chủ
+            {t("notfound.home_button")}
           </button>
 
           <button
@@ -54,7 +55,7 @@ const NotFound = () => {
             className="flex items-center gap-2 px-8 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-lg hover:bg-gray-600 transform hover:scale-105 transition-all duration-200"
           >
             <Search className="w-5 h-5" />
-            Tìm kiếm phim
+            {t("notfound.search_button")}
           </button>
         </div>
 
@@ -73,14 +74,14 @@ const NotFound = () => {
             className="text-gray-400 hover:text-white transition-colors flex items-center gap-1"
           >
             <ArrowLeft className="w-4 h-4" />
-            Xem tất cả phim
+            {t("notfound.view_all_movies")}
           </button>
           <span className="text-gray-600">|</span>
           <button
             onClick={() => navigate("/search")}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            Tìm kiếm nâng cao
+            {t("notfound.advanced_search")}
           </button>
         </div>
       </div>

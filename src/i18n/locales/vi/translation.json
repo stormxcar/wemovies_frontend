@@ -1,0 +1,156 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "close": "Đóng",
+    "search": "Tìm kiếm",
+    "back": "Quay lại",
+    "all": "Tất cả"
+  },
+  "header": {
+    "search_placeholder": "Tìm kiếm phim...",
+    "search_button": "Tìm kiếm",
+    "searching": "Đang tìm...",
+    "categories": "Thể loại",
+    "countries": "Quốc gia",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "profile": "Trang cá nhân",
+    "favorites": "Phim yêu thích",
+    "continue_watching": "Phim đang xem",
+    "settings": "Cài đặt"
+  },
+  "navigation": {
+    "home": "Trang chủ",
+    "movies": "Phim",
+    "tv_shows": "Phim bộ",
+    "genres": "Thể loại",
+    "trending": "Thịnh hành",
+    "top_rated": "Đánh giá cao"
+  },
+  "auth": {
+    "login_title": "Đăng nhập",
+    "register_title": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirm_password": "Xác nhận mật khẩu",
+    "remember_me": "Ghi nhớ đăng nhập",
+    "forgot_password": "Quên mật khẩu?",
+    "no_account": "Chưa có tài khoản?",
+    "have_account": "Đã có tài khoản?",
+    "register_now": "Đăng ký ngay",
+    "login_now": "Đăng nhập ngay"
+  },
+  "profile": {
+    "tabs": {
+      "profile": "Thông tin cá nhân",
+      "watchlist": "Phim yêu thích",
+      "watch_later": "Xem sau",
+      "continue_watching": "Phim đang xem",
+      "notifications": "Thông báo",
+      "settings": "Cài đặt"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "notifications": {
+      "title": "Thông báo",
+      "email_notifications": "Email thông báo",
+      "email_description": "Nhận thông báo qua email",
+      "push_notifications": "Thông báo đẩy",
+      "push_description": "Nhận thông báo trên trình duyệt",
+      "movie_recommendations": "Gợi ý phim",
+      "movie_description": "Nhận gợi ý phim phù hợp",
+      "new_releases": "Phim mới ra mắt",
+      "release_description": "Thông báo khi có phim mới"
+    },
+    "appearance": {
+      "title": "Giao diện",
+      "dark_mode": "Chế độ tối",
+      "dark_description": "Sử dụng giao diện tối",
+      "language": "Ngôn ngữ",
+      "language_description": "Chọn ngôn ngữ hiển thị"
+    },
+    "playback": {
+      "title": "Phát video",
+      "auto_play": "Tự động phát",
+      "auto_play_description": "Tự động phát video khi tải trang (video sẽ bị tắt tiếng)",
+      "download_quality": "Chất lượng tải xuống",
+      "quality_sd": "SD (480p)",
+      "quality_hd": "HD (720p)",
+      "quality_fhd": "Full HD (1080p)",
+      "quality_4k": "4K (2160p)"
+    },
+    "account": {
+      "title": "Quản lý tài khoản",
+      "delete_account": "Yêu cầu xóa tài khoản",
+      "logout": "Đăng xuất",
+      "logout_confirm": "Bạn có chắc chắn muốn đăng xuất?"
+    },
+    "messages": {
+      "updated": "Cài đặt đã được cập nhật!",
+      "dark_mode_on": "Đã chuyển sang chế độ tối!",
+      "dark_mode_off": "Đã chuyển sang chế độ sáng!",
+      "autoplay_on": "Đã bật tự động phát video!",
+      "autoplay_off": "Đã tắt tự động phát video!",
+      "language_changed": "Đã thay đổi ngôn ngữ!"
+    }
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "no_notifications": "Không có thông báo mới",
+    "mark_as_read": "Đánh dấu đã đọc",
+    "mark_all_read": "Đánh dấu tất cả đã đọc",
+    "delete_all": "Xóa tất cả"
+  },
+  "movie": {
+    "watch_now": "Xem ngay",
+    "add_to_favorites": "Yêu thích",
+    "remove_from_favorites": "Bỏ yêu thích",
+    "watch_later": "Xem sau",
+    "continue_watching": "Tiếp tục xem",
+    "rating": "Đánh giá",
+    "duration": "Thời lượng",
+    "release_date": "Ngày phát hành",
+    "genre": "Thể loại",
+    "country": "Quốc gia",
+    "director": "Đạo diễn",
+    "cast": "Diễn viên"
+  },
+  "search": {
+    "no_results": "Không tìm thấy phim"
+  },
+  "common": {
+    "no_data": "Hiện chưa có phim nào !!",
+    "error": "Lỗi"
+  },
+  "notfound": {
+    "title": "Trang không tồn tại",
+    "message": "Xin lỗi, trang bạn tìm kiếm không tồn tại hoặc đã được di chuyển.\nHãy quay về trang chủ để khám phá những bộ phim hay nhé!",
+    "home_button": "Về trang chủ",
+    "search_button": "Tìm kiếm phim",
+    "view_all_movies": "Xem tất cả phim",
+    "advanced_search": "Tìm kiếm nâng cao"
+  },
+  "filter": {
+    "newest": "Mới nhất",
+    "label": "Lọc phim:",
+    "apply": "Duyệt phim"
+  },
+  "continue": {
+    "title": "Tiếp tục xem",
+    "view_all": "Xem tất cả",
+    "error_loading": "Không thể tải danh sách phim đang xem",
+    "removed": "Đã xóa khỏi danh sách đang xem!"
+  },
+  "footer": {
+    "description": "Với giao diện thân thiện, kho phim phong phú và tốc độ tải nhanh, chúng tôi sẽ mang đến trải nghiệm giải trí tuyệt vời nhất cho bạn.",
+    "copyright": "© 2025 wemovies"
+  }
+}

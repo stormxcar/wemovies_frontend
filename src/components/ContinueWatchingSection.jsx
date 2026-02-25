@@ -4,11 +4,13 @@ import { Clock, Play, Trash2 } from "lucide-react";
 import { fetchJson } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const ContinueWatchingSection = () => {
   const [watchingMovies, setWatchingMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -37,7 +39,7 @@ const ContinueWatchingSection = () => {
       }
       // Don't show error toast for 500 errors to avoid spamming
       if (error.response?.status !== 500) {
-        toast.error("Không thể tải danh sách phim đang xem");
+        toast.error(t("continue.error_loading"));
       }
       setWatchingMovies([]);
     } finally {
@@ -53,7 +55,7 @@ const ContinueWatchingSection = () => {
           method: "DELETE",
         },
       );
-      toast.success("Đã xóa khỏi danh sách đang xem!");
+      toast.success(t("continue.removed"));
       fetchWatchingData(); // Refresh list
     } catch (error) {
       // Handle backend serialization errors gracefully
@@ -61,11 +63,11 @@ const ContinueWatchingSection = () => {
         error.response?.status === 500 &&
         error.response?.data?.error?.includes?.("Could not write JSON")
       ) {
-        toast.error("Tính năng đang bị lỗi, vui lòng thử lại sau!");
+        toast.error(t("common.error"));
         return;
       }
       if (error.response?.status !== 500) {
-        toast.error("Có lỗi xảy ra khi xóa!");
+        toast.error(t("common.error"));
       } else {
       }
     }
@@ -110,13 +112,13 @@ const ContinueWatchingSection = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <Clock className="mr-2 h-6 w-6 text-blue-500" />
-          Tiếp tục xem
+          {t("continue.title")}
         </h2>
         <Link
           to="/profile?tab=watching"
           className="text-blue-400 hover:text-blue-300 transition-colors"
         >
-          Xem tất cả →
+          {t("continue.view_all")} →
         </Link>
       </div>
 

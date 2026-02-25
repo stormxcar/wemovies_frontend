@@ -182,7 +182,9 @@ const Profile = () => {
                   alt="Avatar"
                   className="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg"
                 />
-                <div className={`absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 ${themeClasses.secondary} rounded-full`}></div>
+                <div
+                  className={`absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 ${themeClasses.secondary} rounded-full`}
+                ></div>
               </div>
               <div className="text-white">
                 <h1 className="text-3xl font-bold mb-1">
@@ -255,7 +257,9 @@ const Profile = () => {
             </nav>
 
             {/* Quick Stats */}
-            <div className={`mt-6 ${themeClasses.card} rounded-lg shadow-xl p-4`}>
+            <div
+              className={`mt-6 ${themeClasses.card} rounded-lg shadow-xl p-4`}
+            >
               <h3 className="text-white font-semibold mb-3">Thống kê</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
@@ -278,7 +282,9 @@ const Profile = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className={`${themeClasses.card} rounded-lg shadow-xl p-6 min-h-[500px]`}>
+            <div
+              className={`${themeClasses.card} rounded-lg shadow-xl p-6 min-h-[500px]`}
+            >
               {renderTabContent()}
             </div>
           </div>

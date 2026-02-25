@@ -10,8 +10,10 @@ import {
   Settings,
   Moon,
   Sun,
+  Languages,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import RegisterForm from "../components/auth/RegisterForm";
 import LoginForm from "../components/auth/LoginForm";
 import MobileMenu from "./MobileMenu";
@@ -42,6 +44,14 @@ function Header() {
   const navigate = useNavigate();
   const { user, setUser, logout, isAuthenticated, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+
+  // Language toggle handler
+  const toggleLanguage = useCallback(() => {
+    const newLanguage = i18n.language === "vi" ? "en" : "vi";
+    i18n.changeLanguage(newLanguage);
+    toast.success(t("settings.messages.language_changed"));
+  }, [i18n, t]);
 
   // Centralized API error handler
   const handleApiError = useCallback((error, message) => {
@@ -76,7 +86,7 @@ function Header() {
   // Search handler
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
-    setLoading("search", true, "Đang tìm kiếm...");
+    setLoading("search", true, t("header.searching"));
     try {
       const response = await fetchJson(
         `/api/movies/search?keyword=${encodeURIComponent(query)}`,
@@ -265,7 +275,7 @@ function Header() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDownToSearch}
-                  placeholder="Tìm kiếm phim..."
+                  placeholder={t("header.search_placeholder")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   autoFocus
                 />
@@ -274,7 +284,9 @@ function Header() {
                   className="w-full mt-3 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Đang tìm..." : "Tìm kiếm"}
+                  {isLoading
+                    ? t("header.searching")
+                    : t("header.search_button")}
                 </button>
               </div>
             </div>
@@ -286,7 +298,7 @@ function Header() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDownToSearch}
-              placeholder="Tìm kiếm phim..."
+              placeholder={t("header.search_placeholder")}
               className={`w-full px-4 py-2 rounded-lg text-white ${
                 isScrolled ? "bg-gray-800" : "bg-gray-900/50"
               } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-400`}
@@ -301,9 +313,9 @@ function Header() {
                   setActiveModal((prev) => (prev === "types" ? null : "types"));
                 }}
                 className="flex items-center hover:text-blue-300 transition-colors"
-                aria-label="Thể loại"
+                aria-label={t("header.categories")}
               >
-                Thể loại
+                {t("header.categories")}
                 <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {activeModal === "types" && (
@@ -357,9 +369,9 @@ function Header() {
                   );
                 }}
                 className="flex items-center hover:text-blue-300 transition-colors"
-                aria-label="Quốc gia"
+                aria-label={t("header.countries")}
               >
-                Quốc gia
+                {t("header.countries")}
                 <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {activeModal === "countries" && (
@@ -397,13 +409,36 @@ function Header() {
                   toggleTheme();
                 }}
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
-                title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+                title={
+                  isDarkMode
+                    ? "Chuyển sang chế độ sáng"
+                    : "Chuyển sang chế độ tối"
+                }
               >
                 {isDarkMode ? (
                   <Sun className="h-5 w-5 text-yellow-400" />
                 ) : (
                   <Moon className="h-5 w-5 text-blue-300" />
                 )}
+              </button>
+
+              {/* Language Toggle Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleLanguage();
+                }}
+                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
+                title={
+                  i18n.language === "vi"
+                    ? "Switch to English"
+                    : "Chuyển sang Tiếng Việt"
+                }
+              >
+                <Languages className="h-4 w-4 text-green-400" />
+                <span className="text-xs font-medium">
+                  {i18n.language === "vi" ? "EN" : "VI"}
+                </span>
               </button>
               <NotificationCenter />
               <div className="relative">
@@ -443,7 +478,7 @@ function Header() {
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
                       >
                         <UserCircle className="w-5 h-5 text-gray-600" />
-                        <span>Trang cá nhân</span>
+                        <span>{t("header.profile")}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -453,7 +488,7 @@ function Header() {
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
                       >
                         <Heart className="w-5 h-5 text-gray-600" />
-                        <span>Phim yêu thích</span>
+                        <span>{t("header.favorites")}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -463,7 +498,7 @@ function Header() {
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center space-x-3"
                       >
                         <Settings className="w-5 h-5 text-gray-600" />
-                        <span>Phim đang xem</span>
+                        <span>{t("header.continue_watching")}</span>
                       </button>
                     </div>
                     <div className="border-t">
@@ -472,7 +507,7 @@ function Header() {
                         className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 transition-colors flex items-center space-x-3"
                       >
                         <LogOut className="w-5 h-5" />
-                        <span>Đăng xuất</span>
+                        <span>{t("header.logout")}</span>
                       </button>
                     </div>
                   </div>
@@ -488,13 +523,36 @@ function Header() {
                   toggleTheme();
                 }}
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
-                title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+                title={
+                  isDarkMode
+                    ? "Chuyển sang chế độ sáng"
+                    : "Chuyển sang chế độ tối"
+                }
               >
                 {isDarkMode ? (
                   <Sun className="h-5 w-5 text-yellow-400" />
                 ) : (
                   <Moon className="h-5 w-5 text-blue-300" />
                 )}
+              </button>
+
+              {/* Language Toggle Button for non-logged in users */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleLanguage();
+                }}
+                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
+                title={
+                  i18n.language === "vi"
+                    ? "Switch to English"
+                    : "Chuyển sang Tiếng Việt"
+                }
+              >
+                <Languages className="h-4 w-4 text-green-400" />
+                <span className="text-xs font-medium">
+                  {i18n.language === "vi" ? "EN" : "VI"}
+                </span>
               </button>
               <button
                 type="button"
@@ -504,9 +562,9 @@ function Header() {
                   setShowLogin(true);
                 }}
                 className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
-                aria-label="Đăng nhập"
+                aria-label={t("header.login")}
               >
-                Đăng nhập
+                {t("header.login")}
               </button>
             </div>
           )}

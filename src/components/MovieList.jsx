@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
@@ -10,6 +11,7 @@ function MovieList({ movies = [], onMovieClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { categoryName } = useParams();
+  const { t } = useTranslation();
   const [showFilter, setShowFilter] = useState(false);
   const {
     category,
@@ -24,16 +26,16 @@ function MovieList({ movies = [], onMovieClick }) {
   const [movieTypes, setMovieTypes] = useState([]); // Loại phim (movie types) - Phim lẻ, Phim bộ, etc.
 
   // Set document title based on category or title
-  useDocumentTitle(title || categoryName || "Danh sách phim");
+  useDocumentTitle(title || categoryName || t("navigation.movies"));
 
   // Filter states
-  const [selectedCountry, setSelectedCountry] = useState("Tất cả");
-  const [selectedMovieType, setSelectedMovieType] = useState("Tất cả");
-  const [selectedRating, setSelectedRating] = useState("Tất cả");
-  const [selectedGenre, setSelectedGenre] = useState("Tất cả");
-  const [selectedVersion, setSelectedVersion] = useState("Tất cả");
-  const [selectedYear, setSelectedYear] = useState("Tất cả");
-  const [selectedSort, setSelectedSort] = useState("Mới nhất");
+  const [selectedCountry, setSelectedCountry] = useState(t("common.all"));
+  const [selectedMovieType, setSelectedMovieType] = useState(t("common.all"));
+  const [selectedRating, setSelectedRating] = useState(t("common.all"));
+  const [selectedGenre, setSelectedGenre] = useState(t("common.all"));
+  const [selectedVersion, setSelectedVersion] = useState(t("common.all"));
+  const [selectedYear, setSelectedYear] = useState(t("common.all"));
+  const [selectedSort, setSelectedSort] = useState(t("filter.newest"));
 
   useEffect(() => {
     const fetchAll = async () => {

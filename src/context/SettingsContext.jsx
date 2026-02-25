@@ -1,27 +1,30 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const SettingsContext = createContext();
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 };
 
 export const SettingsProvider = ({ children }) => {
+  const { i18n } = useTranslation();
+
   // Default settings with localStorage fallback
   const [settings, setSettings] = useState(() => {
     try {
-      const savedSettings = localStorage.getItem('userSettings');
+      const savedSettings = localStorage.getItem("userSettings");
       if (savedSettings) {
         return JSON.parse(savedSettings);
       }
     } catch (error) {
-      console.error('Error loading settings from localStorage:', error);
+      console.error("Error loading settings from localStorage:", error);
     }
-    
+
     // Default settings if no saved settings found
     return {
       emailNotifications: true,
@@ -38,17 +41,22 @@ export const SettingsProvider = ({ children }) => {
   // Save settings to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem('userSettings', JSON.stringify(settings));
+      localStorage.setItem("userSettings", JSON.stringify(settings));
     } catch (error) {
-      console.error('Error saving settings to localStorage:', error);
+      console.error("Error saving settings to localStorage:", error);
     }
   }, [settings]);
 
   const updateSetting = (key, value) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
+
+    // Sync language changes with i18next
+    if (key === "language") {
+      i18n.changeLanguage(value);
+    }
   };
 
   const resetSettings = () => {

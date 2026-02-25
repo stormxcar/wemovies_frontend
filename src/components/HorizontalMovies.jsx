@@ -65,12 +65,16 @@ function HorizontalMovies({
         >
           <div className="relative">
             <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10 -ml-2 sm:-ml-4">
-              <button className={`review-swiper-button-prev ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}>
+              <button
+                className={`review-swiper-button-prev ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}
+              >
                 <FaChevronLeft size={16} className="sm:w-5 sm:h-5" />
               </button>
             </div>
             <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10 -mr-2 sm:-mr-4">
-              <button className={`review-swiper-button-next ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}>
+              <button
+                className={`review-swiper-button-next ${themeClasses.textPrimary} ${themeClasses.card} rounded-full p-1.5 sm:p-2 shadow-lg hover:${themeClasses.tertiary} transition-colors`}
+              >
                 <FaChevronRight size={16} className="sm:w-5 sm:h-5" />
               </button>
             </div>
@@ -108,7 +112,7 @@ function HorizontalMovies({
                       onMovieClick={onMovieClick}
                     />
                   </SwiperSlide>
-                )
+                ),
               )}
             </Swiper>
           </div>

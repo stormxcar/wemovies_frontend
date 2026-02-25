@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
@@ -16,12 +17,15 @@ const Watch = React.memo(() => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { autoPlay } = useSettings();
-  
-  console.log('🎬 Watch component autoPlay setting:', autoPlay);
+  const { t } = useTranslation();
+
+  console.log("🎬 Watch component autoPlay setting:", autoPlay);
 
   // Set document title for watching page
   useDocumentTitle(
-    movieDetail?.title ? `Xem phim - ${movieDetail.title}` : "Xem phim",
+    movieDetail?.title
+      ? `${t("movie.watch_now")} - ${movieDetail.title}`
+      : t("movie.watch_now"),
   );
 
   const searchParams = useMemo(
@@ -326,10 +330,11 @@ const Watch = React.memo(() => {
                   <div className="text-center p-6">
                     <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
                     <h3 className="text-white text-lg font-bold mb-2">
-                      Video không khả dụng
+                      Video unavailable
                     </h3>
                     <p className="text-gray-300 text-sm mb-4">
-                      Phim này hiện tại không có link xem. Vui lòng thử lại sau.
+                      This movie currently has no available streaming links.
+                      Please try again later.
                     </p>
                     <div className="text-xs text-gray-500 bg-gray-800 p-2 rounded">
                       <p>Movie ID: {currentMovieData.id}</p>
@@ -410,10 +415,10 @@ const Watch = React.memo(() => {
             <div className="flex items-center">
               <div className="text-yellow-400 mr-2">⚠️</div>
               <div className="text-sm">
-                <p className="text-yellow-200 font-medium">Lưu ý về video</p>
+                <p className="text-yellow-200 font-medium">Video Notice</p>
                 <p className="text-yellow-300">
-                  Video có thể không khả dụng nếu link đã hết hạn. Nếu gặp lỗi,
-                  hãy thử refresh trang hoặc quay lại sau.
+                  Video may not be available if link has expired. If you
+                  encounter errors, try refreshing the page or come back later.
                 </p>
               </div>
             </div>

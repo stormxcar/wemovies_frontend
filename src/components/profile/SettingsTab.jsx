@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useSettings } from "../../context/SettingsContext";
+import { useTranslation } from "react-i18next";
 import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -9,45 +10,56 @@ const SettingsTab = () => {
   const { logout } = useAuth();
   const { isDarkMode, setTheme, themeClasses } = useTheme();
   const { settings, updateSetting } = useSettings();
+  const { t } = useTranslation();
 
   const handleSettingChange = (key, value) => {
-    if (key === 'darkMode') {
+    if (key === "darkMode") {
       setTheme(value);
-      toast.success(value ? "Đã chuyển sang chế độ tối!" : "Đã chuyển sang chế độ sáng!");
+      toast.success(
+        value
+          ? t("settings.messages.dark_mode_on")
+          : t("settings.messages.dark_mode_off"),
+      );
       return;
     }
-    
+
     updateSetting(key, value);
-    
+
     // Special messages for certain settings
-    if (key === 'autoPlay') {
-      toast.success(value ? "Đã bật tự động phát video!" : "Đã tắt tự động phát video!");
+    if (key === "autoPlay") {
+      toast.success(
+        value
+          ? t("settings.messages.autoplay_on")
+          : t("settings.messages.autoplay_off"),
+      );
+    } else if (key === "language") {
+      toast.success(t("settings.messages.language_changed"));
     } else {
-      toast.success("Cài đặt đã được cập nhật!");
+      toast.success(t("settings.messages.updated"));
     }
   };
 
   const handleLogout = async () => {
-    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+    if (window.confirm(t("settings.account.logout_confirm"))) {
       await logout();
     }
   };
 
   const clearCache = () => {
     localStorage.clear();
-    toast.success("Đã xóa cache!");
+    toast.success(t("common.success"));
   };
 
   const handleSaveSettings = () => {
-    toast.success("Cài đặt đã được lưu!");
+    toast.success(t("settings.messages.updated"));
   };
 
   const handleDeleteAccount = () => {
     const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.",
+      t("settings.account.logout_confirm"), // Reusing this key for now
     );
     if (confirmed) {
-      toast.error("Chức năng xóa tài khoản đang được phát triển");
+      toast.error("Feature in development"); // Generic error message
     }
   };
 
@@ -55,16 +67,22 @@ const SettingsTab = () => {
     <div className="space-y-6">
       {/* Notification Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
-        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
+        <h3
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+        >
           <Bell className="mr-2 h-5 w-5" />
-          Thông báo
+          {t("settings.notifications.title")}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className={`${themeClasses.textPrimary} font-medium`}>Email thông báo</h4>
-              <p className={`${themeClasses.textMuted} text-sm`}>Nhận thông báo qua email</p>
+              <h4 className={`${themeClasses.textPrimary} font-medium`}>
+                {t("settings.notifications.email_notifications")}
+              </h4>
+              <p className={`${themeClasses.textMuted} text-sm`}>
+                {t("settings.notifications.email_description")}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -81,9 +99,11 @@ const SettingsTab = () => {
 
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Thông báo đẩy</h4>
+              <h4 className="text-white font-medium">
+                {t("settings.notifications.push_notifications")}
+              </h4>
               <p className="text-gray-400 text-sm">
-                Nhận thông báo trên trình duyệt
+                {t("settings.notifications.push_description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -101,8 +121,12 @@ const SettingsTab = () => {
 
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Gợi ý phim</h4>
-              <p className="text-gray-400 text-sm">Nhận gợi ý phim phù hợp</p>
+              <h4 className="text-white font-medium">
+                {t("settings.notifications.movie_recommendations")}
+              </h4>
+              <p className="text-gray-400 text-sm">
+                {t("settings.notifications.movie_description")}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -119,8 +143,12 @@ const SettingsTab = () => {
 
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Phim mới ra mắt</h4>
-              <p className="text-gray-400 text-sm">Thông báo khi có phim mới</p>
+              <h4 className="text-white font-medium">
+                {t("settings.notifications.new_releases")}
+              </h4>
+              <p className="text-gray-400 text-sm">
+                {t("settings.notifications.release_description")}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -139,16 +167,22 @@ const SettingsTab = () => {
 
       {/* Appearance Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
-        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
+        <h3
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+        >
           <Palette className="mr-2 h-5 w-5" />
-          Giao diện
+          {t("settings.appearance.title")}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-white font-medium">Chế độ tối</h4>
-              <p className="text-gray-400 text-sm">Sử dụng giao diện tối</p>
+              <h4 className="text-white font-medium">
+                {t("settings.appearance.dark_mode")}
+              </h4>
+              <p className="text-gray-400 text-sm">
+                {t("settings.appearance.dark_description")}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -164,7 +198,9 @@ const SettingsTab = () => {
           </div>
 
           <div>
-            <h4 className={`${themeClasses.textPrimary} font-medium mb-2`}>Ngôn ngữ</h4>
+            <h4 className={`${themeClasses.textPrimary} font-medium mb-2`}>
+              {t("settings.appearance.language")}
+            </h4>
             <select
               value={settings.language}
               onChange={(e) => handleSettingChange("language", e.target.value)}
@@ -181,17 +217,21 @@ const SettingsTab = () => {
 
       {/* Playback Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
-        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
+        <h3
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+        >
           <Settings className="mr-2 h-5 w-5" />
-          Phát video
+          {t("settings.playback.title")}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className={`${themeClasses.textPrimary} font-medium`}>Tự động phát</h4>
+              <h4 className={`${themeClasses.textPrimary} font-medium`}>
+                {t("settings.playback.auto_play")}
+              </h4>
               <p className={`${themeClasses.textMuted} text-sm`}>
-                Tự động phát video khi tải trang (video sẽ bị tắt tiếng)
+                {t("settings.playback.auto_play_description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -206,32 +246,32 @@ const SettingsTab = () => {
               <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
-
-         
         </div>
       </div>
 
       {/* Account Management */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
-        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}>
+        <h3
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+        >
           <Shield className="mr-2 h-5 w-5" />
-          Quản lý tài khoản
+          {t("settings.account.title")}
         </h3>
 
         <div className="space-y-4">
           <button
-            onClick={() => toast.info("Liên hệ admin để xóa tài khoản")}
+            onClick={() => toast.info("Contact admin to delete account")}
             className="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
             <Shield className="mr-2 h-4 w-4" />
-            Yêu cầu xóa tài khoản
+            {t("settings.account.delete_account")}
           </button>
 
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
-            Đăng xuất
+            {t("settings.account.logout")}
           </button>
         </div>
       </div>

@@ -1,11 +1,13 @@
 import React, { useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
   const { user } = useAuth();
   const { themeClasses } = useTheme();
+  const { t } = useTranslation();
   const location = useLocation();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
@@ -42,8 +44,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
         isParentActive(path) && !isActive(path)
           ? parentActiveClasses
           : isActive(path)
-          ? activeClasses
-          : inactiveClasses
+            ? activeClasses
+            : inactiveClasses
       }`;
     }
 
@@ -252,7 +254,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
               <button
                 onClick={() => navigate("/admin/profile")}
                 className={`${getButtonClasses(
-                  "/admin/profile"
+                  "/admin/profile",
                 )} flex items-center space-x-2`}
               >
                 <svg

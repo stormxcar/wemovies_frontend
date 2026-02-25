@@ -17,7 +17,9 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   return (
-    <header className={`fixed top-0 w-full ${themeClasses.secondary} ${themeClasses.textPrimary} p-4 flex justify-between items-center z-50 ${themeClasses.border} border-b`}>
+    <header
+      className={`fixed top-0 w-full ${themeClasses.secondary} ${themeClasses.textPrimary} p-4 flex justify-between items-center z-50 ${themeClasses.border} border-b`}
+    >
       <div className="flex items-center space-x-4">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -44,7 +46,9 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
         <button
           onClick={toggleTheme}
           className={`p-2 rounded-lg ${themeClasses.tertiary} hover:${themeClasses.secondary} transition-colors`}
-          title={isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+          title={
+            isDarkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"
+          }
         >
           {isDarkMode ? (
             <Sun className="h-5 w-5 text-yellow-400" />

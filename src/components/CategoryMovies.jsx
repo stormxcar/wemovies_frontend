@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   fetchMoviesByCategory,
   fetchMoviesByCountryAndCategory,
@@ -13,6 +14,7 @@ const CategoryMovies = () => {
   const navigate = useNavigate();
   const location = useLocation(); // Lấy state từ navigate
   const { setLoading, isLoading } = useLoading();
+  const { t } = useTranslation();
   const [movies, setMovies] = useState([]);
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -30,7 +32,7 @@ const CategoryMovies = () => {
   // Fetch movies when category or country changes
   const fetchMovies = useCallback(async () => {
     try {
-      setLoading("categoryMovies", true, "Đang tải danh sách phim...");
+      setLoading("categoryMovies", true, t("common.loading"));
       let data = [];
       if (selectedCountry) {
         data = await fetchMoviesByCountryAndCategory(
@@ -68,7 +70,7 @@ const CategoryMovies = () => {
           onClick={() => navigate("/")}
           className="text-white cursor-pointer"
         >
-          Movies
+          {t("navigation.movies")}
         </span>
         <span className="text-white">{" > "}</span>
         <span className="text-blue-500">{categoryName}</span>
@@ -78,14 +80,14 @@ const CategoryMovies = () => {
         <>
           {movies.length > 0 ? (
             <div className="flex items-center mb-4 gap-2">
-              <h2 className="text-white">Lọc phim:</h2>
+              <h2 className="text-white">{t("filter.label")}</h2>
               <select
                 onChange={(e) => setSelectedCountry(e.target.value)}
                 value={selectedCountry}
                 className="bg-gray-50 outline-none border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block py-2 px-4"
               >
                 <option className="font-medium" value="">
-                  Tất cả
+                  {t("common.all")}
                 </option>
                 {countries.map((country) => (
                   <option key={country.country_id} value={country.name}>
@@ -97,7 +99,7 @@ const CategoryMovies = () => {
                 className="bg-blue-400 ml-2 px-4 py-2 rounded text-white"
                 onClick={fetchMovies}
               >
-                Duyệt phim
+                {t("filter.apply")}
               </button>
             </div>
           ) : null}
@@ -111,7 +113,7 @@ const CategoryMovies = () => {
               />
             ) : (
               <p className="text-white font-semibold text-xl">
-                Hiện chưa có phim nào !!
+                {t("common.no_data")}
               </p>
             )}
           </div>
