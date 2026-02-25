@@ -12,7 +12,7 @@ import {
 import WatchlistButton from "./WatchlistButton";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { useLoading } from "../utils/LoadingContext";
+import { useLoading } from "../context/UnifiedLoadingContext";
 import { trackMovieView, trackUserAction } from "../services/analytics";
 import { useWatchingTracker } from "../hooks/useWatchingTracker";
 import ReviewSection from "./ReviewSection";
@@ -41,13 +41,13 @@ const DetailMovie = () => {
     isAuthenticated,
   );
 
-  const fetchRelatedMovies = useCallback(async (categoryId) => {
-    if (!categoryId) {
+  const fetchRelatedMovies = useCallback(async (categoryName) => {
+    if (!categoryName) {
       setRelatedMovies([]);
       return;
     }
     try {
-      const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
+      const data = await fetchJson(`/api/movies/category/${categoryName}`);
 
       setRelatedMovies(Array.isArray(data.data) ? data.data : []);
     } catch (e) {
@@ -184,7 +184,7 @@ const DetailMovie = () => {
         }
 
         if (data.data.movieCategories?.length) {
-          fetchRelatedMovies(data.data.movieCategories[0].id);
+          fetchRelatedMovies(data.data.movieCategories[0].name);
         }
       } catch (e) {
         setMovieDetail(null);
@@ -336,7 +336,7 @@ const DetailMovie = () => {
           {category && (
             <>
               <Link
-                to={`/movies/${category.name.toLowerCase()}`}
+                to={`/movies/${category.name}`}
                 className="text-white text-xl font-semibold"
               >
                 {category.name.toLowerCase()}

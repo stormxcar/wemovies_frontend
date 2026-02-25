@@ -6,7 +6,7 @@ import {
 } from "../services/api";
 import GridMovies from "./GridMovies";
 import { fetchJson } from "../services/api";
-import { useLoading } from "../utils/LoadingContext";
+import { useLoading } from "../context/UnifiedLoadingContext";
 
 const CategoryMovies = () => {
   const { categoryName } = useParams();
@@ -35,7 +35,7 @@ const CategoryMovies = () => {
       if (selectedCountry) {
         data = await fetchMoviesByCountryAndCategory(
           selectedCountry,
-          categoryName
+          categoryName,
         );
       } else {
         data = await fetchMoviesByCategory(categoryName);

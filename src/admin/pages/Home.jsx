@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useLoading } from "../../utils/LoadingContext";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 
 import {
   fetchCategories as getCategories,
@@ -104,7 +104,7 @@ const Home = () => {
 
   const activeUsers = users.filter((user) => user.isActive).length;
   const adminUsers = users.filter(
-    (user) => user.role?.roleName === "ADMIN"
+    (user) => user.role?.roleName === "ADMIN",
   ).length;
 
   return (

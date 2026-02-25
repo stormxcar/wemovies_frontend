@@ -11,7 +11,7 @@ import {
   fetchCountries as getCountries,
 } from "../../../services/api";
 import ImageUpload from "../../../components/ui/ImageUpload";
-import { useLoading } from "../../../utils/LoadingContext";
+import { useLoading } from "../../../context/UnifiedLoadingContext";
 import { LoadingWrapper, FormSkeleton } from "../../../components/ui/Skeleton";
 
 // Reducer for formData state management
@@ -91,7 +91,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         setMovieTypes(typesData.map((t) => ({ value: t.id, label: t.name })));
         setCategories(catsData.map((c) => ({ value: c.id, label: c.name })));
         setCountries(
-          countriesData.map((c) => ({ value: c.id, label: c.name }))
+          countriesData.map((c) => ({ value: c.id, label: c.name })),
         );
       } catch (err) {
         toast.error("Không thể tải dữ liệu. Vui lòng thử lại.");
@@ -191,10 +191,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
               ? item.actorsSet
               : Array.from(item.actorsSet)
             : item.actors
-            ? Array.isArray(item.actors)
-              ? item.actors
-              : [item.actors]
-            : [""],
+              ? Array.isArray(item.actors)
+                ? item.actors
+                : [item.actors]
+              : [""],
           duration: item.duration || "",
           quality: item.quality || "",
           vietSub: item.vietSub ? "true" : "false",
@@ -269,7 +269,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // Memoize isFullStatus to avoid recalculating on every render
   const isFullStatus = useMemo(
     () => (formData.status || "").toLowerCase() === "full",
-    [formData.status]
+    [formData.status],
   );
 
   // Handle input changes
@@ -356,8 +356,8 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
           ? selectedOptions.map((o) => o.value)
           : selectedOptions.value
         : name === "countryId"
-        ? null
-        : [],
+          ? null
+          : [],
     });
   };
 
@@ -381,7 +381,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       formDataToSend.append("quality", formData.quality);
       formDataToSend.append(
         "release_year",
-        parseInt(formData.release_year) || 2000
+        parseInt(formData.release_year) || 2000,
       );
       formDataToSend.append("status", formData.status);
       formDataToSend.append("titleByLanguage", formData.titleByLanguage);
@@ -396,7 +396,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
       ) {
         formDataToSend.append(
           "totalEpisodes",
-          parseInt(formData.totalEpisodes)
+          parseInt(formData.totalEpisodes),
         );
       }
 
@@ -430,10 +430,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         formData.episodeLinks.length > 0
       ) {
         const filteredEpisodeLinks = formData.episodeLinks.filter((link) =>
-          link.trim()
+          link.trim(),
         );
         filteredEpisodeLinks.forEach((link) =>
-          formDataToSend.append("episodeLinks", link)
+          formDataToSend.append("episodeLinks", link),
         );
       }
 
@@ -442,10 +442,10 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
         formDataToSend.append("countryId", formData.countryId);
       }
       formData.movieTypeIds.forEach((id) =>
-        formDataToSend.append("movieTypeIds", id)
+        formDataToSend.append("movieTypeIds", id),
       );
       formData.categoryIds.forEach((id) =>
-        formDataToSend.append("categoryIds", id)
+        formDataToSend.append("categoryIds", id),
       );
       for (let [key, value] of formDataToSend.entries()) {
       }
@@ -467,7 +467,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
   // Check if form has changes
   const hasChanges = useMemo(() => {
     return Object.keys(formData).some(
-      (key) => formData[key] !== "" && formData[key] != null
+      (key) => formData[key] !== "" && formData[key] != null,
     );
   }, [formData]);
 
@@ -732,7 +732,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   }
                   value={
                     movieTypes.filter((opt) =>
-                      formData.movieTypeIds.includes(opt.value)
+                      formData.movieTypeIds.includes(opt.value),
                     ) || []
                   }
                   isdisabled={isLoading("submitMovie")}
@@ -753,7 +753,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                   }
                   value={
                     categories.filter((opt) =>
-                      formData.categoryIds.includes(opt.value)
+                      formData.categoryIds.includes(opt.value),
                     ) || []
                   }
                   isdisabled={isLoading("submitMovie")}
@@ -931,7 +931,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                     }
                     if (
                       window.confirm(
-                        `Bạn có chắc chắn muốn cập nhật ${title} này không?`
+                        `Bạn có chắc chắn muốn cập nhật ${title} này không?`,
                       )
                     ) {
                       handleSubmit(e);

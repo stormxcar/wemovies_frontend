@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useLoading } from "../../utils/LoadingContext";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import { toast } from "react-toastify";
 import api from "../../services/api";
 
@@ -93,7 +93,7 @@ const Profile = () => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         // Update avatar URL in profile data
@@ -119,7 +119,7 @@ const Profile = () => {
       toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Cập nhật thông tin thất bại"
+        error.response?.data?.message || "Cập nhật thông tin thất bại",
       );
     } finally {
       setLoading(false);

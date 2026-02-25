@@ -441,7 +441,7 @@ const NotificationCenter = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .bell-shake {
           animation: bellShake 0.5s ease-in-out;
         }

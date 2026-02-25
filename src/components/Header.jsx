@@ -10,7 +10,6 @@ import {
   Settings,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Banner from "./Banner";
 import RegisterForm from "../components/auth/RegisterForm";
 import LoginForm from "../components/auth/LoginForm";
 import MobileMenu from "./MobileMenu";
@@ -22,7 +21,7 @@ import {
   fetchJson,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { useLoading } from "../utils/LoadingContext";
+import { useLoading } from "../context/UnifiedLoadingContext";
 
 function Header() {
   const [query, setQuery] = useState("");
@@ -334,7 +333,7 @@ function Header() {
                     className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
                     onClick={() =>
                       navigateToMovies(
-                        `/api/movies/category/id/${item.id}`,
+                        `/api/movies/category/${item.name}`,
                         item.name,
                       )
                     }
@@ -478,7 +477,6 @@ function Header() {
         </div>
       </div>
 
-      {window.location.pathname === "/" && <Banner />}
       {showRegister && (
         <RegisterForm
           onClose={closeModal}

@@ -12,13 +12,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
-import { LoadingProvider, useLoading } from "./utils/LoadingContext";
+import { LoadingProvider, useLoading } from "./context/UnifiedLoadingContext";
 import { QueryProvider } from "./utils/queryClient";
 import PageLoader from "./components/loading/PageLoader";
 import "./components/loading/animations.css";
 
 // Lazy load components
-const ShowMovies = lazy(() => import("./components/ShowMovies.jsx"));
+const HomePage = lazy(() => import("./pages/Home.jsx"));
 const DetailMovie = lazy(() => import("./components/DetailMovie.jsx"));
 const CategoryMovies = lazy(() => import("./components/CategoryMovies.jsx"));
 const Search = lazy(() => import("./components/Search.jsx"));
@@ -273,7 +273,7 @@ const AppContent = () => {
           {/* User Routes */}
           {/* <Route path="/auth" element={<AuthPage />} /> */}
           <Route element={<UserLayout />}>
-            <Route path="/" element={<ShowMovies />} />
+            <Route path="/" element={<HomePage />} />
             <Route
               path="/category/:categoryName"
               element={<CategoryMovies />}

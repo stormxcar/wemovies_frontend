@@ -60,8 +60,7 @@ const Watch = React.memo(() => {
           null
         );
       }
-    } catch (error) {
-    }
+    } catch (error) {}
 
     try {
       const token = localStorage.getItem("jwtToken");
@@ -86,20 +85,19 @@ const Watch = React.memo(() => {
           null
         );
       }
-    } catch (error) {
-    }
+    } catch (error) {}
 
     return null;
   }, []);
 
   // Fetch related movies
-  const fetchRelatedMovies = useCallback(async (categoryId) => {
-    if (!categoryId) {
+  const fetchRelatedMovies = useCallback(async (categoryName) => {
+    if (!categoryName) {
       setRelatedMovies([]);
       return;
     }
     try {
-      const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
+      const data = await fetchJson(`/api/movies/category/${categoryName}`);
       setRelatedMovies(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       setRelatedMovies([]);
@@ -130,8 +128,7 @@ const Watch = React.memo(() => {
 
           return sessionResult;
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     },
     [user, startWatchingMovie, validateUserSession],
   );
@@ -158,8 +155,7 @@ const Watch = React.memo(() => {
           currentTime,
           duration,
         );
-      } catch (error) {
-      }
+      } catch (error) {}
     },
     [
       watchingSession,
@@ -244,12 +240,11 @@ const Watch = React.memo(() => {
         setCurrentMovieData(data.data);
 
         if (data.data.movieCategories?.length) {
-          fetchRelatedMovies(data.data.movieCategories[0].id);
+          fetchRelatedMovies(data.data.movieCategories[0].name);
         }
 
         await startWatchingSession(data.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchMovieDetail();

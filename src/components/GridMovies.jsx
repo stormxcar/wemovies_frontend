@@ -8,17 +8,33 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
   const [currentPage, setCurrentPage] = useState(1);
   const validMovies = useMemo(
     () => (Array.isArray(movies) ? movies : []),
-    [movies]
+    [movies],
   );
   const [imageLoadedMap, setImageLoadedMap] = useState({});
 
   // Khởi tạo imageLoadedMap với giá trị mặc định khi movies thay đổi
   useEffect(() => {
+    console.log("🎞️ GridMovies: Movies data received:", validMovies.length);
     const initialMap = validMovies.reduce((map, movie) => {
       map[movie.id] = false;
       return map;
     }, {});
     setImageLoadedMap(initialMap);
+
+    // Nếu có movies data, auto-hide skeleton sau delay ngắn
+    if (validMovies.length > 0) {
+      console.log("⏱️ GridMovies: Setting auto-hide timer...");
+      const quickTimer = setTimeout(() => {
+        console.log("🚀 GridMovies: Auto-hiding skeletons...");
+        const quickMap = validMovies.reduce((map, movie) => {
+          map[movie.id] = true;
+          return map;
+        }, {});
+        setImageLoadedMap(quickMap);
+      }, 1500); // Shorter delay for better UX
+
+      return () => clearTimeout(quickTimer);
+    }
   }, [validMovies]);
 
   // Timeout dự phòng để tắt skeleton sau 5 giây nếu onLoad không được gọi
@@ -27,7 +43,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
       return setTimeout(() => {
         setImageLoadedMap((prev) => {
           if (!prev[movie.id]) {
-            // return { ...prev, [movie.id]: true };
+            return { ...prev, [movie.id]: true };
           }
           return prev;
         });
@@ -39,7 +55,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
 
   const totalPages = useMemo(
     () => Math.ceil(validMovies.length / moviesPerPage),
-    [validMovies.length, moviesPerPage]
+    [validMovies.length, moviesPerPage],
   );
 
   const currentMovies = useMemo(() => {
@@ -54,7 +70,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
     (movieID) => {
       navigate(`/movie/${movieID}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleNextPage = useCallback(() => {
@@ -68,7 +84,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
   const handleImageLoad = (movieId) => {
     setImageLoadedMap((prev) => {
       const newMap = { ...prev, [movieId]: true };
-      // return newMap;
+      return newMap;
     });
   };
 

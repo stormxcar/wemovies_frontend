@@ -4,6 +4,7 @@ import { fetchMovies } from "../services/api";
 import SkeletonWrapper from "./SkeletonWrapper";
 import { FaPlay } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useGlobalLoading } from "../context/UnifiedLoadingContext";
 
 // Import Swiper styles
 import "swiper/css";
@@ -12,21 +13,48 @@ import "swiper/css/scrollbar";
 // import required modules
 import { Scrollbar } from "swiper/modules";
 
-function Banner() {
+function Banner({ onDataLoaded }) {
   const [loading, setLoading] = useState(false);
   const [movies, setMovies] = useState([]);
+  const { setComponentsLoaded, updateProgress } = useGlobalLoading();
+
+  console.log("🎬 Banner component mounted with onDataLoaded:", !!onDataLoaded);
 
   useEffect(() => {
-    setLoading(true); // Bắt đầu loading khi fetch
+    console.log("🎬 Banner: Starting fetch...");
+    setLoading(true);
+
+    // Update global progress for banner loading
+    updateProgress(85, "Đang tải banner...");
+
     fetchMovies()
       .then((movies) => {
-        // // Debug dữ liệu
+        console.log("🎬 Banner: Movies fetched:", movies?.length || 0);
         const shuffled = movies.sort(() => 0.5 - Math.random());
         setMovies(shuffled.slice(0, 5));
+
+        // Mark banner as loaded
+        setComponentsLoaded((prev) => ({ ...prev, banner: true }));
+
+        console.log("✅ Banner: Data loaded, notifying parent...");
+
+        // Notify parent that banner data is ready
+        if (onDataLoaded) {
+          onDataLoaded(true);
+        }
       })
-      .catch((error) => console.error("Error fetching movies:", error))
-      .finally(() => setLoading(false)); // Kết thúc loading khi fetch xong
-  }, []);
+      .catch((error) => {
+        console.error("❌ Banner error:", error);
+        // Even on error, mark as loaded to prevent infinite loading
+        if (onDataLoaded) {
+          onDataLoaded(false);
+        }
+      })
+      .finally(() => {
+        console.log("🎬 Banner: Loading finished");
+        setLoading(false);
+      });
+  }, []); // FIXED: Empty dependency array to prevent infinite re-renders
 
   return (
     <div className="relative w-full h-[90vh] overflow-hidden flex-1 bg-gray-800">

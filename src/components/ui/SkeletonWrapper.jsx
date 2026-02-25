@@ -1,5 +1,5 @@
 import React from "react";
-import { useLoading } from "../../utils/LoadingContext";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import {
   Skeleton,
   FormSkeleton,
@@ -51,14 +51,14 @@ export const PageSkeleton = ({
       type === "form"
         ? FormSkeleton
         : type === "cards"
-        ? CardListSkeleton
-        : type === "table"
-        ? TableSkeleton
-        : type === "movies"
-        ? MovieCardSkeleton
-        : type === "profile"
-        ? ProfileSkeleton
-        : FormSkeleton
+          ? CardListSkeleton
+          : type === "table"
+            ? TableSkeleton
+            : type === "movies"
+              ? MovieCardSkeleton
+              : type === "profile"
+                ? ProfileSkeleton
+                : FormSkeleton
     }
     skeletonProps={props}
   >
