@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useStartWatching } from "../hooks/useStartWatching";
-import RedisWatchingService from "../services/RedisWatchingService";
+import { useWatchingProgress } from "../hooks/useWatchingProgress";
+import ViewCountDisplay from "./ViewCountDisplay";
 import { FaPlay, FaTrash, FaClock, FaSync } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
@@ -16,11 +16,13 @@ const ContinueWatching = ({
   const [refreshing, setRefreshing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
   const { user } = useAuth();
-  const { getContinueWatching, removeFromWatchingList } = useStartWatching();
+  const {
+    getWatchingList,
+    removeFromWatching,
+    getResumePosition,
+    isAPIAvailable,
+  } = useWatchingProgress(user);
   const navigate = useNavigate();
-
-  // Create Redis service instance
-  const redisService = React.useMemo(() => new RedisWatchingService(), []);
 
   // Helper function để get user ID từ user object
   const getUserId = (userObj) => {
@@ -44,19 +46,24 @@ const ContinueWatching = ({
       let watchingList = [];
       let source = "local";
 
+      // Use hybrid system for watching list
       try {
-        const redisResult = await redisService.getContinueWatchingList(userId);
-        if (redisResult.success && redisResult.data?.length > 0) {
-          watchingList = redisResult.data;
-          source = "redis";
+        const hybridResult = await getWatchingList();
+        if (
+          hybridResult &&
+          Array.isArray(hybridResult) &&
+          hybridResult.length > 0
+        ) {
+          watchingList = hybridResult;
+          source = "hybrid";
           setLastSync(new Date());
         }
-      } catch (redisError) {
-      }
+      } catch (hybridError) {}
 
-      // Fallback to local storage if Redis failed or empty
+      // Use hybrid system for watching list
       if (watchingList.length === 0) {
-        watchingList = getContinueWatching(userId);
+        const hybridList = await getWatchingList();
+        watchingList = Array.isArray(hybridList) ? hybridList : [];
       }
 
       // Process and limit items
@@ -80,7 +87,7 @@ const ContinueWatching = ({
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user, maxItems, getContinueWatching]);
+  }, [user, maxItems, getWatchingList]);
 
   useEffect(() => {
     loadContinueWatching();
@@ -142,7 +149,7 @@ const ContinueWatching = ({
   const handleRemoveFromList = async (item) => {
     try {
       const userId = getUserId(user);
-      const success = await removeFromWatchingList(userId, item.movieId);
+      const success = await removeFromWatching(userId, item.movieId);
 
       if (success) {
         // Remove from local state
@@ -257,11 +264,21 @@ const ContinueWatching = ({
                 {item.movieTitle}
               </h3>
 
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
+              <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
                 <span>
                   {item.timeWatched} / {item.totalTime}
                 </span>
                 <span>{item.lastWatchedDate}</span>
+              </div>
+
+              {/* View Count Display */}
+              <div className="flex items-center justify-center mb-3">
+                <ViewCountDisplay
+                  movieId={item.movieId}
+                  userId={getUserId(user)}
+                  size="small"
+                  className="text-gray-400"
+                />
               </div>
 
               <div className="flex gap-2">
@@ -297,15 +314,15 @@ const ContinueWatching = ({
 // Component hiển thị thông tin localStorage
 const LocalStorageInfo = () => {
   const [stats, setStats] = useState({});
-  const { getWatchingStats } = useStartWatching();
+  const { user } = useAuth();
+  const { getStats } = useWatchingProgress(user);
 
   useEffect(() => {
-    const loadStats = () => {
+    const loadStats = async () => {
       try {
-        const watchingStats = getWatchingStats();
-        setStats(watchingStats);
-      } catch (error) {
-      }
+        const watchingStats = await getStats();
+        setStats(watchingStats || {});
+      } catch (error) {}
     };
 
     loadStats();

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Banner from "../components/Banner";
+import TrendingSection from "../components/TrendingSection";
 import ShowMovies from "../components/ShowMovies";
 import PageLoader from "../components/loading/PageLoader";
 import { useGlobalLoading } from "../context/UnifiedLoadingContext";
@@ -94,6 +95,11 @@ const Home = () => {
 
       {/* Banner Section */}
       <Banner onDataLoaded={handleBannerLoaded} />
+
+      {/* Trending Section */}
+      <div className="container mx-auto px-4 py-8">
+        <TrendingSection compact={true} maxItems={12} className="mb-8" />
+      </div>
 
       {/* Movies Section */}
       <ShowMovies onDataLoaded={handleMoviesLoaded} />

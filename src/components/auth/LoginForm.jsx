@@ -28,77 +28,22 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: loginForm.email,
-            passWord: loginForm.passWord,
-          }),
-        },
-      );
+      const loginResult = await login(loginForm.email, loginForm.passWord);
+      if (!loginResult?.success) {
+        const errorMessage =
+          loginResult?.message || "Đăng nhập thất bại. Vui lòng thử lại.";
 
-      if (!response.ok) {
-        let errorMessage = await response.text();
-
-        // Try to parse as JSON
-        try {
-          const errorData = JSON.parse(errorMessage);
-          if (typeof errorData === "object" && errorData !== null) {
-            // If it's an object with field errors, get the first error message
-            const firstError = Object.values(errorData)[0];
-            errorMessage =
-              typeof firstError === "string"
-                ? firstError
-                : "Đăng nhập thất bại";
-          }
-        } catch (e) {
-          // Not JSON, use as is
-        }
-
-        // Kiểm tra nếu là lỗi IP blocking
         if (errorMessage.includes("IP của bạn đã bị tạm khóa")) {
-          // Parse thời gian còn lại từ message
           const minutesMatch = errorMessage.match(/(\d+) phút/);
           const remainingMinutes = minutesMatch
             ? parseInt(minutesMatch[1])
             : 15;
-
-          // Hiển thị thông báo block và disable form
           showBlockMessage(remainingMinutes);
           disableLoginForm(remainingMinutes);
           return;
         }
 
-        // Fix toast error với proper toast options
-        toast.error(errorMessage, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      }
-
-      // Login thành công
-      const data = await response.json();
-
-      // Lưu tokens và user data vào localStorage
-      if (data.accessToken) localStorage.setItem("jwtToken", data.accessToken);
-      if (data.refreshToken)
-        localStorage.setItem("refreshToken", data.refreshToken);
-      if (data.user || data) {
-        localStorage.setItem("user", JSON.stringify(data.user || data));
-      }
-
-      // Update auth context directly with login data (no need to call checkAuthStatus)
-      const loginResult = await login(loginForm.email, loginForm.passWord);
-      if (!loginResult.success) {
-        throw new Error(loginResult.message);
+        throw new Error(errorMessage);
       }
 
       toast.success("Đăng nhập thành công!", {
@@ -110,13 +55,13 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         draggable: true,
       });
       if (onLoginSuccess) {
-        onLoginSuccess(data.user || data);
+        onLoginSuccess(loginResult.user);
       }
       // Always check user role and navigate accordingly
       const userRole =
-        (data.user || data)?.role?.roleName ||
-        (data.user || data)?.roleName ||
-        (data.user || data)?.role;
+        loginResult?.user?.role?.roleName ||
+        loginResult?.user?.roleName ||
+        loginResult?.user?.role;
       if (userRole === "ADMIN") {
         navigate("/admin");
       } else {

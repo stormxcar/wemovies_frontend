@@ -114,15 +114,13 @@ const Profile = () => {
     setLoading(true);
     try {
       const response = await fetchJson(
-        `/api/redis-watching/current/${user.id}`,
+        `/api/hybrid-watching/watching-list/${user.id}`,
       );
-      setContinueWatchingMovies(response.watchingMovies || []);
+      // Hybrid API returns array directly, not wrapped in object
+      setContinueWatchingMovies(Array.isArray(response) ? response : []);
     } catch (error) {
-      // Handle backend serialization errors gracefully
-      if (
-        error.response?.status === 500 &&
-        error.response?.data?.error?.includes?.("Could not write JSON")
-      ) {
+      // Handle backend errors gracefully
+      if (error.response?.status === 500) {
         setContinueWatchingMovies([]);
         return;
       }

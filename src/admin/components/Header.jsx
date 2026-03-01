@@ -1,18 +1,24 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import { Moon, Sun } from "lucide-react";
 
 // Header Component
 const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { navigateWithLoading } = useLoading();
   const { isDarkMode, toggleTheme, themeClasses } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      window.location.reload();
+      navigateWithLoading("/", {
+        loadingMessage: "Đang đăng xuất...",
+      });
     } catch (error) {}
   };
 

@@ -1,10 +1,16 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
-import { useStartWatching } from "../hooks/useStartWatching";
+import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import { fetchJson } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
 import ReviewSection from "./ReviewSection";
@@ -18,8 +24,6 @@ const Watch = React.memo(() => {
   const { user } = useAuth();
   const { autoPlay } = useSettings();
   const { t } = useTranslation();
-
-  console.log("🎬 Watch component autoPlay setting:", autoPlay);
 
   // Set document title for watching page
   useDocumentTitle(
@@ -41,67 +45,26 @@ const Watch = React.memo(() => {
   const [currentMovieData, setCurrentMovieData] = useState(movieDetail || null);
   const [watchingSession, setWatchingSession] = useState(null);
   const [lastProgressUpdate, setLastProgressUpdate] = useState(0);
+  const [progressBuffer, setProgressBuffer] = useState(null); // Buffer for progress updates before session ready
+  const [sessionReady, setSessionReady] = useState(false); // Track when session setup is complete
+  const [currentViewCount, setCurrentViewCount] = useState(0); // View count for current movie
 
   const {
-    startWatchingMovie,
-    updateWatchingProgress,
-    stopWatchingSession,
-    validateUserSession,
-  } = useStartWatching();
+    startWatching,
+    updateProgress,
+    getResumePosition,
+    startProgressTracking,
+    stopProgressTracking,
+    getViewCount,
+    trackView,
+  } = useWatchingProgress(user);
 
+  // Helper to get user ID
   const getUserId = useCallback((userObj) => {
-    if (userObj) {
-      return (
-        userObj.id ||
-        userObj.email ||
-        userObj.username ||
-        userObj.sub ||
-        userObj.user_id ||
-        null
-      );
-    }
-
-    try {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        return (
-          parsedUser.id ||
-          parsedUser.email ||
-          parsedUser.username ||
-          parsedUser.sub ||
-          parsedUser.user_id ||
-          null
-        );
-      }
-    } catch (error) {}
-
-    try {
-      const token = localStorage.getItem("jwtToken");
-      if (token) {
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split("")
-            .map(function (c) {
-              return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-            })
-            .join(""),
-        );
-        const decoded = JSON.parse(jsonPayload);
-        return (
-          decoded.sub ||
-          decoded.userId ||
-          decoded.id ||
-          decoded.email ||
-          decoded.username ||
-          null
-        );
-      }
-    } catch (error) {}
-
-    return null;
+    if (!userObj) return null;
+    return (
+      userObj.id || userObj.email || userObj.username || userObj.sub || null
+    );
   }, []);
 
   // Fetch related movies
@@ -118,69 +81,105 @@ const Watch = React.memo(() => {
     }
   }, []);
 
+  // Start watching session with hybrid storage
   const startWatchingSession = useCallback(
     async (movieData) => {
       const userId = getUserId(user);
+
+      // Reset session ready flag
+      setSessionReady(false);
+
       if (!userId || !movieData?.id) return;
 
-      const isValidSession = validateUserSession(userId, movieData.id);
-
       try {
-        const sessionResult = await startWatchingMovie(
+        // First check for resume position
+        const resumeInfo = await getResumePosition(movieData.id);
+
+        // Start new watching session
+        const sessionResult = await startWatching(
           movieData.id,
           movieData.title,
-          userId,
           movieData.totalDuration || 7200,
         );
 
-        if (sessionResult?.success) {
-          setWatchingSession(sessionResult);
+        if (sessionResult?.status === "SUCCESS") {
+          setWatchingSession({
+            ...sessionResult,
+            resumeTime: resumeInfo?.resumeTime || 0,
+            isFromResume: resumeInfo?.resumeTime > 0,
+            source: "hybrid",
+          });
 
-          if (sessionResult.resumeTime && sessionResult.resumeTime > 0) {
-            setStartTime(sessionResult.resumeTime);
-          }
+          // Mark session as ready after state update
+          setTimeout(() => {
+            setSessionReady(true);
+          }, 0);
 
           return sessionResult;
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error starting watching session:", error);
+      }
     },
-    [user, startWatchingMovie, validateUserSession],
+    [user, startWatching, getResumePosition, getUserId, startTime],
   );
 
+  // Handle video time updates with throttling
   const handleTimeUpdate = useCallback(
-    async ({ currentTime, duration, percentage }) => {
+    async ({ currentTime, duration }) => {
       if (typeof currentTime !== "number" || typeof duration !== "number") {
+        console.warn("❌ Invalid time update data:", { currentTime, duration });
         return;
       }
 
-      if (currentTime - lastProgressUpdate < 10) return;
+      // If session is not ready yet, buffer the latest progress update
+      if (!sessionReady || !watchingSession) {
+        setProgressBuffer({ currentTime, duration });
+        return;
+      }
 
+      // Throttle updates to every 5 seconds for testing (was 10)
+      if (currentTime - lastProgressUpdate < 5) {
+        return;
+      }
       setLastProgressUpdate(currentTime);
 
-      if (!watchingSession || !currentMovieData) return;
+      if (!currentMovieData) {
+        console.warn("❌ No movie data available");
+        return;
+      }
 
       const userId = getUserId(user);
-      if (!userId) return;
+      if (!userId) {
+        console.warn("❌ No userId available");
+        return;
+      }
 
       try {
-        await updateWatchingProgress(
-          userId,
-          currentMovieData.id,
-          currentTime,
-          duration,
-        );
-      } catch (error) {}
+        await updateProgress(currentMovieData.id, currentTime, duration);
+      } catch (error) {
+        console.error("❌ Error updating progress:", error);
+      }
     },
     [
       watchingSession,
       currentMovieData,
       user,
-      updateWatchingProgress,
+      updateProgress,
       lastProgressUpdate,
       getUserId,
     ],
   );
 
+  // Process buffered progress update when session becomes available
+  useEffect(() => {
+    if (sessionReady && watchingSession && progressBuffer) {
+      handleTimeUpdate(progressBuffer);
+      setProgressBuffer(null); // Clear buffer after processing
+    }
+  }, [sessionReady, watchingSession, progressBuffer, handleTimeUpdate]);
+
+  // Handle video metadata loaded
   const handleVideoLoadedMetadata = useCallback(
     ({ duration }) => {
       if (
@@ -197,17 +196,18 @@ const Watch = React.memo(() => {
     [currentMovieData],
   );
 
+  // Handle video play event
   const handleVideoPlay = useCallback(() => {
-    // Video play handler
+    // Video play handler - no special action needed
   }, []);
 
+  // Handle video pause event
   const handleVideoPause = useCallback(
     async ({ currentTime }) => {
-      if (watchingSession && currentMovieData) {
+      if (watchingSession && currentMovieData && currentTime > 0) {
         const userId = getUserId(user);
         if (userId) {
-          await updateWatchingProgress(
-            userId,
+          await updateProgress(
             currentMovieData.id,
             currentTime,
             currentMovieData.totalDuration || 7200,
@@ -215,38 +215,39 @@ const Watch = React.memo(() => {
         }
       }
     },
-    [
-      watchingSession,
-      currentMovieData,
-      user,
-      updateWatchingProgress,
-      getUserId,
-    ],
+    [watchingSession, currentMovieData, user, updateProgress, getUserId],
   );
 
+  // Handle video ended event
   const handleVideoEnded = useCallback(
     async ({ duration }) => {
-      if (watchingSession && currentMovieData) {
+      if (watchingSession && currentMovieData && duration > 0) {
         const userId = getUserId(user);
         if (userId) {
-          await updateWatchingProgress(
-            userId,
-            currentMovieData.id,
-            duration,
-            duration,
-          );
+          // Mark as completed (100% watched)
+          await updateProgress(currentMovieData.id, duration, duration);
         }
       }
     },
-    [
-      watchingSession,
-      currentMovieData,
-      user,
-      updateWatchingProgress,
-      getUserId,
-    ],
+    [watchingSession, currentMovieData, user, updateProgress, getUserId],
   );
 
+  // Fetch view count for current movie
+  const fetchViewCount = useCallback(
+    async (movieId) => {
+      if (!movieId) return;
+
+      try {
+        const count = await getViewCount(movieId);
+        setCurrentViewCount(count || 0);
+      } catch (error) {
+        console.error("Error fetching view count:", error);
+      }
+    },
+    [getViewCount],
+  );
+
+  // Load movie data and start watching session
   React.useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
@@ -257,20 +258,29 @@ const Watch = React.memo(() => {
           fetchRelatedMovies(data.data.movieCategories[0].name);
         }
 
+        // Start watching session with hybrid storage
         await startWatchingSession(data.data);
-      } catch (error) {}
+
+        // Fetch view count for this movie
+        await fetchViewCount(data.data.id);
+      } catch (error) {
+        console.error("Error fetching movie detail:", error);
+      }
     };
 
-    fetchMovieDetail();
-  }, [id, fetchRelatedMovies, startWatchingSession]);
+    if (id) {
+      fetchMovieDetail();
+    }
+  }, [id, fetchRelatedMovies, startWatchingSession, fetchViewCount]);
 
+  // Cleanup on unmount
   React.useEffect(() => {
     return () => {
       if (currentMovieData?.id) {
-        stopWatchingSession(currentMovieData.id);
+        stopProgressTracking();
       }
     };
-  }, [currentMovieData?.id, stopWatchingSession]);
+  }, [currentMovieData?.id, stopProgressTracking]);
 
   const handleSeeAllMovies = () => {
     navigate("/allmovies", {
@@ -312,11 +322,11 @@ const Watch = React.memo(() => {
           </div>
           <div>
             <p className="text-xl">Watch {currentMovieData.title}</p>
-            {startTime > 0 && (
+            {/* {startTime > 0 && (
               <span className="text-blue-400 text-sm">
                 (Resume from {formatTime(startTime)})
               </span>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -368,90 +378,6 @@ const Watch = React.memo(() => {
             handleVideoEnded,
           ])}
         </div>
-
-        {/* Watching Session Status */}
-        {watchingSession && (
-          <div
-            className={`mb-4 p-3 rounded-lg border ${
-              watchingSession.source === "redis" ||
-              watchingSession.source === "redis-resume" ||
-              watchingSession.source === "redis-new"
-                ? "bg-green-900 border-green-600 text-green-100"
-                : "bg-yellow-900 border-yellow-600 text-yellow-100"
-            }`}
-          >
-            <div className="flex items-center text-sm">
-              <span className="mr-2">
-                {watchingSession.source?.startsWith("redis") ? "☁️" : "💾"}
-              </span>
-              <span className="font-semibold">
-                {watchingSession.source?.startsWith("redis")
-                  ? "Cloud Tracking Active"
-                  : "Local Tracking Active"}
-              </span>
-              <span className="ml-auto">🔄 Progress saved every 10s</span>
-            </div>
-
-            {/* Debug info for resume */}
-            {watchingSession.resumeTime > 0 && (
-              <div className="text-xs mt-1 opacity-75">
-                ⏰ Resuming from: {Math.floor(watchingSession.resumeTime / 60)}m{" "}
-                {Math.floor(watchingSession.resumeTime % 60)}s
-                {watchingSession.source === "redis-resume" && " (from cloud)"}
-              </div>
-            )}
-
-            {watchingSession.source === "local" && (
-              <p className="text-xs mt-1 opacity-75">
-                Note: Progress will sync when cloud service is available
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Video Status Warning */}
-        {currentMovieData.link && (
-          <div className="bg-yellow-900 border border-yellow-600 rounded-lg p-3 mb-4">
-            <div className="flex items-center">
-              <div className="text-yellow-400 mr-2">⚠️</div>
-              <div className="text-sm">
-                <p className="text-yellow-200 font-medium">Video Notice</p>
-                <p className="text-yellow-300">
-                  Video may not be available if link has expired. If you
-                  encounter errors, try refreshing the page or come back later.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Debug Info */}
-        <div className="bg-gray-800 rounded-lg p-3 mb-4">
-          <details className="text-sm">
-            <summary className="text-gray-300 cursor-pointer hover:text-white">
-              🔍 Debug Info (Click to expand)
-            </summary>
-            <div className="mt-2 space-y-1 text-xs text-gray-400">
-              <p>Movie ID: {currentMovieData.id}</p>
-              <p>Title: {currentMovieData.title}</p>
-              <p>Video URL: {currentMovieData.link || "No URL"}</p>
-              <p>Resume Time: {startTime}s</p>
-              <p>Session: {watchingSession?.source || "None"}</p>
-            </div>
-          </details>
-        </div>
-
-        {/* Progress Indicator */}
-        {watchingSession && (
-          <div className="bg-gray-700 rounded-lg p-3 mb-4">
-            <div className="flex justify-between items-center text-sm">
-              <span>Session: {watchingSession.source}</span>
-              <span className="text-blue-400">
-                🔄 Auto-saving progress every 10s
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex mt-8 px-5 w-full">
@@ -480,6 +406,12 @@ const Watch = React.memo(() => {
             <p>
               <strong>Duration:</strong>{" "}
               {formatTime(currentMovieData.totalDuration || 7200)}
+            </p>
+            <p className="flex items-center">
+              <strong>Views:</strong>
+              <span className="ml-2 flex items-center text-blue-400">
+                👁️ {currentViewCount.toLocaleString()}
+              </span>
             </p>
           </div>
         </div>

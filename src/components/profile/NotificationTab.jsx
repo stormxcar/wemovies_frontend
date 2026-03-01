@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaCheck,
@@ -12,10 +13,13 @@ import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 import NotificationService from "../../services/NotificationService";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import Pagination from "../ui/pagination";
 
 const NotificationTab = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { navigateWithLoading } = useLoading();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, unread: 0, read: 0 });
@@ -372,7 +376,9 @@ const NotificationTab = () => {
       if (notification.actionUrl.startsWith("http")) {
         window.open(notification.actionUrl, "_blank");
       } else {
-        window.location.href = notification.actionUrl;
+        navigateWithLoading(notification.actionUrl, {
+          loadingMessage: "Đang mở thông báo...",
+        });
       }
     }
   };

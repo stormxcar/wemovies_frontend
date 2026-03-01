@@ -1,75 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Clock, Play, Trash2 } from "lucide-react";
-import { fetchJson } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
 const ContinueWatchingSection = () => {
-  const [watchingMovies, setWatchingMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
+  const { 
+    watchingList, 
+    isLoading: loading, 
+    error, 
+    removeFromWatching,
+    isAPIAvailable 
+  } = useWatchingProgress(user);
 
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      fetchWatchingData();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user]);
+  // Show only first 6 movies for homepage
+  const watchingMovies = watchingList.slice(0, 6);
 
-  const fetchWatchingData = async () => {
+  const handleRemoveFromWatching = async (movieId) => {
     try {
-      setLoading(true);
-      const response = await fetchJson(
-        `/api/redis-watching/current/${user.id}`,
-      );
-      // Only show first 6 movies for homepage
-      setWatchingMovies((response.watchingMovies || []).slice(0, 6));
+      const success = await removeFromWatching(movieId);
+      if (success) {
+        toast.success(t("continue.removed"));
+      }
     } catch (error) {
-      // Handle backend serialization errors gracefully
-      if (
-        error.response?.status === 500 &&
-        error.response?.data?.error?.includes?.("Could not write JSON")
-      ) {
-        setWatchingMovies([]);
-        return;
-      }
-      // Don't show error toast for 500 errors to avoid spamming
-      if (error.response?.status !== 500) {
-        toast.error(t("continue.error_loading"));
-      }
-      setWatchingMovies([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFromWatching = async (movieId) => {
-    try {
-      await fetchJson(
-        `/api/redis-watching/stop?userId=${user.id}&movieId=${movieId}`,
-        {
-          method: "DELETE",
-        },
-      );
-      toast.success(t("continue.removed"));
-      fetchWatchingData(); // Refresh list
-    } catch (error) {
-      // Handle backend serialization errors gracefully
-      if (
-        error.response?.status === 500 &&
-        error.response?.data?.error?.includes?.("Could not write JSON")
-      ) {
-        toast.error(t("common.error"));
-        return;
-      }
-      if (error.response?.status !== 500) {
-        toast.error(t("common.error"));
-      } else {
-      }
+      toast.error(t("common.error"));
     }
   };
 
@@ -113,6 +71,11 @@ const ContinueWatchingSection = () => {
         <h2 className="text-2xl font-bold text-white flex items-center">
           <Clock className="mr-2 h-6 w-6 text-blue-500" />
           {t("continue.title")}
+          {!isAPIAvailable && (
+            <span className="ml-2 px-2 py-1 bg-yellow-600 bg-opacity-30 border border-yellow-500 rounded text-xs text-yellow-300">
+              Dev Mode
+            </span>
+          )}
         </h2>
         <Link
           to="/profile?tab=watching"
@@ -164,7 +127,7 @@ const ContinueWatchingSection = () => {
               {/* Hover actions */}
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => removeFromWatching(movie.movieId)}
+                  onClick={() => handleRemoveFromWatching(movie.movieId)}
                   className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
                   title="Xóa khỏi danh sách"
                 >

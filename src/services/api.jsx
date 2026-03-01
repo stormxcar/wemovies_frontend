@@ -60,8 +60,7 @@ api.interceptors.response.use(
           // Refresh failed, logout
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("refreshToken");
-
-          window.location.href = "/";
+          localStorage.removeItem("user");
         }
       }
     }

@@ -6,6 +6,7 @@ import NotificationService from "../services/NotificationService";
 
 const AuthContext = createContext({
   user: null,
+  setUser: () => {},
   isAuthenticated: false,
   loading: true,
   login: () => {},
@@ -57,11 +58,6 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
 
       toast.error(`${reason}. Vui lòng đăng nhập lại.`);
-
-      // Redirect to homepage instead of /auth since /auth doesn't exist
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
     },
     [isAuthenticated],
   );
@@ -117,8 +113,7 @@ export const AuthProvider = ({ children }) => {
                 // Request tiếp theo sẽ tự động dùng cookie mới
                 return Promise.resolve(); // Không retry request cũ vì cookie đã được update
               }
-            } catch (refreshError) {
-            }
+            } catch (refreshError) {}
           }
 
           // Tắc tạm auto-logout để debug
@@ -169,8 +164,7 @@ export const AuthProvider = ({ children }) => {
             connectNotificationService(userId, token);
           } else {
           }
-        } catch (error) {
-        }
+        } catch (error) {}
       }
     } else {
       // Disconnect NotificationService when not authenticated
@@ -282,6 +276,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    // Clear auth state immediately to avoid stale UI/account after toast
+    setUser(null);
+    setIsAuthenticated(false);
+    setLoading(false);
+
+    // Disconnect realtime services first
+    NotificationService.disconnect();
+
+    // Clear all possible auth artifacts (local/session storage)
+    const keysToClear = [
+      "jwtToken",
+      "refreshToken",
+      "authToken",
+      "token",
+      "user",
+      "googleUser",
+      "isAuthenticated",
+    ];
+    keysToClear.forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+
+    // Remove default auth header if present
+    try {
+      delete api.defaults.headers.common.Authorization;
+    } catch (error) {}
+
     try {
       // Get current user ID before clearing
       const currentUserId = user?.id || user?.email || user?.sub;
@@ -289,41 +311,29 @@ export const AuthProvider = ({ children }) => {
       // Clear all watching data for this user
       if (currentUserId) {
         try {
-          // Import and use the watching service to clear user data
-          const { useStartWatching } =
-            await import("../hooks/useStartWatching");
-
           // Clear all local storage watching data
           localStorage.removeItem("wemovies_current_session");
           localStorage.removeItem("wemovies_local_watching");
           localStorage.removeItem("wemovies_retry_queue");
-        } catch (watchingError) {
-        }
+          localStorage.removeItem("watchingSessions"); // LocalWatchingService data
+        } catch (watchingError) {}
       }
 
       // Gọi backend logout API
       await api.post("/api/auth/logout");
     } catch (error) {
     } finally {
-      // Disconnect NotificationService
-      NotificationService.disconnect();
-
-      // Clear local storage và state
-      localStorage.removeItem("jwtToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-      setUser(null);
-      setIsAuthenticated(false);
-
       // Clear JWT cookie if present
       try {
         document.cookie =
           "jwtToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+        document.cookie =
+          "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+        document.cookie =
+          "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
       } catch (error) {
         // Ignore cookie clearing errors
       }
-      // Redirect to home or login
-      window.location.href = "/";
     }
   };
 

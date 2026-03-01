@@ -430,7 +430,18 @@ class NotificationService {
         browserNotification.onclick = () => {
           window.focus();
           if (notification.actionUrl) {
-            window.location.href = notification.actionUrl;
+            if (notification.actionUrl.startsWith("http")) {
+              window.open(notification.actionUrl, "_blank");
+            } else {
+              window.dispatchEvent(
+                new CustomEvent("app:navigate", {
+                  detail: {
+                    to: notification.actionUrl,
+                    loadingMessage: "Đang mở thông báo...",
+                  },
+                }),
+              );
+            }
           }
           browserNotification.close();
         };

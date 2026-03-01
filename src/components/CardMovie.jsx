@@ -58,7 +58,7 @@ function CardMovie({ movie }) {
       {/* Expanded Hover Overlay – slide up từ dưới */}
       <div
         className={`
-          absolute inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-end
+          absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col justify-end
           transition-all duration-500 ease-out
           ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12 pointer-events-none"}
           z-20 p-4 sm:p-6

@@ -42,9 +42,10 @@ function Header() {
   const [showUserModal, setShowUserModal] = useState(false);
 
   const navigate = useNavigate();
-  const { user, setUser, logout, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAuthenticated, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
+  const { navigateWithLoading } = useLoading();
 
   // Language toggle handler
   const toggleLanguage = useCallback(() => {
@@ -102,8 +103,9 @@ function Header() {
         movies = response.movies;
       }
 
-      navigate("/search", {
+      navigateWithLoading("/search", {
         state: { movies: movies },
+        loadingMessage: "Đang mở kết quả tìm kiếm...",
       });
     } catch (error) {
       handleApiError(error, "Lỗi khi tìm kiếm phim");
@@ -131,26 +133,19 @@ function Header() {
         return;
       }
 
-      const userInfo = {
-        displayName:
-          userData.displayName || userData.fullName || userData.email || "User",
-        avatarUrl:
-          userData.avatarUrl ||
-          userData.avatar ||
-          "/placeholder-professional.svg",
-        role: userData.role || userData.roleName || "USER",
-      };
-      setUser(userInfo);
-      localStorage.setItem("user", JSON.stringify(userInfo));
       setShowLogin(false);
 
       // Navigate based on user role
       const userRole =
         userData.role?.roleName || userData.roleName || userData.role || "USER";
       if (userRole === "ADMIN") {
-        navigate("/admin");
+        navigateWithLoading("/admin", {
+          loadingMessage: "Đang vào trang quản trị...",
+        });
       } else {
-        navigate("/");
+        navigateWithLoading("/", {
+          loadingMessage: "Đang chuyển về trang chủ...",
+        });
       }
 
       try {
@@ -166,21 +161,26 @@ function Header() {
         handleApiError(error, "Lỗi khi lấy phim yêu thích");
       }
     },
-    [handleApiError],
+    [handleApiError, navigateWithLoading],
   );
 
   const handleLogout = useCallback(async () => {
     try {
       setShowUserModal(false);
+      await logout();
       toast.success("Đăng xuất thành công!");
-      navigate("/");
+      navigateWithLoading("/", {
+        loadingMessage: "Đang đăng xuất...",
+      });
     } catch (error) {
       // Vẫn logout ngay cả khi có lỗi
-      logout();
+      await logout();
       setShowUserModal(false);
-      navigate("/");
+      navigateWithLoading("/", {
+        loadingMessage: "Đang chuyển về trang chủ...",
+      });
     }
-  }, [logout, navigate]);
+  }, [logout, navigateWithLoading]);
 
   // Navigate to movies by category, country, or type
   const navigateToMovies = useCallback(
@@ -204,27 +204,29 @@ function Header() {
           movies = [];
         }
 
-        navigate(`/movies/${name}`, {
+        navigateWithLoading(`/movies/${name}`, {
           state: {
             movies,
             title: name,
           },
+          loadingMessage: `Đang mở danh sách ${name}...`,
         });
         closeModal();
       } catch (error) {
         handleApiError(error, `Lỗi khi tải phim cho ${name}`);
 
         // Navigate anyway with empty movies array to show the page
-        navigate(`/movies/${name}`, {
+        navigateWithLoading(`/movies/${name}`, {
           state: {
             movies: [],
             title: name,
           },
+          loadingMessage: `Đang mở danh sách ${name}...`,
         });
         closeModal();
       }
     },
-    [navigate, handleApiError, closeModal],
+    [navigateWithLoading, handleApiError, closeModal],
   );
 
   return (
@@ -236,12 +238,18 @@ function Header() {
         onClick={closeModal}
       >
         <div className="flex items-center space-x-4 w-full">
-          <a
-            href="/"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigateWithLoading("/", {
+                loadingMessage: "Đang chuyển về trang chủ...",
+              });
+            }}
             className="text-2xl font-bold hover:text-blue-300 transition-colors"
           >
             Wemovies
-          </a>
+          </button>
 
           <MobileMenu
             categories={categories}

@@ -21,7 +21,7 @@ export const useWatchingTracker = (
     try {
       try {
         const resumeResponse = await fetchJson(
-          `/api/redis-watching/resume/${encodeURIComponent(userId)}/${encodeURIComponent(movieId)}`,
+          `/api/hybrid-watching/resume/${encodeURIComponent(userId)}/${encodeURIComponent(movieId)}`,
           { method: "GET" },
         );
 
@@ -49,8 +49,7 @@ export const useWatchingTracker = (
             session: watchingSessionRef.current,
           };
         }
-      } catch (resumeError) {
-      }
+      } catch (resumeError) {}
 
       // 🆕 If no resume info, create NEW session
       const payload = {
@@ -60,7 +59,7 @@ export const useWatchingTracker = (
         totalDuration: Math.round(Number(totalDuration) || 7200),
       };
 
-      const response = await fetchJson("/api/redis-watching/start", {
+      const response = await fetchJson("/api/hybrid-watching/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -114,19 +113,19 @@ export const useWatchingTracker = (
 
     try {
       const payload = {
+        userId,
         movieId,
         currentTime: Math.round(currentTime),
         totalDuration: Math.round(totalDuration),
         ...episodeInfo,
       };
 
-      await fetchJson(`/api/redis-watching/progress?userId=${userId}`, {
-        method: "PUT",
+      await fetchJson("/api/hybrid-watching/update-time", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   // Stop watching session
@@ -135,15 +134,14 @@ export const useWatchingTracker = (
 
     try {
       await fetchJson(
-        `/api/redis-watching/stop?userId=${userId}&movieId=${movieId}`,
+        `/api/hybrid-watching/remove?userId=${userId}&movieId=${movieId}`,
         {
           method: "DELETE",
         },
       );
 
       watchingSessionRef.current = false;
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   // Auto-update interval

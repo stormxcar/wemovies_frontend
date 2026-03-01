@@ -10,6 +10,12 @@ const UnifiedVideoPlayer = ({
   onPause,
   onEnded,
 }) => {
+  // Debug logging for startTime
+  console.log("🎯 UnifiedVideoPlayer props:", {
+    startTime,
+    autoPlay,
+    src: src?.substring(0, 50) + "...",
+  });
   const [playerMode, setPlayerMode] = useState("determining");
   const [error, setError] = useState(null);
   const [shouldAutoPlay, setShouldAutoPlay] = useState(autoPlay);
@@ -51,11 +57,26 @@ const UnifiedVideoPlayer = ({
 
   // Handle ReactPlayer events and forward to parent
   const handleReactPlayerTimeUpdate = (state) => {
-    if (onTimeUpdate && state.playedSeconds) {
-      onTimeUpdate({
-        currentTime: state.playedSeconds,
-        duration: state.loadedSeconds || state.duration || 0,
-      });
+    if (onTimeUpdate && state.playedSeconds > 0) {
+      // Get duration from player internal state or fallback to loadedSeconds
+      const duration =
+        reactPlayerRef.current?.getDuration() ||
+        state.duration ||
+        state.loadedSeconds ||
+        0;
+
+      if (duration > 0) {
+        console.log("📊 Video Progress:", {
+          currentTime: Math.round(state.playedSeconds),
+          duration: Math.round(duration),
+          percentage: Math.round((state.playedSeconds / duration) * 100),
+        });
+
+        onTimeUpdate({
+          currentTime: state.playedSeconds,
+          duration: duration,
+        });
+      }
     }
   };
 
@@ -147,7 +168,8 @@ const UnifiedVideoPlayer = ({
           height="400px"
           controls={true}
           playing={autoPlay}
-          muted={shouldAutoPlay} // Muted required for autoplay in most browsers          onProgress={handleReactPlayerTimeUpdate}
+          muted={shouldAutoPlay} // Muted required for autoplay in most browsers
+          onProgress={handleReactPlayerTimeUpdate}
           onPlay={handleReactPlayerPlay}
           onPause={handleReactPlayerPause}
           onEnded={handleReactPlayerEnded}
@@ -155,6 +177,7 @@ const UnifiedVideoPlayer = ({
             console.log("🎬 Video ready, autoPlay was:", autoPlay);
             // Seek to start time when player is ready
             if (startTime > 0 && reactPlayerRef.current) {
+              console.log("🎯 Seeking to start time:", startTime, "seconds");
               reactPlayerRef.current.seekTo(startTime, "seconds");
             }
             // Try to enable autoplay after ready
@@ -163,31 +186,23 @@ const UnifiedVideoPlayer = ({
               setShouldAutoPlay(true);
             }
           }}
-          onError={(error) => {
-            setError("ReactPlayer failed to load video");
-          }}
+          progressInterval={5000} // Update progress every 5 seconds instead of default 1 second
           config={{
+            youtube: {
+              playerVars: { showinfo: 1 },
+            },
             file: {
               attributes: {
                 crossOrigin: "anonymous",
-                autoPlay: autoPlay,
-                muted: autoPlay, // Mute for autoplay support
-                onTimeUpdate: (e) => {
-                  if (onTimeUpdate) {
-                    onTimeUpdate({
-                      currentTime: e.target.currentTime,
-                      duration: e.target.duration,
-                    });
-                  }
-                },
               },
             },
           }}
+          onError={(error) => {
+            setError("ReactPlayer failed to load video");
+          }}
         />
 
-        <div className="absolute bottom-2 left-2 bg-green-900 bg-opacity-70 text-white px-2 py-1 rounded text-xs">
-          ⚡ ReactPlayer | ✅ Full Tracking
-        </div>
+        
       </div>
     );
   }
@@ -205,13 +220,7 @@ const UnifiedVideoPlayer = ({
           onLoad={handleIframeLoad}
         />
 
-        <div className="absolute bottom-2 left-2 bg-blue-900 bg-opacity-70 text-white px-2 py-1 rounded text-xs">
-          🎭 Iframe Player | ⚠️ Limited Tracking
-        </div>
-
-        <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-yellow-300 px-2 py-1 rounded text-xs">
-          🌐 Streaming Site Player
-        </div>
+      
       </div>
     );
   }

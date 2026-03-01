@@ -119,6 +119,23 @@ export const LoadingProvider = ({ children }) => {
     [navigate, showPageLoading, hidePageLoading],
   );
 
+  useEffect(() => {
+    const handleAppNavigate = (event) => {
+      const to = event?.detail?.to;
+      const loadingMessage = event?.detail?.loadingMessage;
+      if (!to) return;
+
+      navigateWithLoading(to, {
+        loadingMessage: loadingMessage || "Đang chuyển trang...",
+      });
+    };
+
+    window.addEventListener("app:navigate", handleAppNavigate);
+    return () => {
+      window.removeEventListener("app:navigate", handleAppNavigate);
+    };
+  }, [navigateWithLoading]);
+
   // Auto-hide page loading on route change
   useEffect(() => {
     const timer = setTimeout(() => {

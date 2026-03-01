@@ -1,13 +1,17 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useSettings } from "../../context/SettingsContext";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import { useTranslation } from "react-i18next";
 import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsTab = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { navigateWithLoading } = useLoading();
   const { isDarkMode, setTheme, themeClasses } = useTheme();
   const { settings, updateSetting } = useSettings();
   const { t } = useTranslation();
@@ -42,6 +46,9 @@ const SettingsTab = () => {
   const handleLogout = async () => {
     if (window.confirm(t("settings.account.logout_confirm"))) {
       await logout();
+      navigateWithLoading("/", {
+        loadingMessage: "Đang đăng xuất...",
+      });
     }
   };
 

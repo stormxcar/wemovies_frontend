@@ -3,11 +3,14 @@ import { FaBell, FaEye, FaTrash, FaCheck } from "react-icons/fa";
 import NotificationService from "../../services/NotificationService";
 import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useLoading } from "../../context/UnifiedLoadingContext";
 import { toast } from "react-hot-toast";
 
 const NotificationCenter = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { navigateWithLoading } = useLoading();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -245,7 +248,9 @@ const NotificationCenter = () => {
       if (notification.actionUrl.startsWith("http")) {
         window.open(notification.actionUrl, "_blank");
       } else {
-        window.location.href = notification.actionUrl;
+        navigateWithLoading(notification.actionUrl, {
+          loadingMessage: "Đang mở thông báo...",
+        });
       }
     }
 
