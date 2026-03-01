@@ -318,15 +318,30 @@ export const deleteMovie = async (id) => {
     const response = await api.delete(`/api/movies/delete/${id}`);
     return response.data;
   } catch (error) {
+    // log for debugging
+    console.error("[API] deleteMovie failed", {
+      id,
+      status: error?.response?.status,
+      url: error?.config?.url,
+      method: error?.config?.method,
+      response: error?.response?.data,
+      message: error?.message,
+    });
     throw error;
   }
 };
 
 export const deleteCategory = async (id) => {
   try {
+    // Primary endpoint pattern aligned with other admin delete APIs
     const response = await api.delete(`/api/categories/${id}`);
     return response.data;
   } catch (error) {
+    // Backward compatibility fallback for deployments still using old route
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      const fallbackResponse = await api.delete(`/api/categories/${id}`);
+      return fallbackResponse.data;
+    }
     throw error;
   }
 };
@@ -342,9 +357,26 @@ export const deleteCountry = async (id) => {
 
 export const deleteType = async (id) => {
   try {
-    const response = await api.delete(`/api/movie-types/delete/${id}`);
+    const response = await api.delete(`/api/types/${id}`);
     return response.data;
   } catch (error) {
+    if (error?.response?.status === 404 || error?.response?.status === 405) {
+      try {
+        const legacyResponse = await api.delete(
+          `/api/movie-types/delete/${id}`,
+        );
+        return legacyResponse.data;
+      } catch (legacyError) {
+        if (
+          legacyError?.response?.status === 404 ||
+          legacyError?.response?.status === 405
+        ) {
+          const fallbackResponse = await api.delete(`/api/types/${id}`);
+          return fallbackResponse.data;
+        }
+        throw legacyError;
+      }
+    }
     throw error;
   }
 };

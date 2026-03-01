@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
+import { queryClient } from "../../../utils/queryClient";
 
 const AddCountry = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const AddCountry = () => {
     setLoading(true);
     try {
       await api.post("/api/countries/add", formData);
+      await queryClient.invalidateQueries({ queryKey: ["countries"] });
       toast.success("Quốc gia đã được thêm");
       setFormData({ name: "" });
       navigate("/admin/countries");

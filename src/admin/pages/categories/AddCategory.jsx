@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
+import { queryClient } from "../../../utils/queryClient";
 
 const AddCategory = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const AddCategory = () => {
     setLoading(true);
     try {
       await api.post("/api/categories/add", formData);
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast.success("Danh mục đã được thêm");
       setFormData({ name: "" });
       navigate("/admin/categories");

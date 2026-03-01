@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useDocumentTitle from "../../../hooks/useDocumentTitle";
 import api from "../../../services/api";
+import { queryClient } from "../../../utils/queryClient";
 
 const AddType = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const AddType = () => {
     setLoading(true);
     try {
       await api.post("/api/types/add", formData);
+      await queryClient.invalidateQueries({ queryKey: ["types"] });
       toast.success("Loai phim đã được thêm");
       setFormData({ name: "" });
       navigate("/admin/types");

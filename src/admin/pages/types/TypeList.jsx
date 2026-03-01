@@ -11,7 +11,11 @@ import {
   Square,
 } from "lucide-react";
 import api from "../../../services/api";
-import { useTypes, useDeleteType } from "../../../hooks/useAdminQueries";
+import {
+  useTypes,
+  useDeleteType,
+  useMovies,
+} from "../../../hooks/useAdminQueries";
 
 const TypeList = () => {
   const [search, setSearch] = useState("");
@@ -25,14 +29,68 @@ const TypeList = () => {
 
   // Use TanStack Query hooks
   const { data: types = [], isLoading, refetch } = useTypes();
+  const { data: movies = [] } = useMovies();
   const deleteTypeMutation = useDeleteType();
+
+  const logDeleteError = (id, error) => {
+    console.error("[DELETE Type] failed", {
+      id,
+      status: error?.response?.status,
+      url: error?.config?.url,
+      method: error?.config?.method,
+      response: error?.response?.data,
+      message: error?.message,
+    });
+  };
+
+  const enrichedTypes = useMemo(() => {
+    const usageMap = new Map();
+
+    movies.forEach((movie) => {
+      const typeCollections = [movie?.movieTypes, movie?.types].filter(
+        Array.isArray,
+      );
+
+      typeCollections.forEach((collection) => {
+        collection.forEach((typeItem) => {
+          const typeId =
+            typeItem?.id ?? typeItem?.typeId ?? typeItem?.movieTypeId;
+
+          if (!typeId) return;
+
+          if (!usageMap.has(String(typeId))) {
+            usageMap.set(String(typeId), 0);
+          }
+
+          usageMap.set(String(typeId), usageMap.get(String(typeId)) + 1);
+        });
+      });
+    });
+
+    return types.map((type) => {
+      const usageCount = usageMap.get(String(type.id)) || 0;
+
+      return {
+        ...type,
+        usageCount,
+      };
+    });
+  }, [types, movies]);
+
+  const isTypeInUse = (typeId) => {
+    return enrichedTypes.some(
+      (typeItem) =>
+        String(typeItem.id) === String(typeId) &&
+        Number(typeItem.usageCount) > 0,
+    );
+  };
 
   // Handle multi-select
   const handleSelectItem = (itemId) => {
     setSelectedItems((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
+        : [...prev, itemId],
     );
   };
 
@@ -40,7 +98,7 @@ const TypeList = () => {
     setSelectedItems((prev) =>
       prev.length === filteredAndSortedTypes.length
         ? []
-        : filteredAndSortedTypes.map((type) => type.id)
+        : filteredAndSortedTypes.map((type) => type.id),
     );
   };
 
@@ -50,16 +108,36 @@ const TypeList = () => {
 
     if (
       window.confirm(
-        `Bạn có chắc muốn xóa ${selectedItems.length} loại phim đã chọn?`
+        `Bạn có chắc muốn xóa ${selectedItems.length} loại phim đã chọn?`,
       )
     ) {
+      const blockedItems = selectedItems.filter((id) => isTypeInUse(id));
+      const deletableItems = selectedItems.filter((id) => !isTypeInUse(id));
+
+      if (blockedItems.length > 0) {
+        toast.error(
+          `${blockedItems.length} loại phim đang được gán cho phim nên không thể xóa`,
+        );
+      }
+
+      if (deletableItems.length === 0) {
+        return;
+      }
+
       try {
         await Promise.all(
-          selectedItems.map((id) => deleteTypeMutation.mutateAsync(id))
+          deletableItems.map((id) => deleteTypeMutation.mutateAsync(id)),
         );
         setSelectedItems([]);
       } catch (error) {
-        toast.error("Lỗi khi xóa loại phim");
+        logDeleteError("bulk", error);
+        const serverMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.details ||
+          error?.response?.data?.errorMessage ||
+          error?.response?.data?.error ||
+          "Lỗi khi xóa loại phim";
+        toast.error(serverMessage);
       }
     }
   };
@@ -84,9 +162,9 @@ const TypeList = () => {
 
   // Process types with search, filters, and sorting
   const filteredAndSortedTypes = useMemo(() => {
-    let result = types.filter((type) => {
+    let result = enrichedTypes.filter((type) => {
       // Search filter
-      const matchesSearch = type?.name
+      const matchesSearch = `${type?.name || ""} ${type?.slug || ""}`
         ?.toLowerCase()
         .includes(search.toLowerCase());
 
@@ -115,7 +193,7 @@ const TypeList = () => {
     }
 
     return result;
-  }, [types, search, filters, sortField, sortDirection]);
+  }, [enrichedTypes, search, filters, sortField, sortDirection]);
 
   const handleEdit = (type) => {
     setCurrentType({ ...type });
@@ -126,7 +204,7 @@ const TypeList = () => {
     try {
       const response = await api.put(
         `/api/types/update/${currentType.id}`,
-        currentType
+        currentType,
       );
       toast.success("Loại phim đã được cập nhật");
 
@@ -138,16 +216,28 @@ const TypeList = () => {
       toast.error(
         error.response?.data?.message ||
           error.response?.data ||
-          "Lỗi khi cập nhật loại phim"
+          "Lỗi khi cập nhật loại phim",
       );
     }
   };
 
   const handleDelete = async (id) => {
+    if (isTypeInUse(id)) {
+      toast.error("Không thể xóa loại phim vì đang được gán cho phim");
+      return;
+    }
+
     try {
       await deleteTypeMutation.mutateAsync(id);
     } catch (error) {
-      toast.error("Lỗi khi xóa loại phim");
+      logDeleteError(id, error);
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.details ||
+        error?.response?.data?.errorMessage ||
+        error?.response?.data?.error ||
+        "Lỗi khi xóa loại phim";
+      toast.error(serverMessage);
     }
   };
 
@@ -199,7 +289,7 @@ const TypeList = () => {
       {showFilters && (
         <div className="mb-4 p-4 bg-gray-50 rounded border">
           <h3 className="font-semibold mb-2">Bộ lọc nâng cao</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Tên</label>
               <input
@@ -207,6 +297,16 @@ const TypeList = () => {
                 placeholder="Lọc theo tên..."
                 value={filters.name || ""}
                 onChange={(e) => handleFilterChange("name", e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Slug</label>
+              <input
+                type="text"
+                placeholder="Lọc theo slug..."
+                value={filters.slug || ""}
+                onChange={(e) => handleFilterChange("slug", e.target.value)}
                 className="w-full p-2 border rounded"
               />
             </div>
@@ -232,7 +332,8 @@ const TypeList = () => {
 
       {/* Results count */}
       <div className="mb-4 text-sm text-gray-600">
-        Hiển thị {filteredAndSortedTypes.length} / {types.length} loại phim
+        Hiển thị {filteredAndSortedTypes.length} / {enrichedTypes.length} loại
+        phim
       </div>
 
       <table className="w-full border-collapse">
@@ -279,6 +380,34 @@ const TypeList = () => {
                   ))}
               </button>
             </th>
+            <th className="border p-2">
+              <button
+                onClick={() => handleSort("slug")}
+                className="flex items-center gap-1 hover:bg-gray-300 px-2 py-1 rounded"
+              >
+                Slug
+                {sortField === "slug" &&
+                  (sortDirection === "asc" ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  ))}
+              </button>
+            </th>
+            <th className="border p-2">
+              <button
+                onClick={() => handleSort("usageCount")}
+                className="flex items-center gap-1 hover:bg-gray-300 px-2 py-1 rounded"
+              >
+                Đang dùng
+                {sortField === "usageCount" &&
+                  (sortDirection === "asc" ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  ))}
+              </button>
+            </th>
             <th className="border p-2">Hành động</th>
           </tr>
         </thead>
@@ -286,6 +415,12 @@ const TypeList = () => {
           {isLoading
             ? Array.from({ length: 5 }).map((_, index) => (
                 <tr key={`skeleton-${index}`} className="border animate-pulse">
+                  <td className="border p-2">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </td>
+                  <td className="border p-2">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </td>
                   <td className="border p-2">
                     <div className="h-4 bg-gray-200 rounded"></div>
                   </td>
@@ -324,6 +459,18 @@ const TypeList = () => {
                   </td>
                   <td className="border p-2">{type.id}</td>
                   <td className="border p-2">{type.name}</td>
+                  <td className="border p-2">{type.slug || "N/A"}</td>
+                  <td className="border p-2">
+                    {type.usageCount > 0 ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-medium">
+                        {type.usageCount} phim
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">
+                        Chưa gán
+                      </span>
+                    )}
+                  </td>
                   <td className="border p-2">
                     <div className="flex space-x-2">
                       <button
@@ -335,8 +482,13 @@ const TypeList = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(type.id)}
-                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-1"
-                        title="Xóa"
+                        disabled={type.usageCount > 0}
+                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title={
+                          type.usageCount > 0
+                            ? "Không thể xóa vì đang được gán cho phim"
+                            : "Xóa"
+                        }
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>

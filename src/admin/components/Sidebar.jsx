@@ -243,6 +243,14 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
             </li>
             <li>
               <button
+                onClick={() => navigate("/admin/notifications")}
+                className={getButtonClasses("/admin/notifications")}
+              >
+                Thông báo
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => navigate("/admin/settings")}
                 className={getButtonClasses("/admin/settings")}
               >

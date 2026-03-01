@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -9,6 +9,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -41,6 +42,7 @@ const MovieDetail = lazy(() => import("./admin/pages/movies/Detail"));
 const Settings = lazy(() => import("./admin/pages/Settings"));
 const TypeList = lazy(() => import("./admin/pages/types/TypeList"));
 const AdminProfile = lazy(() => import("./admin/pages/Profile"));
+const Notifications = lazy(() => import("./admin/pages/Notifications"));
 
 // Admin pages
 const AddCategory = lazy(() => import("./admin/pages/categories/AddCategory"));
@@ -116,6 +118,86 @@ const AppContent = () => {
 
   const user = { username: "Admin", email: "admin@example.com" };
 
+  const logDeleteError = (entityName, id, error) => {
+    console.error(`[DELETE ${entityName}] failed`, {
+      id,
+      status: error?.response?.status,
+      url: error?.config?.url,
+      method: error?.config?.method,
+      response: error?.response?.data,
+      message: error?.message,
+    });
+  };
+
+  const getDeleteErrorMessage = (error, fallbackMessage) =>
+    error?.response?.data?.message ||
+    error?.response?.data?.details ||
+    error?.response?.data?.errorMessage ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallbackMessage;
+
+  const categoriesWithUsage = useMemo(() => {
+    const usageMap = new Map();
+
+    movies.forEach((movie) => {
+      const categoryCollections = [
+        movie?.movieCategories,
+        movie?.categories,
+      ].filter(Array.isArray);
+
+      categoryCollections.forEach((collection) => {
+        collection.forEach((categoryItem) => {
+          const categoryId =
+            categoryItem?.id ??
+            categoryItem?.categoryId ??
+            categoryItem?.movieCategoryId;
+
+          if (!categoryId) return;
+
+          if (!usageMap.has(String(categoryId))) {
+            usageMap.set(String(categoryId), 0);
+          }
+
+          usageMap.set(
+            String(categoryId),
+            usageMap.get(String(categoryId)) + 1,
+          );
+        });
+      });
+    });
+
+    return categories.map((category) => {
+      const usageCount = usageMap.get(String(category.id)) || 0;
+
+      return {
+        ...category,
+        usageCount,
+      };
+    });
+  }, [categories, movies]);
+
+  const countriesWithUsage = useMemo(() => {
+    const usageMap = new Map();
+
+    movies.forEach((movie) => {
+      const countryId = movie?.country?.id ?? movie?.countryId;
+
+      if (!countryId) return;
+
+      if (!usageMap.has(String(countryId))) {
+        usageMap.set(String(countryId), 0);
+      }
+
+      usageMap.set(String(countryId), usageMap.get(String(countryId)) + 1);
+    });
+
+    return countries.map((country) => ({
+      ...country,
+      usageCount: usageMap.get(String(country.id)) || 0,
+    }));
+  }, [countries, movies]);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -126,7 +208,21 @@ const AppContent = () => {
   const handleDeleteMovie = async (id) => {
     try {
       await deleteMovieMutation.mutateAsync(id);
-    } catch (error) {}
+    } catch (error) {
+      // display server message and log
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Không thể xóa phim";
+      console.error("[DELETE MOVIE] failed", {
+        id,
+        status: error?.response?.status,
+        response: error?.response?.data,
+        msg,
+      });
+      toast.error(msg);
+    }
   };
 
   const handleAddMovie = (data) => {
@@ -143,9 +239,28 @@ const AppContent = () => {
   };
 
   const handleDeleteCategory = async (id) => {
+    const categoryInUse = categoriesWithUsage.some(
+      (categoryItem) =>
+        String(categoryItem.id) === String(id) &&
+        Number(categoryItem.usageCount) > 0,
+    );
+
+    if (categoryInUse) {
+      toast.error("Không thể xóa danh mục vì đang được gán cho phim");
+      return;
+    }
+
     try {
       await deleteCategoryMutation.mutateAsync(id);
-    } catch (error) {}
+      toast.success("Xóa danh mục thành công");
+    } catch (error) {
+      logDeleteError("Category", id, error);
+      const serverMessage = getDeleteErrorMessage(
+        error,
+        "Không thể xóa danh mục",
+      );
+      toast.error(serverMessage);
+    }
   };
 
   const handleAddCategory = (data) => {
@@ -162,9 +277,28 @@ const AppContent = () => {
   };
 
   const handleDeleteCountry = async (id) => {
+    const countryInUse = countriesWithUsage.some(
+      (countryItem) =>
+        String(countryItem.id) === String(id) &&
+        Number(countryItem.usageCount) > 0,
+    );
+
+    if (countryInUse) {
+      toast.error("Không thể xóa quốc gia vì đang được gán cho phim");
+      return;
+    }
+
     try {
       await deleteCountryMutation.mutateAsync(id);
-    } catch (error) {}
+      toast.success("Xóa quốc gia thành công");
+    } catch (error) {
+      logDeleteError("Country", id, error);
+      const serverMessage = getDeleteErrorMessage(
+        error,
+        "Không thể xóa quốc gia",
+      );
+      toast.error(serverMessage);
+    }
   };
 
   const handleAddCountry = (data) => {
@@ -226,6 +360,21 @@ const AppContent = () => {
   const categoryDisplayFields = [
     { key: "id", label: "ID" },
     { key: "name", label: "Tên danh mục" },
+    { key: "slug", label: "Slug" },
+    {
+      key: "usageCount",
+      label: "Đang dùng",
+      render: (value) =>
+        Number(value) > 0 ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-medium">
+            {value} phim
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">
+            Chưa gán
+          </span>
+        ),
+    },
   ];
 
   const categoryFields = [
@@ -240,6 +389,21 @@ const AppContent = () => {
   const countryDisplayFields = [
     { key: "id", label: "ID" },
     { key: "name", label: "Tên quốc gia" },
+    { key: "slug", label: "Slug" },
+    {
+      key: "usageCount",
+      label: "Đang dùng",
+      render: (value) =>
+        Number(value) > 0 ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-medium">
+            {value} phim
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">
+            Chưa gán
+          </span>
+        ),
+    },
   ];
   const countryFields = [
     {
@@ -359,11 +523,11 @@ const AppContent = () => {
               element={
                 <List
                   title="Danh mục"
-                  items={categories}
+                  items={categoriesWithUsage}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
                   onRefresh={refetchCategories}
-                  searchFields={["name"]}
+                  searchFields={["name", "slug"]}
                   displayFields={categoryDisplayFields}
                   keyField="id"
                   isLoading={categoriesLoading}
@@ -390,11 +554,11 @@ const AppContent = () => {
               element={
                 <List
                   title="Quốc gia"
-                  items={countries}
+                  items={countriesWithUsage}
                   onEdit={handleEditCountry}
                   onDelete={handleDeleteCountry}
                   onRefresh={refetchCountries}
-                  searchFields={["name"]}
+                  searchFields={["name", "slug"]}
                   displayFields={countryDisplayFields}
                   keyField="id"
                   isLoading={countriesLoading}
@@ -418,6 +582,7 @@ const AppContent = () => {
             />
             <Route path="types" element={<TypeList />} />
             <Route path="types/add" element={<AddType />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route
               path="users"
               element={

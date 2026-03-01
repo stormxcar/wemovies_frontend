@@ -12,6 +12,7 @@ import {
   fetchJson,
 } from "../../../services/api";
 import api from "../../../services/api";
+import { queryClient } from "../../../utils/queryClient";
 import ImageUpload from "../../../components/ui/ImageUpload";
 
 const AddMovie = () => {
@@ -162,6 +163,7 @@ const AddMovie = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    let payloadPreview = {};
 
     try {
       const formDataToSend = new FormData();
@@ -243,7 +245,20 @@ const AddMovie = () => {
       formData.categoryIds.forEach((id) =>
         formDataToSend.append("categoryIds", id),
       );
-      for (let [key, value] of formDataToSend.entries()) {
+
+      for (const [key, value] of formDataToSend.entries()) {
+        const normalizedValue =
+          value instanceof File
+            ? `[File] name=${value.name}, size=${value.size}`
+            : value;
+
+        if (payloadPreview[key] === undefined) {
+          payloadPreview[key] = normalizedValue;
+        } else if (Array.isArray(payloadPreview[key])) {
+          payloadPreview[key].push(normalizedValue);
+        } else {
+          payloadPreview[key] = [payloadPreview[key], normalizedValue];
+        }
       }
 
       const response = await api.post("/api/movies/add", formDataToSend, {
@@ -255,6 +270,8 @@ const AddMovie = () => {
       toast.success("Phim đã được thêm thành công!");
       setLoading(false);
       setError(null);
+      // invalidate list so the new movie appears immediately
++      await queryClient.invalidateQueries({ queryKey: ["movies"] });
       // Reset form and navigate
       setFormData({
         title: "",
@@ -281,7 +298,25 @@ const AddMovie = () => {
       setBannerData({ type: "url", value: "" });
       navigate("/admin/movies");
     } catch (err) {
-      setError(err.message || "Lỗi khi thêm phim. Vui lòng thử lại.");
+      console.error("[ADD MOVIE] failed", {
+        status: err?.response?.status,
+        url: err?.config?.url,
+        method: err?.config?.method,
+        response: err?.response?.data,
+        payloadPreview,
+        message: err?.message,
+      });
+
+      const serverMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.details ||
+        err?.response?.data?.errorMessage ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Lỗi khi thêm phim. Vui lòng thử lại.";
+
+      setError(serverMessage);
+      toast.error(serverMessage);
       setLoading(false);
     }
   };
