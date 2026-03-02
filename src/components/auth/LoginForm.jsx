@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { ClipLoader } from "react-spinners";
 import { fetchJson } from "../../services/api";
 import ResetPasswordForm from "./ResetPasswordForm";
 
 function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
+  const { t } = useTranslation();
   const { login, isAuthenticated, checkAuthStatus } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: "", passWord: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +33,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       const loginResult = await login(loginForm.email, loginForm.passWord);
       if (!loginResult?.success) {
         const errorMessage =
-          loginResult?.message || "Đăng nhập thất bại. Vui lòng thử lại.";
+          loginResult?.message || t("auth.login_failed_retry");
 
         if (errorMessage.includes("IP của bạn đã bị tạm khóa")) {
           const minutesMatch = errorMessage.match(/(\d+) phút/);
@@ -46,7 +48,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         throw new Error(errorMessage);
       }
 
-      toast.success("Đăng nhập thành công!", {
+      toast.success(t("auth.login_success"), {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -69,18 +71,18 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       }
     } catch (error) {
       // Improved error handling
-      let errorMessage = "Đăng nhập thất bại";
+      let errorMessage = t("auth.login_failed");
 
       if (error.name === "TypeError" && error.message.includes("fetch")) {
-        errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra internet.";
+        errorMessage = t("auth.network_error");
       } else if (error.response) {
         // Server responded with error status
         errorMessage =
           error.response.data?.message ||
-          `Lỗi server: ${error.response.status}`;
+          t("auth.server_error", { status: error.response.status });
       } else if (error.request) {
         // Request made but no response received
-        errorMessage = "Không thể kết nối tới server. Vui lòng thử lại sau.";
+        errorMessage = t("auth.server_unreachable");
       } else if (error.message) {
         // Something else happened
         errorMessage = error.message;
@@ -103,7 +105,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!forgotPasswordEmail.trim()) {
-      toast.error("Vui lòng nhập email", {
+      toast.error(t("auth.forgot.enter_email"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -122,13 +124,10 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         }),
       });
 
-      toast.success(
-        "OTP đã được gửi về email của bạn. Vui lòng kiểm tra hộp thư.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        },
-      );
+      toast.success(t("auth.forgot.otp_sent"), {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
       // Chuyển sang form nhập OTP và reset password
       setResetPasswordEmail(forgotPasswordEmail.trim());
@@ -139,7 +138,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại.";
+        t("auth.forgot.send_otp_error");
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 4000,
@@ -152,7 +151,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     const idToken = credentialResponse.credential;
     if (!idToken) {
-      toast.error("Không nhận được Google ID Token", {
+      toast.error(t("auth.google_no_token"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -198,15 +197,15 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       localStorage.setItem("user", JSON.stringify(userInfo));
 
       if (role === "ADMIN") {
-        toast.success("Đăng nhập Admin bằng Google thành công!");
+        toast.success(t("auth.google_admin_success"));
         onLoginSuccess(userInfo);
         navigate("/admin");
       } else if (role === "USER") {
-        toast.success("Đăng nhập bằng Google thành công!");
+        toast.success(t("auth.google_success"));
         onLoginSuccess(userInfo);
         navigate("/");
       } else {
-        toast.error("Tài khoản Google không hợp lệ hoặc chưa được xác thực", {
+        toast.error(t("auth.google_invalid_account"), {
           position: "top-right",
           autoClose: 4000,
         });
@@ -219,14 +218,14 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       }
     } catch (error) {
       // Extract error message from response
-      let errorMessage = "Đăng nhập bằng Google thất bại";
+      let errorMessage = t("auth.google_login_failed");
 
       // Handle specific backend database error
       if (
         error.response?.data?.accessToken?.includes("pass_word") &&
         error.response?.data?.accessToken?.includes("cannot be null")
       ) {
-        errorMessage = "Lỗi hệ thống";
+        errorMessage = t("common.error");
       } else if (error.response?.data) {
         if (typeof error.response.data === "string") {
           errorMessage = error.response.data;
@@ -236,8 +235,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           error.response.data.accessToken &&
           error.response.data.accessToken.includes("Google login failed")
         ) {
-          errorMessage =
-            "Lỗi backend khi xử lý Google login. Vui lòng thử lại sau.";
+          errorMessage = t("auth.google_backend_failed");
         }
       } else if (error.message) {
         errorMessage = error.message;
@@ -255,14 +253,14 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
   };
 
   const handleGoogleLoginError = () => {
-    toast.error("Đăng nhập bằng Google thất bại", {
+    toast.error(t("auth.google_login_failed"), {
       position: "top-right",
       autoClose: 3000,
     });
   };
 
   const showBlockMessage = (remainingMinutes) => {
-    const message = `IP của bạn đã bị tạm khóa do nhập sai mật khẩu quá nhiều lần. Vui lòng thử lại sau ${remainingMinutes} phút.`;
+    const message = t("auth.block_message", { minutes: remainingMinutes });
     setBlockMessage(message);
     setIsBlocked(true);
   };
@@ -292,10 +290,10 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
           <FaTimes />
         </button>
         <h2 className="text-xl text-white font-semibold mb-4">
-          Đăng nhập ngay
+          {t("auth.login_now")}
         </h2>
         <p className="text-gray-300 mb-6">
-          Nếu bạn chưa có tài khoản,{" "}
+          {t("auth.no_account")}{" "}
           <button
             type="button"
             onClick={(e) => {
@@ -304,7 +302,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             }}
             className="text-blue-300"
           >
-            đăng ký ngay
+            {t("auth.register_now")}
           </button>
         </p>
         <form onSubmit={handleSubmit}>
@@ -319,7 +317,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             onChange={(e) =>
               setLoginForm({ ...loginForm, email: e.target.value })
             }
-            placeholder="Email"
+            placeholder={t("auth.email")}
             disabled={isSubmitting || isBlocked}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -330,7 +328,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             onChange={(e) =>
               setLoginForm({ ...loginForm, passWord: e.target.value })
             }
-            placeholder="Mật khẩu"
+            placeholder={t("auth.password")}
             disabled={isSubmitting || isBlocked}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -343,12 +341,12 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             {isSubmitting ? (
               <>
                 <ClipLoader size={20} color="#000000" className="mr-2" />
-                Đang xử lý...
+                {t("common.loading")}
               </>
             ) : isBlocked ? (
-              "Đang bị khóa"
+              t("auth.locked")
             ) : (
-              "Đăng nhập"
+              t("auth.login_title")
             )}
           </button>
 
@@ -360,7 +358,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               className="text-blue-300 hover:text-blue-200 text-sm underline"
               disabled={isSubmitting || isBlocked}
             >
-              Quên mật khẩu?
+              {t("auth.forgot_password")}
             </button>
           </div>
         </form>
@@ -390,11 +388,11 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               </button>
 
               <h3 className="text-lg text-white font-semibold mb-4">
-                Quên mật khẩu
+                {t("auth.forgot_password")}
               </h3>
 
               <p className="text-gray-300 text-sm mb-4">
-                Nhập email của bạn để nhận OTP đặt lại mật khẩu
+                {t("auth.forgot.description")}
               </p>
 
               <form onSubmit={handleForgotPassword}>
@@ -402,7 +400,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
                   type="email"
                   value={forgotPasswordEmail}
                   onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                  placeholder="Nhập email của bạn"
+                  placeholder={t("auth.forgot.email_placeholder")}
                   disabled={isForgotPasswordSubmitting}
                   className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
                   required
@@ -418,7 +416,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
                     className="flex-1 bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition-colors"
                     disabled={isForgotPasswordSubmitting}
                   >
-                    Hủy
+                    {t("common.cancel")}
                   </button>
 
                   <button
@@ -433,10 +431,10 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
                           color="#000000"
                           className="mr-2"
                         />
-                        Đang gửi...
+                        {t("auth.forgot.sending")}
                       </>
                     ) : (
-                      "Gửi OTP"
+                      t("auth.forgot.send_otp")
                     )}
                   </button>
                 </div>

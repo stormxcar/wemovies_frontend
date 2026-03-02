@@ -3,6 +3,7 @@ import { fetchJson } from "../services/api";
 import api from "../services/api";
 import { toast } from "react-toastify";
 import NotificationService from "../services/NotificationService";
+import { useTranslation } from "react-i18next";
 
 const AuthContext = createContext({
   user: null,
@@ -17,6 +18,7 @@ const AuthContext = createContext({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   // Auto logout function với safeguard
   const autoLogout = React.useCallback(
-    (reason = "Phiên đăng nhập đã hết hạn") => {
+    (reason = t("authContext.session_expired")) => {
       // Tránh multiple logout calls
       if (!isAuthenticated) return;
       localStorage.removeItem("jwtToken");
@@ -57,9 +59,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
 
-      toast.error(`${reason}. Vui lòng đăng nhập lại.`);
+      toast.error(`${reason}. ${t("authContext.login_again")}`);
     },
-    [isAuthenticated],
+    [isAuthenticated, t],
   );
 
   // Kiểm tra token expiration thường xuyên (Tắc tạm)

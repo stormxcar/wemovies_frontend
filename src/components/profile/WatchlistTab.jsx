@@ -1,9 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Heart, Trash2, Play, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import WatchlistButton from "../WatchlistButton";
 
 const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
+  const { t, i18n } = useTranslation();
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -17,17 +19,15 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
       <div className="text-center py-12">
         <div className="text-6xl mb-4">💔</div>
         <h3 className="text-xl font-semibold text-white mb-2">
-          Chưa có phim yêu thích
+          {t("watchlist.empty_title")}
         </h3>
-        <p className="text-gray-400 mb-6">
-          Thêm phim vào danh sách yêu thích để xem lại dễ dàng
-        </p>
+        <p className="text-gray-400 mb-6">{t("watchlist.empty_subtitle")}</p>
         <Link
           to="/"
           className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Heart className="mr-2 h-4 w-4" />
-          Khám phá phim
+          {t("watchlist.discover_movies")}
         </Link>
       </div>
     );
@@ -38,13 +38,13 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-white flex items-center">
           <Heart className="mr-2 h-5 w-5 text-red-500" />
-          Phim yêu thích ({watchlist.length})
+          {t("watchlist.title_with_count", { count: watchlist.length })}
         </h3>
         <button
           onClick={onRefresh}
           className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
         >
-          Làm mới
+          {t("watchlist.refresh")}
         </button>
       </div>
 
@@ -66,7 +66,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                 >
                   <Play className="mr-2 h-4 w-4" />
-                  Xem ngay
+                  {t("movie.watch_now")}
                 </Link>
               </div>
 
@@ -87,14 +87,18 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
                 <div className="flex items-center">
                   <Star className="h-4 w-4 text-yellow-400 mr-1" />
                   <span className="text-yellow-400 text-sm">
-                    {item.movie.rating || "N/A"}
+                    {item.movie.rating || t("home.not_available")}
                   </span>
                 </div>
               </div>
 
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  Thêm vào: {new Date(item.addedAt).toLocaleDateString("vi-VN")}
+                  {t("watchlist.added_on", {
+                    date: new Date(item.addedAt).toLocaleDateString(
+                      i18n.language === "vi" ? "vi-VN" : "en-US",
+                    ),
+                  })}
                 </span>
               </div>
             </div>
@@ -105,7 +109,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
       {/* Pagination or Load More button can be added here */}
       <div className="mt-8 text-center">
         <p className="text-gray-400 text-sm">
-          Hiển thị {watchlist.length} phim yêu thích
+          {t("watchlist.showing_count", { count: watchlist.length })}
         </p>
       </div>
     </div>

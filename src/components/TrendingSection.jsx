@@ -2,6 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFire, FaChevronRight } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import TrendingMovies from "./TrendingMovies";
 import useTrending from "../hooks/useTrending";
 
@@ -11,6 +12,7 @@ const TrendingSection = ({
   showStats = false,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { trendingMovies } = useTrending();
 
@@ -19,7 +21,7 @@ const TrendingSection = ({
       state: {
         category: "trending",
         movies: trendingMovies,
-        title: "Phim Trending",
+        title: t("trending.title"),
         categoryId: "trending",
       },
     });
@@ -31,13 +33,13 @@ const TrendingSection = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white flex items-center">
             <FaFire className="text-orange-500 mr-2" />
-            Phim Trending
+            {t("trending.title")}
           </h2>
           <button
             onClick={handleViewAll}
             className="text-orange-400 hover:text-orange-300 flex items-center text-sm transition-colors"
           >
-            Xem tất cả
+            {t("trending.view_all")}
             <FaChevronRight className="ml-1" />
           </button>
         </div>

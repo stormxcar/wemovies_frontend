@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, Menu, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Sheet,
   SheetContent,
@@ -11,21 +12,22 @@ import {
 import { Button } from "./ui/button";
 
 const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
+  const { t } = useTranslation();
   const [typeSearch, setTypeSearch] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
   const [activeSection, setActiveSection] = useState(null);
 
   const filteredTypes = types.filter((type) =>
-    type.name.toLowerCase().includes(typeSearch.toLowerCase())
+    type.name.toLowerCase().includes(typeSearch.toLowerCase()),
   );
 
   const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(categorySearch.toLowerCase())
+    category.name.toLowerCase().includes(categorySearch.toLowerCase()),
   );
 
   const filteredCountries = countries.filter((country) =>
-    country.name.toLowerCase().includes(countrySearch.toLowerCase())
+    country.name.toLowerCase().includes(countrySearch.toLowerCase()),
   );
 
   return (
@@ -33,7 +35,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden text-white">
           <Menu className="h-6 w-6" />
-          <span className="sr-only">Mở menu</span>
+          <span className="sr-only">{t("mobileMenu.open_menu")}</span>
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -41,9 +43,11 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
         className="w-[300px] bg-gray-900 text-white border-gray-700"
       >
         <SheetHeader>
-          <SheetTitle className="text-white text-left">Menu</SheetTitle>
+          <SheetTitle className="text-white text-left">
+            {t("mobileMenu.title")}
+          </SheetTitle>
           <SheetDescription className="text-gray-400 text-left">
-            Điều hướng trang web và khám phá phim
+            {t("mobileMenu.description")}
           </SheetDescription>
         </SheetHeader>
         <div className="mt-6 space-y-4">
@@ -55,7 +59,9 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
               }
               className="flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-gray-800 transition-colors"
             >
-              <span className="font-medium">Thể loại ({types.length})</span>
+              <span className="font-medium">
+                {t("mobileMenu.types", { count: types.length })}
+              </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
                   activeSection === "types" ? "rotate-180" : ""
@@ -70,7 +76,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Tìm thể loại..."
+                      placeholder={t("mobileMenu.search_types")}
                       value={typeSearch}
                       onChange={(e) => setTypeSearch(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
@@ -92,7 +98,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                           onClick={() => {
                             navigateToMovies(
                               `/api/movies/types/id/${item.id}`,
-                              item.name
+                              item.name,
                             );
                             setActiveSection(null);
                           }}
@@ -102,7 +108,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                       ))
                     ) : (
                       <div className="col-span-2 text-center py-4 text-gray-400 text-sm">
-                        Không tìm thấy thể loại
+                        {t("mobileMenu.no_types")}
                       </div>
                     )}
                   </div>
@@ -113,7 +119,9 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
 
           {/* Category Section */}
           <div className="space-y-2">
-            <div className="font-medium py-2 px-3">Danh mục</div>
+            <div className="font-medium py-2 px-3">
+              {t("mobileMenu.categories")}
+            </div>
             <div className="ml-4 space-y-1">
               <div className="grid grid-cols-2 gap-1">
                 {categories.map((item) => (
@@ -123,7 +131,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                     onClick={() => {
                       navigateToMovies(
                         `/api/movies/category/id/${item.id}`,
-                        item.name
+                        item.name,
                       );
                       setActiveSection(null);
                     }}
@@ -140,12 +148,14 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
             <button
               onClick={() =>
                 setActiveSection((prev) =>
-                  prev === "countries" ? null : "countries"
+                  prev === "countries" ? null : "countries",
                 )
               }
               className="flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-gray-800 transition-colors"
             >
-              <span className="font-medium">Quốc gia ({countries.length})</span>
+              <span className="font-medium">
+                {t("mobileMenu.countries", { count: countries.length })}
+              </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
                   activeSection === "countries" ? "rotate-180" : ""
@@ -160,7 +170,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Tìm quốc gia..."
+                      placeholder={t("mobileMenu.search_countries")}
                       value={countrySearch}
                       onChange={(e) => setCountrySearch(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
@@ -184,7 +194,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                           onClick={() => {
                             navigateToMovies(
                               `/api/movies/country/${item.id}`,
-                              item.name
+                              item.name,
                             );
                             setActiveSection(null);
                           }}
@@ -194,7 +204,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                       ))
                     ) : (
                       <div className="col-span-2 text-center py-4 text-gray-400 text-sm">
-                        Không tìm thấy quốc gia
+                        {t("mobileMenu.no_countries")}
                       </div>
                     )}
                   </div>

@@ -1,8 +1,10 @@
 // hooks/useTrending.js
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import TrendingService from "../services/TrendingService";
 
 export const useTrending = () => {
+  const { t } = useTranslation();
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [trendingStats, setTrendingStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,13 +38,13 @@ export const useTrending = () => {
           throw new Error(result.message || "Failed to fetch trending movies");
         }
       } catch (err) {
-        setError("Không thể tải phim trending");
+        setError(t("trending.errors.fetch_movies"));
         return [];
       } finally {
         setIsLoading(false);
       }
     },
-    [],
+    [t],
   );
 
   // Get trending statistics
@@ -62,10 +64,10 @@ export const useTrending = () => {
         throw new Error(result.message || "Failed to fetch trending stats");
       }
     } catch (err) {
-      setError("Không thể tải thống kê trending");
+      setError(t("trending.errors.fetch_stats"));
       return null;
     }
-  }, []);
+  }, [t]);
 
   // Track trending view (usually called from video player)
   const trackTrendingView = useCallback(async (movieId, userId) => {

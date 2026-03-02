@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
 import { useAuth } from "./context/AuthContext";
@@ -7,22 +8,23 @@ import { useAuth } from "./context/AuthContext";
 const ProtectedRoute = ({ children }) => {
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated || !user) {
-        toast.info("Vui lòng đăng nhập để truy cập trang này!");
+        toast.info(t("route.login_required"));
         navigate("/");
         return;
       }
 
       const userRole = user?.role?.roleName || user?.roleName || user?.role;
       if (userRole !== "ADMIN") {
-        toast.error("Chỉ admin mới có quyền truy cập!");
+        toast.error(t("route.admin_only"));
         navigate("/");
       }
     }
-  }, [user, isAuthenticated, loading, navigate]);
+  }, [user, isAuthenticated, loading, navigate, t]);
 
   if (loading) {
     return (
@@ -46,16 +48,17 @@ const ProtectedRoute = ({ children }) => {
 export const AuthRoute = ({ children }) => {
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated || !user) {
-        toast.error("Vui lòng đăng nhập để truy cập trang này!");
+        toast.error(t("route.login_required"));
         navigate("/");
         return;
       }
     }
-  }, [user, isAuthenticated, loading, navigate]);
+  }, [user, isAuthenticated, loading, navigate, t]);
 
   if (loading)
     return (

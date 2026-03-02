@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFire, FaEye, FaPlay, FaChevronRight, FaSync } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import useTrending from "../hooks/useTrending";
 import useViewTracking from "../hooks/useViewTracking";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +15,7 @@ const TrendingMovies = ({
   maxItems = 6,
   showStats = false,
 }) => {
+  const { t } = useTranslation();
   const [movieDetails, setMovieDetails] = useState({});
   const [refreshing, setRefreshing] = useState(false);
 
@@ -48,7 +50,7 @@ const TrendingMovies = ({
                     category:
                       movie.movieCategories?.[0]?.name ||
                       movie.movieTypes?.[0]?.name ||
-                      "N/A",
+                      t("home.not_available"),
                     year: movie.release_year || movie.year,
                     duration: movie.totalDuration || 7200,
                     description: movie.description || "",
@@ -65,7 +67,7 @@ const TrendingMovies = ({
       setMovieDetails(mappedDetails);
     } catch (error) {
       console.error("Error fetching movie details:", error);
-      toast.error("Không thể tải thông tin phim");
+      toast.error(t("trending.toasts.load_movie_info_failed"));
     }
   };
 
@@ -83,13 +85,13 @@ const TrendingMovies = ({
     clearError();
     await refreshTrending(maxItems);
     setRefreshing(false);
-    toast.success("Đã cập nhật phim trending");
+    toast.success(t("trending.toasts.refreshed"));
   };
 
   const handleWatchMovie = (movieId) => {
     const movie = movieDetails[movieId];
     if (!movie) {
-      toast.error("Không tìm thấy thông tin phim");
+      toast.error(t("trending.toasts.movie_not_found"));
       return;
     }
 
@@ -113,12 +115,12 @@ const TrendingMovies = ({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center">
               <FaFire className="text-orange-500 mr-2" />
-              Phim Trending
+              {t("trending.title")}
             </h2>
             <button
               onClick={handleRefresh}
               className="p-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 hover:text-white transition-colors"
-              title="Thử lại"
+              title={t("trending.retry")}
             >
               <FaSync className="w-3 h-3" />
             </button>
@@ -130,7 +132,7 @@ const TrendingMovies = ({
             onClick={handleRefresh}
             className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded transition-colors"
           >
-            Thử lại
+            {t("trending.retry")}
           </button>
         </div>
       </div>
@@ -162,13 +164,13 @@ const TrendingMovies = ({
         {showTitle && (
           <h2 className="text-xl font-bold mb-4 text-white flex items-center">
             <FaFire className="text-orange-500 mr-2" />
-            Phim Trending
+            {t("trending.title")}
           </h2>
         )}
         <div className="bg-gray-800 rounded-lg p-8 text-center text-gray-400">
           <FaFire className="text-4xl mx-auto mb-4 opacity-50" />
-          <p>Chưa có phim trending</p>
-          <p className="text-sm mt-2">Hệ thống đang tính toán phim phổ biến</p>
+          <p>{t("trending.empty_title")}</p>
+          <p className="text-sm mt-2">{t("trending.empty_subtitle")}</p>
         </div>
       </div>
     );
@@ -180,14 +182,14 @@ const TrendingMovies = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white flex items-center">
             <FaFire className="text-orange-500 mr-2" />
-            Phim Trending ({displayedMovies.length})
+            {t("trending.title_with_count", { count: displayedMovies.length })}
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 hover:text-white transition-colors disabled:opacity-50"
-              title="Cập nhật trending"
+              title={t("trending.refresh_title")}
             >
               <FaSync
                 className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`}
@@ -205,25 +207,33 @@ const TrendingMovies = ({
               <div className="text-2xl font-bold text-orange-300">
                 {trendingStats.totalTrendingMovies || 0}
               </div>
-              <div className="text-orange-100 text-sm">Phim hot</div>
+              <div className="text-orange-100 text-sm">
+                {t("trending.stats.hot_movies")}
+              </div>
             </div>
             <div>
               <div className="text-2xl font-bold text-red-300">
                 {trendingStats.activeHours || 24}h
               </div>
-              <div className="text-red-100 text-sm">Chu kỳ</div>
+              <div className="text-red-100 text-sm">
+                {t("trending.stats.cycle")}
+              </div>
             </div>
             <div>
               <div className="text-2xl font-bold text-yellow-300">
                 {formatViewCount(trendingStats.totalViewsToday || 0)}
               </div>
-              <div className="text-yellow-100 text-sm">Lượt xem hôm nay</div>
+              <div className="text-yellow-100 text-sm">
+                {t("trending.stats.views_today")}
+              </div>
             </div>
             <div>
               <div className="text-2xl font-bold text-pink-300">
                 {trendingStats.topTrendingScore || 0}
               </div>
-              <div className="text-pink-100 text-sm">Điểm trending</div>
+              <div className="text-pink-100 text-sm">
+                {t("trending.stats.trending_score")}
+              </div>
             </div>
           </div>
         </div>
@@ -266,7 +276,7 @@ const TrendingMovies = ({
                   alt={movie.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = "/api/placeholder/300/400";
+                    e.target.src = "/placeholder-professional.svg";
                   }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
@@ -301,7 +311,7 @@ const TrendingMovies = ({
                   className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white text-sm py-2 px-3 rounded flex items-center justify-center gap-2 transition-all"
                 >
                   <FaPlay className="text-xs" />
-                  Xem ngay
+                  {t("trending.watch_now")}
                 </button>
               </div>
             </div>
@@ -320,14 +330,14 @@ const TrendingMovies = ({
                   movies: trendingMovies
                     .map((id) => movieDetails[id])
                     .filter(Boolean),
-                  title: "Phim Trending",
+                  title: t("trending.title"),
                   categoryId: "trending",
                 },
               })
             }
             className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-lg flex items-center gap-2 transition-all mx-auto"
           >
-            Xem tất cả phim trending
+            {t("trending.view_all_trending")}
             <FaChevronRight />
           </button>
         </div>

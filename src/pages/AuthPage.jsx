@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { fetchJson } from "../services/api";
 
 const RegisterForm = ({ setStep, setEmail }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     userName: "",
     passWord: "",
@@ -34,24 +36,24 @@ const RegisterForm = ({ setStep, setEmail }) => {
       const message =
         typeof response === "string"
           ? response
-          : response?.message || "OTP đã được gửi đến email của bạn";
+          : response?.message || t("authPage.toasts.otp_sent");
       toast.success(message);
       setEmail(formData.email);
       setStep("verify");
     } catch (error) {
-      toast.error(error.message || "Lỗi khi gửi OTP");
+      toast.error(error.message || t("authPage.toasts.otp_error"));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Đăng ký</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("auth.register_title")}</h2>
       <input
         type="text"
         name="userName"
         value={formData.userName}
         onChange={handleChange}
-        placeholder="Tên người dùng"
+        placeholder={t("authPage.placeholders.username")}
         className="w-full p-2 border rounded"
         required
       />
@@ -60,7 +62,7 @@ const RegisterForm = ({ setStep, setEmail }) => {
         name="passWord"
         value={formData.passWord}
         onChange={handleChange}
-        placeholder="Mật khẩu"
+        placeholder={t("auth.password")}
         className="w-full p-2 border rounded"
         required
       />
@@ -69,7 +71,7 @@ const RegisterForm = ({ setStep, setEmail }) => {
         name="fullName"
         value={formData.fullName}
         onChange={handleChange}
-        placeholder="Họ và tên"
+        placeholder={t("authPage.placeholders.full_name")}
         className="w-full p-2 border rounded"
         required
       />
@@ -78,7 +80,7 @@ const RegisterForm = ({ setStep, setEmail }) => {
         name="email"
         value={formData.email}
         onChange={handleChange}
-        placeholder="Email"
+        placeholder={t("auth.email")}
         className="w-full p-2 border rounded"
         required
       />
@@ -87,7 +89,7 @@ const RegisterForm = ({ setStep, setEmail }) => {
         name="phoneNumber"
         value={formData.phoneNumber}
         onChange={handleChange}
-        placeholder="Số điện thoại"
+        placeholder={t("authPage.placeholders.phone")}
         className="w-full p-2 border rounded"
         required
       />
@@ -95,13 +97,14 @@ const RegisterForm = ({ setStep, setEmail }) => {
         type="submit"
         className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
-        Gửi OTP
+        {t("auth.forgot.send_otp")}
       </button>
     </form>
   );
 };
 
 const VerifyOtpForm = ({ email, setStep }) => {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {
@@ -109,7 +112,7 @@ const VerifyOtpForm = ({ email, setStep }) => {
     try {
       await fetchJson(
         `/api/auth/verify-otp?email=${encodeURIComponent(
-          email
+          email,
         )}&otp=${encodeURIComponent(otp)}`,
         {
           method: "POST",
@@ -118,19 +121,19 @@ const VerifyOtpForm = ({ email, setStep }) => {
             Accept: "application/json",
           },
           credentials: "include", // Add this for cookie support
-        }
+        },
       );
 
-      toast.success("Xác thực OTP thành công. Vui lòng đăng nhập.");
+      toast.success(t("authPage.toasts.verify_success"));
       setStep("login");
     } catch (error) {
-      toast.error(error.response?.data || "OTP không hợp lệ");
+      toast.error(error.response?.data || t("authPage.toasts.otp_invalid"));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Xác thực OTP</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("authPage.verify_title")}</h2>
       <input
         type="email"
         value={email}
@@ -141,7 +144,7 @@ const VerifyOtpForm = ({ email, setStep }) => {
         type="text"
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
-        placeholder="Nhập mã OTP"
+        placeholder={t("authPage.placeholders.otp")}
         className="w-full p-2 border rounded"
         required
       />
@@ -149,13 +152,14 @@ const VerifyOtpForm = ({ email, setStep }) => {
         type="submit"
         className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
-        Xác thực
+        {t("authPage.verify_button")}
       </button>
     </form>
   );
 };
 
 const LoginForm = () => {
+  const { t } = useTranslation();
   const [formDataLogin, setFormDataLogin] = useState({
     email: "",
     passWord: "",
@@ -185,7 +189,7 @@ const LoginForm = () => {
 
       const loginResponse = await fetchJson("/api/auth/login", options);
       if (!loginResponse) {
-        throw new Error("Login failed: No response data");
+        throw new Error(t("authPage.toasts.login_no_response"));
       }
 
       // Lưu tokens vào localStorage
@@ -204,29 +208,29 @@ const LoginForm = () => {
       // Kiểm tra role từ login response
       const role = loginResponse.user?.role?.roleName;
       if (role === "ADMIN") {
-        toast.success("Đăng nhập Admin thành công!");
+        toast.success(t("auth.google_admin_success"));
         navigate("/admin");
       } else {
-        toast.error("Chỉ admin mới có quyền truy cập!");
+        toast.error(t("route.admin_only"));
 
         // Clear tokens vì không phải admin
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("refreshToken");
       }
     } catch (error) {
-      toast.error(error.message || "Đăng nhập thất bại");
+      toast.error(error.message || t("auth.login_failed"));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Đăng nhập</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("auth.login_title")}</h2>
       <input
         type="email"
         name="email"
         value={formDataLogin.email}
         onChange={handleChange}
-        placeholder="Email"
+        placeholder={t("auth.email")}
         className="w-full p-2 border rounded"
         required
         autoComplete="email" // Added for email field
@@ -236,7 +240,7 @@ const LoginForm = () => {
         name="passWord"
         value={formDataLogin.passWord}
         onChange={handleChange}
-        placeholder="Mật khẩu"
+        placeholder={t("auth.password")}
         className="w-full p-2 border rounded"
         // required
         autoComplete="current-password" // Added to fix warning
@@ -245,13 +249,14 @@ const LoginForm = () => {
         type="submit"
         className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
-        Đăng nhập
+        {t("auth.login_title")}
       </button>
     </form>
   );
 };
 
 const AuthPage = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState("login"); // register, verify, login
   const [email, setEmail] = useState("");
 
@@ -269,7 +274,7 @@ const AuthPage = () => {
               onClick={() => setStep("login")}
               className="text-blue-500 hover:underline"
             >
-              Đã có tài khoản? Đăng nhập
+              {t("auth.have_account")} {t("auth.login_now")}
             </button>
           )}
           {step === "login" && (
@@ -277,7 +282,7 @@ const AuthPage = () => {
               onClick={() => setStep("register")}
               className="text-blue-500 hover:underline"
             >
-              Chưa có tài khoản? Đăng ký
+              {t("auth.no_account")} {t("auth.register_now")}
             </button>
           )}
         </div>

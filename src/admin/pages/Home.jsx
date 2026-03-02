@@ -10,6 +10,7 @@ import {
   fetchUsers as getUsers,
   fetchCountries as getCountries,
   fetchMovieType as getTypes,
+  fetchAdminReportDashboard,
 } from "../../services/api";
 
 // Icons components (you can replace with react-icons if available)
@@ -52,6 +53,7 @@ const Home = () => {
   const [users, setUsers] = useState([]);
   const [countries, setCountries] = useState([]);
   const [types, setTypes] = useState([]);
+  const [reportStats, setReportStats] = useState(null);
   const [error, setError] = useState(null);
   const { setLoading } = useLoading();
 
@@ -68,12 +70,14 @@ const Home = () => {
           usersData,
           countriesData,
           typesData,
+          reportData,
         ] = await Promise.all([
           getCategories(),
           getMovies(),
           getUsers(),
           getCountries(),
           getTypes(),
+          fetchAdminReportDashboard(),
         ]);
 
         setCategories(categoriesData || []);
@@ -81,6 +85,7 @@ const Home = () => {
         setUsers(usersData || []);
         setCountries(countriesData || []);
         setTypes(typesData || []);
+        setReportStats(reportData);
       } catch (error) {
         setError("Không thể tải dữ liệu dashboard");
       } finally {
@@ -113,6 +118,29 @@ const Home = () => {
     (user) => user.role?.roleName === "ADMIN",
   ).length;
 
+  const dashboardMetrics = {
+    totalMovies:
+      reportStats?.totalMovies ?? reportStats?.moviesCount ?? movies.length,
+    totalUsers:
+      reportStats?.totalUsers ?? reportStats?.usersCount ?? users.length,
+    totalCategories:
+      reportStats?.totalCategories ??
+      reportStats?.categoriesCount ??
+      categories.length,
+    totalCountries:
+      reportStats?.totalCountries ??
+      reportStats?.countriesCount ??
+      countries.length,
+    recentMovies:
+      reportStats?.recentMovies ??
+      reportStats?.newMoviesLast30Days ??
+      recentMovies,
+    activeUsers:
+      reportStats?.activeUsers ?? reportStats?.activeUsersCount ?? activeUsers,
+    adminUsers:
+      reportStats?.adminUsers ?? reportStats?.adminUsersCount ?? adminUsers,
+  };
+
   return (
     <div className={`min-h-screen ${themeClasses.primary}`}>
       {/* Header */}
@@ -144,31 +172,31 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Tổng Phim"
-            value={movies.length.toLocaleString()}
+            value={dashboardMetrics.totalMovies.toLocaleString()}
             icon="🎬"
             color="bg-gradient-to-r from-blue-500 to-blue-600"
             link="/admin/movies"
             description="Tổng số phim trong hệ thống"
             trend={
-              recentMovies > 0
-                ? `+${recentMovies} phim mới (30 ngày)`
+              dashboardMetrics.recentMovies > 0
+                ? `+${dashboardMetrics.recentMovies} phim mới (30 ngày)`
                 : "Không có phim mới"
             }
           />
 
           <StatsCard
             title="Người Dùng"
-            value={users.length.toLocaleString()}
+            value={dashboardMetrics.totalUsers.toLocaleString()}
             icon="👥"
             color="bg-gradient-to-r from-green-500 to-green-600"
             link="/admin/users"
-            description={`${activeUsers} đang hoạt động`}
-            trend={`${adminUsers} quản trị viên`}
+            description={`${dashboardMetrics.activeUsers} đang hoạt động`}
+            trend={`${dashboardMetrics.adminUsers} quản trị viên`}
           />
 
           <StatsCard
             title="Danh Mục"
-            value={categories.length.toLocaleString()}
+            value={dashboardMetrics.totalCategories.toLocaleString()}
             icon="📁"
             color="bg-gradient-to-r from-purple-500 to-purple-600"
             link="/admin/categories"
@@ -178,7 +206,7 @@ const Home = () => {
 
           <StatsCard
             title="Quốc Gia"
-            value={countries.length.toLocaleString()}
+            value={dashboardMetrics.totalCountries.toLocaleString()}
             icon="🌍"
             color="bg-gradient-to-r from-orange-500 to-orange-600"
             link="/admin/countries"
@@ -266,21 +294,21 @@ const Home = () => {
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                 <span className="text-gray-700">Phim có sẵn</span>
                 <span className="font-bold text-green-600">
-                  {movies.length} phim
+                  {dashboardMetrics.totalMovies} phim
                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                 <span className="text-gray-700">Thể loại đa dạng</span>
                 <span className="font-bold text-purple-600">
-                  {categories.length} thể loại
+                  {dashboardMetrics.totalCategories} thể loại
                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
                 <span className="text-gray-700">Nguồn quốc gia</span>
                 <span className="font-bold text-orange-600">
-                  {countries.length} quốc gia
+                  {dashboardMetrics.totalCountries} quốc gia
                 </span>
               </div>
             </div>
@@ -303,21 +331,26 @@ const Home = () => {
 
             <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {Math.round((activeUsers / users.length) * 100) || 0}%
+                {Math.round(
+                  (dashboardMetrics.activeUsers /
+                    (dashboardMetrics.totalUsers || 1)) *
+                    100,
+                ) || 0}
+                %
               </div>
               <div className="text-sm text-gray-600">Người dùng hoạt động</div>
             </div>
 
             <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
-                {recentMovies}
+                {dashboardMetrics.recentMovies}
               </div>
               <div className="text-sm text-gray-600">Phim mới (30 ngày)</div>
             </div>
 
             <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
               <div className="text-2xl font-bold text-orange-600">
-                {adminUsers}
+                {dashboardMetrics.adminUsers}
               </div>
               <div className="text-sm text-gray-600">Quản trị viên</div>
             </div>

@@ -11,7 +11,18 @@
     "close": "Đóng",
     "search": "Tìm kiếm",
     "back": "Quay lại",
-    "all": "Tất cả"
+    "all": "Tất cả",
+    "no_data": "Hiện chưa có phim nào !!"
+  },
+  "loading": {
+    "default": "Đang tải...",
+    "page": "Đang tải trang...",
+    "navigate": "Đang chuyển trang...",
+    "app_init": "Khởi tạo ứng dụng...",
+    "check_auth": "Kiểm tra đăng nhập...",
+    "load_ui": "Tải giao diện...",
+    "complete": "Hoàn tất...",
+    "preparing_default": "Đang chuẩn bị ..."
   },
   "header": {
     "search_placeholder": "Tìm kiếm phim...",
@@ -24,7 +35,30 @@
     "profile": "Trang cá nhân",
     "favorites": "Phim yêu thích",
     "continue_watching": "Phim đang xem",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "logout_success": "Đăng xuất thành công!",
+    "loading_admin": "Đang vào trang quản trị...",
+    "loading_home": "Đang chuyển về trang chủ...",
+    "loading_logout": "Đang đăng xuất...",
+    "error_watchlist": "Lỗi khi lấy phim yêu thích",
+    "error_load_data": "Lỗi khi tải dữ liệu",
+    "loading_search_results": "Đang mở kết quả tìm kiếm...",
+    "error_search_movies": "Lỗi khi tìm kiếm phim",
+    "loading_open_list": "Đang mở danh sách {{name}}...",
+    "error_load_movies_for": "Lỗi khi tải phim cho {{name}}",
+    "theme_to_light": "Chuyển sang chế độ sáng",
+    "theme_to_dark": "Chuyển sang chế độ tối",
+    "switch_to_english": "Switch to English",
+    "switch_to_vietnamese": "Chuyển sang Tiếng Việt",
+    "role_user": "Người dùng",
+    "open_search": "Mở tìm kiếm",
+    "loading_open_movie": "Đang mở phim {{title}}...",
+    "dropdown": {
+      "searching": "Đang tìm kết quả liên quan...",
+      "related_results": "Kết quả liên quan",
+      "recent_searches": "Tìm kiếm gần đây",
+      "hot_movies": "Phim hot gợi ý"
+    }
   },
   "navigation": {
     "home": "Trang chủ",
@@ -45,7 +79,55 @@
     "no_account": "Chưa có tài khoản?",
     "have_account": "Đã có tài khoản?",
     "register_now": "Đăng ký ngay",
-    "login_now": "Đăng nhập ngay"
+    "login_now": "Đăng nhập ngay",
+    "locked": "Đang bị khóa",
+    "google_success": "Đăng nhập bằng Google thành công!",
+    "google_admin_success": "Đăng nhập Admin bằng Google thành công!",
+    "google_invalid_account": "Tài khoản Google không hợp lệ hoặc chưa được xác thực",
+    "google_login_failed": "Đăng nhập bằng Google thất bại",
+    "google_backend_failed": "Lỗi backend khi xử lý Google login. Vui lòng thử lại sau.",
+    "google_no_token": "Không nhận được Google ID Token",
+    "login_success": "Đăng nhập thành công!",
+    "login_failed": "Đăng nhập thất bại",
+    "login_failed_retry": "Đăng nhập thất bại. Vui lòng thử lại.",
+    "network_error": "Lỗi kết nối mạng. Vui lòng kiểm tra internet.",
+    "server_error": "Lỗi server: {{status}}",
+    "server_unreachable": "Không thể kết nối tới server. Vui lòng thử lại sau.",
+    "block_message": "IP của bạn đã bị tạm khóa do nhập sai mật khẩu quá nhiều lần. Vui lòng thử lại sau {{minutes}} phút.",
+    "forgot": {
+      "enter_email": "Vui lòng nhập email",
+      "description": "Nhập email của bạn để nhận OTP đặt lại mật khẩu",
+      "email_placeholder": "Nhập email của bạn",
+      "sending": "Đang gửi...",
+      "send_otp": "Gửi OTP",
+      "otp_sent": "OTP đã được gửi về email của bạn. Vui lòng kiểm tra hộp thư.",
+      "send_otp_error": "Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại."
+    },
+    "reset": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Nhập mã OTP đã gửi về email {{email}} và mật khẩu mới",
+      "submit": "Đặt lại mật khẩu",
+      "submitting": "Đang xử lý...",
+      "placeholders": {
+        "otp": "Nhập mã OTP",
+        "new_password": "Mật khẩu mới (ít nhất 6 ký tự)",
+        "confirm_password": "Xác nhận mật khẩu mới"
+      },
+      "errors": {
+        "otp_required": "Vui lòng nhập mã OTP",
+        "new_password_required": "Vui lòng nhập mật khẩu mới",
+        "password_mismatch": "Mật khẩu xác nhận không khớp",
+        "password_min": "Mật khẩu phải có ít nhất 6 ký tự"
+      },
+      "toasts": {
+        "success": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.",
+        "error": "Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại."
+      }
+    }
+  },
+  "route": {
+    "login_required": "Vui lòng đăng nhập để truy cập trang này!",
+    "admin_only": "Chỉ admin mới có quyền truy cập!"
   },
   "profile": {
     "tabs": {
@@ -75,7 +157,13 @@
       "dark_mode": "Chế độ tối",
       "dark_description": "Sử dụng giao diện tối",
       "language": "Ngôn ngữ",
-      "language_description": "Chọn ngôn ngữ hiển thị"
+      "language_description": "Chọn ngôn ngữ hiển thị",
+      "language_options": {
+        "vi": "Tiếng Việt",
+        "en": "English",
+        "zh": "中文",
+        "ja": "日本語"
+      }
     },
     "playback": {
       "title": "Phát video",
@@ -91,7 +179,8 @@
       "title": "Quản lý tài khoản",
       "delete_account": "Yêu cầu xóa tài khoản",
       "logout": "Đăng xuất",
-      "logout_confirm": "Bạn có chắc chắn muốn đăng xuất?"
+      "logout_confirm": "Bạn có chắc chắn muốn đăng xuất?",
+      "contact_admin": "Vui lòng liên hệ quản trị viên để xóa tài khoản"
     },
     "messages": {
       "updated": "Cài đặt đã được cập nhật!",
@@ -99,7 +188,43 @@
       "dark_mode_off": "Đã chuyển sang chế độ sáng!",
       "autoplay_on": "Đã bật tự động phát video!",
       "autoplay_off": "Đã tắt tự động phát video!",
-      "language_changed": "Đã thay đổi ngôn ngữ!"
+      "language_changed": "Đã thay đổi ngôn ngữ!",
+      "feature_in_development": "Tính năng đang được phát triển"
+    },
+    "privacy": {
+      "title": "Lưu ý về quyền riêng tư:",
+      "message": "Tất cả cài đặt của bạn được lưu trữ an toàn và chỉ được sử dụng để cải thiện trải nghiệm của bạn. Chúng tôi không chia sẻ thông tin cá nhân với bên thứ ba."
+    }
+  },
+  "profilePage": {
+    "default_user": "Tên người dùng",
+    "member_since": "Thành viên từ {{year}}",
+    "currently_viewing": "Đang xem",
+    "navigation": "Điều hướng",
+    "active": "Đang mở",
+    "quick_stats": "Thống kê",
+    "favorite_movies": "Phim yêu thích",
+    "watched": "Đã xem",
+    "ratings": "Đánh giá"
+  },
+  "watchLater": {
+    "title": "Danh sách phim",
+    "refresh": "Làm mới",
+    "view_detail": "Xem chi tiết",
+    "remove_schedule": "Xóa lịch xem",
+    "remove_watch_later": "Xóa khỏi xem sau",
+    "tab_watch_later": "Xem sau ({{count}})",
+    "tab_scheduled": "Đã lên lịch ({{count}})",
+    "empty_watch_later_title": "Chưa có phim nào trong danh sách xem sau",
+    "empty_watch_later_subtitle": "Thêm phim vào danh sách xem sau để xem sau này!",
+    "empty_scheduled_title": "Chưa có lịch xem phim nào",
+    "empty_scheduled_subtitle": "Tạo lịch xem phim với thời gian cụ thể!",
+    "toasts": {
+      "load_error": "Có lỗi khi tải danh sách phim!",
+      "removed_watch_later": "Đã xóa khỏi danh sách xem sau!",
+      "remove_movie_error": "Có lỗi xảy ra khi xóa phim!",
+      "removed_schedule": "Đã xóa lịch xem phim!",
+      "remove_schedule_error": "Có lỗi xảy ra khi xóa lịch!"
     }
   },
   "notifications": {
@@ -107,10 +232,112 @@
     "no_notifications": "Không có thông báo mới",
     "mark_as_read": "Đánh dấu đã đọc",
     "mark_all_read": "Đánh dấu tất cả đã đọc",
-    "delete_all": "Xóa tất cả"
+    "delete_all": "Xóa tất cả",
+    "center": {
+      "unread_title": "{{count}} thông báo chưa đọc",
+      "read_all": "Đọc tất cả",
+      "empty_title": "Chưa có thông báo nào",
+      "empty_subtitle": "Thông báo mới sẽ xuất hiện ở đây",
+      "new_badge": "Mới",
+      "read_label": "Đã đọc",
+      "view_all": "Xem tất cả thông báo",
+      "loading_open": "Đang mở thông báo...",
+      "toasts": {
+        "mark_read_failed": "Không thể đánh dấu đã đọc",
+        "mark_all_success": "Đã đánh dấu tất cả là đã đọc!",
+        "generic_error": "Có lỗi xảy ra!"
+      },
+      "time": {
+        "just_now": "Vừa xong",
+        "minutes_ago": "{{count}} phút trước",
+        "hours_ago": "{{count}} giờ trước",
+        "days_ago": "{{count}} ngày trước"
+      }
+    },
+    "tab": {
+      "all_notifications": "Tất cả thông báo",
+      "loading": "Đang tải thông báo...",
+      "loading_open": "Đang mở thông báo...",
+      "search_placeholder": "Tìm theo tiêu đề, nội dung...",
+      "clear_filters": "Xóa bộ lọc",
+      "selected_count": "Đã chọn {{count}} thông báo",
+      "list_title": "Thông báo ({{count}})",
+      "empty_title": "Không có thông báo nào",
+      "empty_subtitle": "Thông báo mới sẽ xuất hiện ở đây",
+      "empty_all_read": "Bạn đã đọc hết thông báo!",
+      "delete_notification": "Xóa thông báo",
+      "confirm_delete_one": "Bạn có chắc muốn xóa thông báo này?",
+      "confirm_delete_selected": "Bạn có chắc muốn xóa {{count}} thông báo?",
+      "filters": {
+        "status": "Trạng thái",
+        "type": "Loại thông báo"
+      },
+      "filter_values": {
+        "all": "Tất cả ({{count}})",
+        "unread": "Chưa đọc ({{count}})",
+        "read": "Đã đọc ({{count}})"
+      },
+      "stats": {
+        "total": "Tổng số",
+        "total_sub": "Tất cả thông báo",
+        "unread": "Chưa đọc",
+        "unread_sub": "Cần xem xét",
+        "read": "Đã đọc",
+        "read_sub": "Đã xử lý"
+      },
+      "type_options": {
+        "all": "Tất cả",
+        "new_episode": "Tập mới",
+        "new_movie": "Phim mới",
+        "reminder": "Nhắc nhở",
+        "recommendation": "Gợi ý",
+        "continue_watching": "Tiếp tục xem",
+        "system": "Hệ thống",
+        "promotion": "Khuyến mãi"
+      },
+      "toasts": {
+        "load_failed": "Không thể tải thông báo",
+        "marked_read": "Đã đánh dấu đã đọc",
+        "marked_selected": "Đã đánh dấu {{count}} thông báo là đã đọc",
+        "marked_all_read": "Đã đánh dấu tất cả là đã đọc",
+        "deleted_selected": "Đã xóa {{count}} thông báo",
+        "deleted_one": "Đã xóa thông báo",
+        "generic_error": "Có lỗi xảy ra"
+      },
+      "time": {
+        "just_now": "Vừa xong",
+        "minutes_ago": "{{count}} phút trước",
+        "hours_ago": "{{count}} giờ trước",
+        "days_ago": "{{count}} ngày trước"
+      }
+    }
+  },
+  "review": {
+    "no_rating": "Chưa có đánh giá",
+    "count": "({{count}} đánh giá)",
+    "cta": "Đánh giá",
+    "user_reviews": "Đánh giá từ người dùng",
+    "user_fallback": "Người dùng",
+    "toasts": {
+      "login_required": "Vui lòng đăng nhập để đánh giá",
+      "rating_required": "Vui lòng chọn số sao",
+      "submit_success": "Đánh giá thành công!",
+      "server_error": "Lỗi server nội bộ - kiểm tra backend logs",
+      "forbidden": "Không có quyền - kiểm tra user role",
+      "unauthorized": "Chưa đăng nhập",
+      "submit_error": "Có lỗi xảy ra khi đánh giá"
+    },
+    "modal": {
+      "title": "Đánh giá phim",
+      "rating": "Số sao:",
+      "comment_optional": "Bình luận (tùy chọn):",
+      "comment_placeholder": "Viết bình luận của bạn...",
+      "submit": "Gửi đánh giá"
+    }
   },
   "movie": {
     "watch_now": "Xem ngay",
+    "view_detail": "Xem chi tiết",
     "add_to_favorites": "Yêu thích",
     "remove_from_favorites": "Bỏ yêu thích",
     "watch_later": "Xem sau",
@@ -124,11 +351,22 @@
     "cast": "Diễn viên"
   },
   "search": {
-    "no_results": "Không tìm thấy phim"
+    "no_results": "Không tìm thấy phim",
+    "explore_title": "Khám phá phim",
+    "suggestion_title": "Gợi ý dành cho bạn",
+    "suggestion_subtitle": "Bạn có thể bắt đầu từ những phim nổi bật và mới cập nhật bên dưới.",
+    "result_for": "Kết quả cho \"{{keyword}}\"",
+    "found_count": "Tìm thấy {{count}} kết quả phù hợp",
+    "popular_now": "Đang được xem nhiều",
+    "newly_updated": "Mới cập nhật",
+    "hot_now": "Phim hot",
+    "by_category": "{{category}} dành cho bạn"
   },
-  "common": {
-    "no_data": "Hiện chưa có phim nào !!",
-    "error": "Lỗi"
+  "banner": {
+    "add_watch_later": "Thêm vào xem sau",
+    "in_watch_later": "Đã thêm vào xem sau",
+    "added_watch_later": "Đã thêm phim vào danh sách xem sau",
+    "already_in_watch_later": "Phim đã có trong danh sách xem sau"
   },
   "notfound": {
     "title": "Trang không tồn tại",
@@ -149,8 +387,471 @@
     "error_loading": "Không thể tải danh sách phim đang xem",
     "removed": "Đã xóa khỏi danh sách đang xem!"
   },
+  "continueWatchingComponent": {
+    "title_with_count": "Tiếp tục xem ({{count}})",
+    "empty_title": "Chưa có phim nào đang xem dở",
+    "empty_subtitle": "Bắt đầu xem phim để thấy tiến trình tại đây",
+    "sync_prefix": "Sync",
+    "sync_from_server": "Đồng bộ từ server",
+    "remove_from_list": "Xóa khỏi danh sách",
+    "source": {
+      "redis": "🔄 Redis",
+      "local": "💾 Local"
+    },
+    "toasts": {
+      "continue_success": "Tiếp tục xem {{title}}",
+      "continue_error": "Không thể tiếp tục xem phim",
+      "removed": "Đã xóa {{title}} khỏi danh sách",
+      "remove_error": "Không thể xóa khỏi danh sách"
+    },
+    "time": {
+      "minutes_ago": "{{count}} phút trước",
+      "hours_ago": "{{count}} giờ trước",
+      "days_ago": "{{count}} ngày trước"
+    },
+    "stats": {
+      "sessions": "{{count}} session(s)",
+      "pending_sync": "{{count}} chờ sync"
+    }
+  },
   "footer": {
+    "slogan": "Phim hay cả ngày",
+    "links": {
+      "faq": "Hỏi Đáp",
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản sử dụng",
+      "about": "Giới thiệu",
+      "contact": "Liên hệ"
+    },
     "description": "Với giao diện thân thiện, kho phim phong phú và tốc độ tải nhanh, chúng tôi sẽ mang đến trải nghiệm giải trí tuyệt vời nhất cho bạn.",
     "copyright": "© 2025 wemovies"
+  },
+  "movieList": {
+    "filter_title": "Bộ lọc",
+    "no_movies_found": "Không có phim nào được tìm thấy",
+    "labels": {
+      "year": "Năm",
+      "movie_type": "Loại phim",
+      "version": "Phiên bản",
+      "production_year": "Năm sản xuất",
+      "sort": "Sắp xếp"
+    },
+    "actions": {
+      "apply_filters": "Lọc kết quả",
+      "reset_filters": "Xóa tất cả bộ lọc"
+    },
+    "pagination": {
+      "page": "Trang"
+    },
+    "sort_options": {
+      "newest": "Mới nhất",
+      "recently_updated": "Mới cập nhật",
+      "views": "Lượt xem",
+      "production_year": "Năm sản xuất"
+    },
+    "version_options": {
+      "sub": "Phụ đề",
+      "dubbed": "Lồng tiếng",
+      "voiceover": "Thuyết minh"
+    },
+    "country_options": {
+      "uk": "Anh",
+      "canada": "Canada",
+      "korea": "Hàn Quốc",
+      "hong_kong": "Hồng Kông",
+      "usa": "Mỹ",
+      "japan": "Nhật Bản",
+      "france": "Pháp",
+      "thailand": "Thái Lan",
+      "china": "Trung Quốc",
+      "australia": "Úc",
+      "taiwan": "Đài Loan",
+      "germany": "Đức"
+    }
+  },
+  "register": {
+    "title": "Tạo tài khoản mới",
+    "have_account": "Nếu bạn đã có tài khoản,",
+    "login_link": "đăng nhập",
+    "submit": "Đăng ký",
+    "submitting": "Đang xử lý...",
+    "placeholders": {
+      "username": "Tên hiển thị",
+      "fullname": "Tên đầy đủ",
+      "phone": "Số điện thoại",
+      "password": "Mật khẩu"
+    },
+    "errors": {
+      "username_required": "Tên đăng nhập không được để trống",
+      "username_min": "Tên đăng nhập phải có ít nhất 3 ký tự",
+      "password_required": "Mật khẩu không được để trống",
+      "password_invalid": "Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 số và 1 ký tự đặc biệt, tối thiểu 8 ký tự",
+      "fullname_required": "Họ tên không được để trống",
+      "email_required": "Email không được để trống",
+      "email_domain": "Chỉ chấp nhận email từ gmail.com, yahoo.com hoặc outlook.com",
+      "phone_required": "Số điện thoại không được để trống",
+      "phone_invalid": "Số điện thoại phải có đúng 10 chữ số"
+    },
+    "toasts": {
+      "server_sleep_warning": "⚠️ Lưu ý: Server miễn phí có thể sleep và cần 1-2 phút để khởi động. Hệ thống sẽ tự động thử lại nếu cần!",
+      "connecting": "Đang kết nối đến server... Hệ thống sẽ tự động retry nếu timeout!",
+      "otp_sent": "OTP đã được gửi đến email của bạn",
+      "send_otp_error": "Lỗi khi gửi OTP",
+      "otp_verify_success": "Xác thực OTP thành công. Vui lòng đăng nhập.",
+      "otp_invalid": "OTP không hợp lệ"
+    },
+    "otp": {
+      "title": "Xác thực OTP",
+      "placeholder": "Nhập mã OTP",
+      "verifying": "Đang xác thực...",
+      "submit": "Xác thực"
+    }
+  },
+  "trending": {
+    "title": "Phim Trending",
+    "title_with_count": "Phim Trending ({{count}})",
+    "retry": "Thử lại",
+    "refresh_title": "Cập nhật trending",
+    "empty_title": "Chưa có phim trending",
+    "empty_subtitle": "Hệ thống đang tính toán phim phổ biến",
+    "watch_now": "Xem ngay",
+    "view_all": "Xem tất cả",
+    "view_all_trending": "Xem tất cả phim trending",
+    "stats": {
+      "hot_movies": "Phim hot",
+      "cycle": "Chu kỳ",
+      "views_today": "Lượt xem hôm nay",
+      "trending_score": "Điểm trending"
+    },
+    "toasts": {
+      "load_movie_info_failed": "Không thể tải thông tin phim",
+      "refreshed": "Đã cập nhật phim trending",
+      "movie_not_found": "Không tìm thấy thông tin phim"
+    },
+    "errors": {
+      "fetch_movies": "Không thể tải phim trending",
+      "fetch_stats": "Không thể tải thống kê trending",
+      "track_view": "Không thể theo dõi lượt xem",
+      "fetch_views": "Không thể lấy số lượt xem"
+    }
+  },
+  "watchlist": {
+    "empty_title": "Chưa có phim yêu thích",
+    "empty_subtitle": "Thêm phim vào danh sách yêu thích để xem lại dễ dàng",
+    "discover_movies": "Khám phá phim",
+    "title_with_count": "Phim yêu thích ({{count}})",
+    "refresh": "Làm mới",
+    "added_on": "Thêm vào: {{date}}",
+    "showing_count": "Hiển thị {{count}} phim yêu thích"
+  },
+  "watchlistButton": {
+    "toasts": {
+      "login_required": "Vui lòng đăng nhập để sử dụng tính năng này",
+      "removed": "Đã xóa khỏi danh sách yêu thích",
+      "added": "Đã thêm vào danh sách yêu thích",
+      "error": "Có lỗi xảy ra. Vui lòng thử lại"
+    },
+    "titles": {
+      "remove": "Xóa khỏi yêu thích",
+      "add": "Thêm vào yêu thích"
+    },
+    "labels": {
+      "liked": "Đã thích",
+      "favorite": "Yêu thích"
+    }
+  },
+  "watchingHistory": {
+    "title": "Phim đang xem",
+    "untitled_movie": "Không có tên",
+    "loading": "Đang tải danh sách phim...",
+    "error_title": "Có lỗi xảy ra",
+    "refresh": "Làm mới",
+    "discover_movies": "Khám phá phim",
+    "episode": "Tập {{current}} / {{total}}",
+    "last_watched": "Xem lần cuối: {{time}}",
+    "start_watching": "Bắt đầu xem",
+    "continue": "Tiếp tục",
+    "mark_completed": "Đánh dấu hoàn thành",
+    "remove_from_list": "Xóa khỏi danh sách",
+    "debug_title": "Debug thông tin trong Console",
+    "empty_title": "Chưa có phim nào đang xem",
+    "empty_subtitle": "Bắt đầu xem phim để theo dõi tiến trình của bạn",
+    "stats": {
+      "title": "Thống kê xem phim",
+      "watching": "Đang xem",
+      "total_time": "Tổng thời gian",
+      "avg_progress": "TB tiến trình"
+    },
+    "progress": {
+      "almost_done": "Sắp xong",
+      "watching": "Đang xem",
+      "following": "Đang theo dõi",
+      "just_started": "Mới bắt đầu",
+      "initialized": "Vừa khởi tạo"
+    },
+    "time": {
+      "yesterday": "Hôm qua",
+      "days_ago": "{{count}} ngày trước",
+      "weeks_ago": "{{count}} tuần trước"
+    },
+    "toasts": {
+      "refreshed": "Đã làm mới danh sách phim!",
+      "refresh_error": "Có lỗi khi làm mới dữ liệu",
+      "removed": "Đã xóa khỏi danh sách đang xem!",
+      "completed": "Đã đánh dấu hoàn thành!",
+      "debug_logged": "Debug info logged to console!"
+    },
+    "errors": {
+      "user_not_found": "Không thể xác định người dùng",
+      "load_failed": "Không thể tải danh sách phim đang xem",
+      "unknown": "Lỗi không xác định",
+      "remove_failed": "Không thể xóa khỏi danh sách: {{message}}",
+      "remove_exception": "Có lỗi xảy ra khi xóa phim!",
+      "complete_failed": "Không thể đánh dấu hoàn thành: {{message}}",
+      "complete_exception": "Có lỗi xảy ra khi đánh dấu hoàn thành!"
+    }
+  },
+  "profileTab": {
+    "member": "Thành viên",
+    "change_avatar": "Thay đổi avatar",
+    "change_password": "Đổi mật khẩu",
+    "personal_info": "Thông tin cá nhân",
+    "full_name": "Họ và tên",
+    "email_immutable": "Email không thể thay đổi",
+    "phone": "Số điện thoại",
+    "gender": "Giới tính",
+    "gender_select": "Chọn giới tính",
+    "birth_date": "Ngày sinh",
+    "address": "Địa chỉ",
+    "saving": "Đang lưu...",
+    "save_changes": "Lưu thay đổi",
+    "current_password": "Mật khẩu hiện tại",
+    "new_password": "Mật khẩu mới",
+    "confirm_new_password": "Xác nhận mật khẩu mới",
+    "changing_password": "Đang đổi mật khẩu...",
+    "statistics": "Thống kê",
+    "select_new_image": "Chọn ảnh mới",
+    "avatar_note": "Dung lượng tối đa: 5MB. Định dạng: JPG, PNG, GIF",
+    "uploading": "Đang upload...",
+    "upload": "Upload",
+    "placeholders": {
+      "full_name": "Nhập họ và tên",
+      "phone": "Nhập số điện thoại",
+      "birth_date": "dd/MM/yyyy (ví dụ: 12/12/2004)",
+      "address": "Nhập địa chỉ",
+      "current_password": "Nhập mật khẩu hiện tại",
+      "new_password": "Nhập mật khẩu mới",
+      "confirm_new_password": "Nhập lại mật khẩu mới"
+    },
+    "gender_options": {
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác"
+    },
+    "stats": {
+      "movies_watched": "Phim đã xem",
+      "favorites": "Yêu thích",
+      "watching": "Đang xem",
+      "watch_time": "Thời gian xem"
+    },
+    "validation": {
+      "name_required": "Họ và tên không được để trống",
+      "name_min": "Họ và tên phải có ít nhất 2 ký tự",
+      "name_max": "Họ và tên không được dài quá 100 ký tự",
+      "phone_invalid": "Số điện thoại không hợp lệ (VD: 0123456789)",
+      "birth_format": "Ngày sinh phải có format dd/MM/yyyy",
+      "birth_format_example": "Ngày sinh phải có format dd/MM/yyyy (ví dụ: 12/12/2004)",
+      "birth_min_age": "Bạn phải từ đủ 13 tuổi trở lên",
+      "birth_invalid": "Ngày sinh không hợp lệ",
+      "address_max": "Địa chỉ không được dài quá 255 ký tự",
+      "current_password_required": "Vui lòng nhập mật khẩu hiện tại",
+      "new_password_required": "Vui lòng nhập mật khẩu mới",
+      "new_password_min": "Mật khẩu phải có ít nhất 6 ký tự",
+      "new_password_complexity": "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số",
+      "confirm_password_required": "Vui lòng xác nhận mật khẩu mới",
+      "confirm_password_mismatch": "Mật khẩu xác nhận không khớp"
+    },
+    "toasts": {
+      "load_failed": "Không thể tải thông tin profile",
+      "fix_form_before_save": "Vui lòng sửa các lỗi trong form trước khi lưu",
+      "update_success": "Cập nhật thông tin thành công!",
+      "generic_error_retry": "Có lỗi xảy ra. Vui lòng thử lại!",
+      "fix_password_form": "Vui lòng sửa các lỗi trong form trước khi đổi mật khẩu",
+      "password_changed": "Đổi mật khẩu thành công!",
+      "avatar_size_limit": "File ảnh phải nhỏ hơn 5MB",
+      "avatar_invalid_type": "Vui lòng chọn file ảnh hợp lệ",
+      "choose_avatar_first": "Vui lòng chọn ảnh trước",
+      "avatar_upload_success": "Upload avatar thành công!",
+      "avatar_upload_failed": "Có lỗi xảy ra khi upload avatar"
+    }
+  },
+  "movieDetail": {
+    "page_title": "Chi tiết phim",
+    "loading_message": "Đang tải thông tin phim...",
+    "viet_sub": "Việt Sub",
+    "watch_movie": "Xem phim",
+    "added": "Đã thêm",
+    "share": "Chia sẻ",
+    "share_text": "Xem phim {{title}}",
+    "detail_content": "Nội dung chi tiết",
+    "description": "Mô tả",
+    "duration_minutes": "{{value}} phút",
+    "scheduled": "Đã lên lịch",
+    "schedule_watch": "Lên lịch xem",
+    "episode": "Tập {{number}}",
+    "related_movies": "Phim liên quan",
+    "schedule_modal": {
+      "title": "Lên lịch xem phim",
+      "watch_time": "Thời gian xem:",
+      "notes_optional": "Ghi chú (tùy chọn):",
+      "notes_placeholder": "Ghi chú cho lịch xem...",
+      "remind_30m": "Nhắc nhở trước 30 phút",
+      "create": "Tạo lịch xem"
+    },
+    "toasts": {
+      "login_required_schedule": "Vui lòng đăng nhập để tạo lịch xem",
+      "schedule_created": "Tạo lịch xem thành công!",
+      "schedule_create_error": "Có lỗi xảy ra khi tạo lịch xem",
+      "login_required_feature": "Vui lòng đăng nhập để sử dụng tính năng này",
+      "removed_watch_later": "Đã xóa khỏi danh sách xem sau!",
+      "generic_error_retry": "Có lỗi xảy ra. Vui lòng thử lại!",
+      "link_copied": "Link đã được sao chép vào clipboard"
+    }
+  },
+  "mobileMenu": {
+    "open_menu": "Mở menu",
+    "title": "Menu",
+    "description": "Điều hướng trang web và khám phá phim",
+    "types": "Thể loại ({{count}})",
+    "categories": "Danh mục",
+    "countries": "Quốc gia ({{count}})",
+    "search_types": "Tìm thể loại...",
+    "search_countries": "Tìm quốc gia...",
+    "no_types": "Không tìm thấy thể loại",
+    "no_countries": "Không tìm thấy quốc gia"
+  },
+  "continueSection": {
+    "remove": "Xóa khỏi danh sách",
+    "continue": "Tiếp tục",
+    "episode": "Tập {{current}}/{{total}}",
+    "progress": {
+      "almost_done": "Sắp xong",
+      "watching": "Đang xem",
+      "following": "Đang theo dõi",
+      "just_started": "Mới bắt đầu",
+      "initialized": "Vừa khởi tạo"
+    }
+  },
+  "authContext": {
+    "session_expired": "Phiên đăng nhập đã hết hạn",
+    "login_again": "Vui lòng đăng nhập lại"
+  },
+  "watchingProgress": {
+    "errors": {
+      "load_watching_list": "Không thể tải danh sách phim đang xem",
+      "login_required": "Yêu cầu đăng nhập để theo dõi tiến độ xem",
+      "start_watching": "Không thể bắt đầu xem phim",
+      "mark_completed": "Không thể đánh dấu hoàn thành",
+      "remove_movie": "Không thể xóa phim"
+    },
+    "toasts": {
+      "started": "Bắt đầu xem: {{movieTitle}}",
+      "start_failed": "Không thể bắt đầu phiên xem",
+      "mark_completed_success": "Đã đánh dấu hoàn thành",
+      "mark_completed_failed": "Không thể đánh dấu hoàn thành",
+      "removed": "Đã xóa khỏi danh sách",
+      "remove_failed": "Không thể xóa khỏi danh sách"
+    }
+  },
+  "watchingList": {
+    "loading": "Đang tải...",
+    "load_error_title": "Lỗi tải dữ liệu",
+    "retry": "Thử lại",
+    "empty_title": "Chưa có phim nào đang xem",
+    "empty_subtitle": "Bắt đầu xem phim để chúng xuất hiện ở đây",
+    "sync_data": "Đồng bộ dữ liệu",
+    "mark_completed": "Đánh dấu hoàn thành",
+    "remove_from_list": "Xóa khỏi danh sách",
+    "continue": "Tiếp tục",
+    "confirm_mark_completed": "Đánh dấu phim này là đã xem hoàn thành?",
+    "confirm_remove": "Xóa \"{{movieTitle}}\" khỏi danh sách đang xem?",
+    "episode": "Tập {{current}}/{{total}}",
+    "time": {
+      "minutes_ago": "{{count}} phút trước",
+      "hours_ago": "{{count}} giờ trước"
+    },
+    "progress": {
+      "almost_done": "Sắp hoàn thành",
+      "watched_most": "Đã xem nhiều",
+      "halfway": "Đã xem một nửa",
+      "just_started": "Mới bắt đầu xem",
+      "initialized": "Vừa khởi tạo"
+    },
+    "stats": {
+      "sessions": "📊 {{count}} phiên",
+      "completed": "✅ {{count}} hoàn thành"
+    }
+  },
+  "authPage": {
+    "verify_title": "Xác thực OTP",
+    "verify_button": "Xác thực",
+    "placeholders": {
+      "username": "Tên người dùng",
+      "full_name": "Họ và tên",
+      "phone": "Số điện thoại",
+      "otp": "Nhập mã OTP"
+    },
+    "toasts": {
+      "otp_sent": "OTP đã được gửi đến email của bạn",
+      "otp_error": "Lỗi khi gửi OTP",
+      "verify_success": "Xác thực OTP thành công. Vui lòng đăng nhập.",
+      "otp_invalid": "OTP không hợp lệ",
+      "login_no_response": "Đăng nhập thất bại: Không có phản hồi"
+    }
+  },
+  "imageUpload": {
+    "upload_file": "Tải tệp",
+    "enter_url": "Nhập URL ảnh...",
+    "choose_file": "Chọn file",
+    "no_file_selected": "Chưa chọn file",
+    "errors": {
+      "file_too_large": "Kích thước tệp phải nhỏ hơn {{maxSizeMB}}MB",
+      "invalid_file_type": "Vui lòng chọn tệp ảnh hợp lệ",
+      "cannot_load_image": "Không thể tải ảnh. Vui lòng kiểm tra URL."
+    }
+  },
+  "home": {
+    "title": "Trang chủ",
+    "view_all": "Xem tất cả",
+    "featured_prefix": "Nổi bật",
+    "featured_movie_fallback": "Phim nổi bật",
+    "not_available": "N/A",
+    "views": "lượt xem",
+    "rating": "Đánh giá",
+    "reviews": "đánh giá",
+    "points": "điểm",
+    "featured": "Nổi bật",
+    "not_featured": "Không nổi bật",
+    "preparing_content": "Đang chuẩn bị nội dung...",
+    "loading": {
+      "banner": "Đang tải banner...",
+      "preparing_home": "Đang chuẩn bị trang chủ",
+      "finishing_ui": "Hoàn thiện giao diện...",
+      "completed": "Hoàn thành!"
+    },
+    "sections": {
+      "by_category": "Khám phá theo thể loại",
+      "by_country": "Khám phá theo quốc gia",
+      "user_highlights": "Đánh giá nổi bật từ người dùng",
+      "community_reviews": "Review nổi bật từ cộng đồng",
+      "top10_chart": "Biểu đồ Top 10 phim nổi bật"
+    },
+    "buttons": {
+      "view_top_rated_movie": "Xem phim được đánh giá cao",
+      "view_movie": "Xem phim"
+    },
+    "defaults": {
+      "positive_review": "Người dùng đánh giá tích cực cho bộ phim này."
+    }
   }
 }

@@ -1,6 +1,7 @@
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { toast } from "react-hot-toast";
+import i18n from "../i18n";
 
 class NotificationService {
   constructor() {
@@ -437,7 +438,7 @@ class NotificationService {
                 new CustomEvent("app:navigate", {
                   detail: {
                     to: notification.actionUrl,
-                    loadingMessage: "Đang mở thông báo...",
+                    loadingMessage: i18n.t("notifications.center.loading_open"),
                   },
                 }),
               );

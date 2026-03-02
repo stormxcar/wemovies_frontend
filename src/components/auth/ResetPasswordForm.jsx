@@ -3,8 +3,10 @@ import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
 import { fetchJson } from "../../services/api";
+import { useTranslation } from "react-i18next";
 
 function ResetPasswordForm({ onClose, userEmail }) {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,7 +16,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
     e.preventDefault();
 
     if (!otp.trim()) {
-      toast.error("Vui lòng nhập mã OTP", {
+      toast.error(t("auth.reset.errors.otp_required"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -22,7 +24,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
     }
 
     if (!newPassword.trim()) {
-      toast.error("Vui lòng nhập mật khẩu mới", {
+      toast.error(t("auth.reset.errors.new_password_required"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -30,7 +32,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp", {
+      toast.error(t("auth.reset.errors.password_mismatch"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -38,7 +40,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
     }
 
     if (newPassword.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự", {
+      toast.error(t("auth.reset.errors.password_min"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -47,7 +49,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetchJson("/api/auth/reset-password", {
+      await fetchJson("/api/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +61,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
         }),
       });
 
-      toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.", {
+      toast.success(t("auth.reset.toasts.success"), {
         position: "top-right",
         autoClose: 4000,
       });
@@ -69,7 +71,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại.";
+        t("auth.reset.toasts.error");
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 4000,
@@ -90,12 +92,11 @@ function ResetPasswordForm({ onClose, userEmail }) {
         </button>
 
         <h3 className="text-lg text-white font-semibold mb-4">
-          Đặt lại mật khẩu
+          {t("auth.reset.title")}
         </h3>
 
         <p className="text-gray-300 text-sm mb-4">
-          Nhập mã OTP đã gửi về email{" "}
-          <span className="text-yellow-400">{userEmail}</span> và mật khẩu mới
+          {t("auth.reset.description", { email: userEmail })}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -103,7 +104,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
             type="text"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Nhập mã OTP"
+            placeholder={t("auth.reset.placeholders.otp")}
             maxLength="6"
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
@@ -114,7 +115,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Mật khẩu mới (ít nhất 6 ký tự)"
+            placeholder={t("auth.reset.placeholders.new_password")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
             required
@@ -124,7 +125,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Xác nhận mật khẩu mới"
+            placeholder={t("auth.reset.placeholders.confirm_password")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-6 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
             required
@@ -137,7 +138,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
               className="flex-1 bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition-colors"
               disabled={isSubmitting}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
 
             <button
@@ -148,10 +149,10 @@ function ResetPasswordForm({ onClose, userEmail }) {
               {isSubmitting ? (
                 <>
                   <ClipLoader size={16} color="#000000" className="mr-2" />
-                  Đang xử lý...
+                  {t("auth.reset.submitting")}
                 </>
               ) : (
-                "Đặt lại mật khẩu"
+                t("auth.reset.submit")
               )}
             </button>
           </div>

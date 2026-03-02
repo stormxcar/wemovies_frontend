@@ -3,8 +3,10 @@ import { fetchJson } from "../services/api";
 import { FaStar } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const ReviewSection = ({ movieId }) => {
+  const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
@@ -22,7 +24,7 @@ const ReviewSection = ({ movieId }) => {
 
     try {
       const ratingData = await fetchJson(
-        `/api/reviews/${movieId}/average-rating`
+        `/api/reviews/${movieId}/average-rating`,
       );
       // Handle case where backend returns no data or empty response
       setAverageRating(ratingData?.data ?? ratingData ?? 0);
@@ -34,11 +36,11 @@ const ReviewSection = ({ movieId }) => {
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để đánh giá");
+      toast.error(t("review.toasts.login_required"));
       return;
     }
     if (userRating === 0) {
-      toast.error("Vui lòng chọn số sao");
+      toast.error(t("review.toasts.rating_required"));
       return;
     }
 
@@ -54,7 +56,7 @@ const ReviewSection = ({ movieId }) => {
         method: "POST",
         body: formData, // Form data sẽ được gửi như multipart/form-data
       });
-      toast.success("Đánh giá thành công!");
+      toast.success(t("review.toasts.submit_success"));
       setShowReviewForm(false);
       setUserRating(0);
       setUserComment("");
@@ -62,13 +64,13 @@ const ReviewSection = ({ movieId }) => {
     } catch (error) {
       // Hiển thị lỗi chi tiết hơn
       if (error.response?.status === 500) {
-        toast.error("Lỗi server nội bộ - kiểm tra backend logs");
+        toast.error(t("review.toasts.server_error"));
       } else if (error.response?.status === 403) {
-        toast.error("Không có quyền - kiểm tra user role");
+        toast.error(t("review.toasts.forbidden"));
       } else if (error.response?.status === 401) {
-        toast.error("Chưa đăng nhập");
+        toast.error(t("review.toasts.unauthorized"));
       } else {
-        toast.error("Có lỗi xảy ra khi đánh giá");
+        toast.error(t("review.toasts.submit_error"));
       }
     }
   };
@@ -97,9 +99,11 @@ const ReviewSection = ({ movieId }) => {
           <span className="text-white">
             {averageRating > 0
               ? `${averageRating.toFixed(1)}/5`
-              : "Chưa có đánh giá"}
+              : t("review.no_rating")}
           </span>
-          <span className="text-gray-400">({reviews.length} đánh giá)</span>
+          <span className="text-gray-400">
+            {t("review.count", { count: reviews.length })}
+          </span>
         </div>
       </div>
 
@@ -110,7 +114,7 @@ const ReviewSection = ({ movieId }) => {
           className="flex items-center space-x-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
         >
           <FaStar />
-          <span>Đánh giá</span>
+          <span>{t("review.cta")}</span>
         </button>
       </div>
 
@@ -118,14 +122,14 @@ const ReviewSection = ({ movieId }) => {
       {reviews.length > 0 && (
         <div className="my-8">
           <h3 className="text-xl font-bold text-white mb-4">
-            Đánh giá từ người dùng
+            {t("review.user_reviews")}
           </h3>
           <div className="space-y-4">
             {reviews.slice(0, 3).map((review, index) => (
               <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-white font-semibold">
-                    {review.user?.fullName || "Người dùng"}
+                    {review.user?.fullName || t("review.user_fallback")}
                   </span>
                   <div className="flex items-center">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -144,7 +148,9 @@ const ReviewSection = ({ movieId }) => {
                   <p className="text-gray-300">{review.comment}</p>
                 )}
                 <p className="text-gray-500 text-sm mt-2">
-                  {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                  {new Date(review.createdAt).toLocaleDateString(
+                    i18n.language === "vi" ? "vi-VN" : "en-US",
+                  )}
                 </p>
               </div>
             ))}
@@ -163,11 +169,13 @@ const ReviewSection = ({ movieId }) => {
               ✕
             </button>
             <h3 className="text-xl text-white font-semibold mb-4">
-              Đánh giá phim
+              {t("review.modal.title")}
             </h3>
             <form onSubmit={handleSubmitReview}>
               <div className="mb-4">
-                <label className="block text-white mb-2">Số sao:</label>
+                <label className="block text-white mb-2">
+                  {t("review.modal.rating")}
+                </label>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -189,21 +197,21 @@ const ReviewSection = ({ movieId }) => {
               </div>
               <div className="mb-4">
                 <label className="block text-white mb-2">
-                  Bình luận (tùy chọn):
+                  {t("review.modal.comment_optional")}
                 </label>
                 <textarea
                   value={userComment}
                   onChange={(e) => setUserComment(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   rows="3"
-                  placeholder="Viết bình luận của bạn..."
+                  placeholder={t("review.modal.comment_placeholder")}
                 />
               </div>
               <button
                 type="submit"
                 className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
               >
-                Gửi đánh giá
+                {t("review.modal.submit")}
               </button>
             </form>
           </div>

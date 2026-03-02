@@ -15,8 +15,10 @@ import { toast } from "react-hot-toast";
 import NotificationService from "../../services/NotificationService";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import Pagination from "../ui/pagination";
+import { useTranslation } from "react-i18next";
 
 const NotificationTab = () => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { navigateWithLoading } = useLoading();
@@ -36,14 +38,46 @@ const NotificationTab = () => {
 
   // Notification types for filter
   const notificationTypes = [
-    { value: "all", label: "Tất cả", icon: "📋" },
-    { value: "NEW_EPISODE", label: "Tập mới", icon: "📺" },
-    { value: "NEW_MOVIE", label: "Phim mới", icon: "🎬" },
-    { value: "MOVIE_REMINDER", label: "Nhắc nhở", icon: "⏰" },
-    { value: "RECOMMENDATION", label: "Gợi ý", icon: "🎯" },
-    { value: "CONTINUE_WATCHING", label: "Tiếp tục xem", icon: "▶️" },
-    { value: "SYSTEM", label: "Hệ thống", icon: "🔔" },
-    { value: "PROMOTION", label: "Khuyến mãi", icon: "🎁" },
+    {
+      value: "all",
+      label: t("notifications.tab.type_options.all"),
+      icon: "📋",
+    },
+    {
+      value: "NEW_EPISODE",
+      label: t("notifications.tab.type_options.new_episode"),
+      icon: "📺",
+    },
+    {
+      value: "NEW_MOVIE",
+      label: t("notifications.tab.type_options.new_movie"),
+      icon: "🎬",
+    },
+    {
+      value: "MOVIE_REMINDER",
+      label: t("notifications.tab.type_options.reminder"),
+      icon: "⏰",
+    },
+    {
+      value: "RECOMMENDATION",
+      label: t("notifications.tab.type_options.recommendation"),
+      icon: "🎯",
+    },
+    {
+      value: "CONTINUE_WATCHING",
+      label: t("notifications.tab.type_options.continue_watching"),
+      icon: "▶️",
+    },
+    {
+      value: "SYSTEM",
+      label: t("notifications.tab.type_options.system"),
+      icon: "🔔",
+    },
+    {
+      value: "PROMOTION",
+      label: t("notifications.tab.type_options.promotion"),
+      icon: "🎁",
+    },
   ];
 
   // Helper function to get user ID
@@ -122,7 +156,7 @@ const NotificationTab = () => {
       setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
     } catch (error) {
-      toast.error("Không thể tải thông báo");
+      toast.error(t("notifications.tab.toasts.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -227,9 +261,9 @@ const NotificationTab = () => {
         read: prev.read + 1,
       }));
 
-      toast.success("Đã đánh dấu đã đọc");
+      toast.success(t("notifications.tab.toasts.marked_read"));
     } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      toast.error(t("notifications.tab.toasts.generic_error"));
     }
   };
 
@@ -260,9 +294,13 @@ const NotificationTab = () => {
 
       setSelectedIds([]);
       loadStats();
-      toast.success(`Đã đánh dấu ${selectedIds.length} thông báo là đã đọc`);
+      toast.success(
+        t("notifications.tab.toasts.marked_selected", {
+          count: selectedIds.length,
+        }),
+      );
     } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      toast.error(t("notifications.tab.toasts.generic_error"));
     }
   };
 
@@ -271,7 +309,11 @@ const NotificationTab = () => {
     if (!token || !user || selectedIds.length === 0) return;
 
     if (
-      !window.confirm(`Bạn có chắc muốn xóa ${selectedIds.length} thông báo?`)
+      !window.confirm(
+        t("notifications.tab.confirm_delete_selected", {
+          count: selectedIds.length,
+        }),
+      )
     ) {
       return;
     }
@@ -289,9 +331,13 @@ const NotificationTab = () => {
       );
       setSelectedIds([]);
       loadStats();
-      toast.success(`Đã xóa ${selectedIds.length} thông báo`);
+      toast.success(
+        t("notifications.tab.toasts.deleted_selected", {
+          count: selectedIds.length,
+        }),
+      );
     } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      toast.error(t("notifications.tab.toasts.generic_error"));
     }
   };
 
@@ -320,9 +366,9 @@ const NotificationTab = () => {
         read: prev.total,
       }));
 
-      toast.success("Đã đánh dấu tất cả là đã đọc");
+      toast.success(t("notifications.tab.toasts.marked_all_read"));
     } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      toast.error(t("notifications.tab.toasts.generic_error"));
     }
   };
 
@@ -330,7 +376,7 @@ const NotificationTab = () => {
     const token = localStorage.getItem("jwtToken");
     if (!token) return;
 
-    if (!window.confirm("Bạn có chắc muốn xóa thông báo này?")) {
+    if (!window.confirm(t("notifications.tab.confirm_delete_one"))) {
       return;
     }
 
@@ -361,9 +407,9 @@ const NotificationTab = () => {
             : prev.read,
       }));
 
-      toast.success("Đã xóa thông báo");
+      toast.success(t("notifications.tab.toasts.deleted_one"));
     } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      toast.error(t("notifications.tab.toasts.generic_error"));
     }
   };
 
@@ -377,7 +423,7 @@ const NotificationTab = () => {
         window.open(notification.actionUrl, "_blank");
       } else {
         navigateWithLoading(notification.actionUrl, {
-          loadingMessage: "Đang mở thông báo...",
+          loadingMessage: t("notifications.tab.loading_open"),
         });
       }
     }
@@ -408,12 +454,18 @@ const NotificationTab = () => {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) return t("notifications.tab.time.just_now");
+    if (diffMins < 60) {
+      return t("notifications.tab.time.minutes_ago", { count: diffMins });
+    }
+    if (diffHours < 24) {
+      return t("notifications.tab.time.hours_ago", { count: diffHours });
+    }
+    if (diffDays < 7) {
+      return t("notifications.tab.time.days_ago", { count: diffDays });
+    }
 
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -431,33 +483,9 @@ const NotificationTab = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-2xl font-bold text-white flex items-center">
             <FaBell className="mr-3 text-blue-500" />
-            Tất cả thông báo
-            <span
-              className={`ml-3 text-sm ${
-                connectionStatus === "connected"
-                  ? "text-green-500"
-                  : connectionStatus === "connecting"
-                    ? "text-yellow-500"
-                    : "text-red-500"
-              }`}
-            >
-              {connectionStatus === "connected"
-                ? "🟢 Live"
-                : connectionStatus === "connecting"
-                  ? "🟡 Đang kết nối..."
-                  : "🔴 Offline"}
-            </span>
+            {t("notifications.tab.all_notifications")}
           </h3>
         </div>
-
-        <p className="text-gray-400 mb-4">
-          Tổng cộng {totalElements} thông báo • {stats.unread} chưa đọc
-          {connectionStatus === "connected" && (
-            <span className="ml-2 text-green-400">
-              • Cập nhật thời gian thực
-            </span>
-          )}
-        </p>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
@@ -465,22 +493,34 @@ const NotificationTab = () => {
             <div className="text-3xl font-bold text-blue-400 mb-1">
               {stats.total}
             </div>
-            <div className="text-gray-300 text-sm font-medium">Tổng số</div>
-            <div className="text-gray-500 text-xs mt-1">Tất cả thông báo</div>
+            <div className="text-gray-300 text-sm font-medium">
+              {t("notifications.tab.stats.total")}
+            </div>
+            <div className="text-gray-500 text-xs mt-1">
+              {t("notifications.tab.stats.total_sub")}
+            </div>
           </div>
           <div className="bg-gray-700 rounded-lg p-4 text-center border border-orange-500/30 hover:border-orange-500/50 transition-colors">
             <div className="text-3xl font-bold text-orange-400 mb-1">
               {stats.unread}
             </div>
-            <div className="text-gray-300 text-sm font-medium">Chưa đọc</div>
-            <div className="text-gray-500 text-xs mt-1">Cần xem xét</div>
+            <div className="text-gray-300 text-sm font-medium">
+              {t("notifications.tab.stats.unread")}
+            </div>
+            <div className="text-gray-500 text-xs mt-1">
+              {t("notifications.tab.stats.unread_sub")}
+            </div>
           </div>
           <div className="bg-gray-700 rounded-lg p-4 text-center border border-green-500/30 hover:border-green-500/50 transition-colors">
             <div className="text-3xl font-bold text-green-400 mb-1">
               {stats.read}
             </div>
-            <div className="text-gray-300 text-sm font-medium">Đã đọc</div>
-            <div className="text-gray-500 text-xs mt-1">Đã xử lý</div>
+            <div className="text-gray-300 text-sm font-medium">
+              {t("notifications.tab.stats.read")}
+            </div>
+            <div className="text-gray-500 text-xs mt-1">
+              {t("notifications.tab.stats.read_sub")}
+            </div>
           </div>
         </div>
       </div>
@@ -491,7 +531,7 @@ const NotificationTab = () => {
           {/* Status Filter */}
           <div>
             <label className="block text-sm text-gray-400 mb-2">
-              Trạng thái
+              {t("notifications.tab.filters.status")}
             </label>
             <select
               value={filter}
@@ -501,16 +541,28 @@ const NotificationTab = () => {
               }}
               className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
             >
-              <option value="all">Tất cả ({stats.total})</option>
-              <option value="unread">Chưa đọc ({stats.unread})</option>
-              <option value="read">Đã đọc ({stats.read})</option>
+              <option value="all">
+                {t("notifications.tab.filter_values.all", {
+                  count: stats.total,
+                })}
+              </option>
+              <option value="unread">
+                {t("notifications.tab.filter_values.unread", {
+                  count: stats.unread,
+                })}
+              </option>
+              <option value="read">
+                {t("notifications.tab.filter_values.read", {
+                  count: stats.read,
+                })}
+              </option>
             </select>
           </div>
 
           {/* Type Filter */}
           <div>
             <label className="block text-sm text-gray-400 mb-2">
-              Loại thông báo
+              {t("notifications.tab.filters.type")}
             </label>
             <select
               value={typeFilter}
@@ -530,7 +582,9 @@ const NotificationTab = () => {
 
           {/* Search */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Tìm kiếm</label>
+            <label className="block text-sm text-gray-400 mb-2">
+              {t("common.search")}
+            </label>
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -540,7 +594,7 @@ const NotificationTab = () => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(0);
                 }}
-                placeholder="Tìm theo tiêu đề, nội dung..."
+                placeholder={t("notifications.tab.search_placeholder")}
                 className="w-full bg-gray-700 text-white px-10 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -553,7 +607,7 @@ const NotificationTab = () => {
               className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors text-sm"
             >
               <FaFilter className="inline mr-1" />
-              Xóa bộ lọc
+              {t("notifications.tab.clear_filters")}
             </button>
             {stats.unread > 0 && (
               <button
@@ -561,7 +615,7 @@ const NotificationTab = () => {
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
               >
                 <FaCheck className="inline mr-1" />
-                Đọc tất cả
+                {t("notifications.center.read_all")}
               </button>
             )}
           </div>
@@ -573,7 +627,9 @@ const NotificationTab = () => {
         <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <span className="text-blue-400">
-              Đã chọn {selectedIds.length} thông báo
+              {t("notifications.tab.selected_count", {
+                count: selectedIds.length,
+              })}
             </span>
             <div className="flex space-x-3">
               <button
@@ -581,14 +637,14 @@ const NotificationTab = () => {
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
               >
                 <FaCheck className="inline mr-1" />
-                Đánh dấu đã đọc
+                {t("notifications.mark_as_read")}
               </button>
               <button
                 onClick={deleteSelected}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
               >
                 <FaTrash className="inline mr-1" />
-                Xóa
+                {t("common.delete")}
               </button>
             </div>
           </div>
@@ -610,23 +666,27 @@ const NotificationTab = () => {
               className="mr-4 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
             />
             <span className="text-gray-300 font-medium">
-              Thông báo ({notifications.length})
+              {t("notifications.tab.list_title", {
+                count: notifications.length,
+              })}
             </span>
           </div>
         </div>
         {loading ? (
           <div className="p-8 text-center text-gray-400">
             <div className="animate-spin text-3xl mb-4">🔄</div>
-            <p>Đang tải thông báo...</p>
+            <p>{t("notifications.tab.loading")}</p>
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
             <div className="text-6xl mb-4">📭</div>
-            <p className="text-lg font-medium mb-2">Không có thông báo nào</p>
+            <p className="text-lg font-medium mb-2">
+              {t("notifications.tab.empty_title")}
+            </p>
             <p className="text-sm">
               {filter === "unread"
-                ? "Bạn đã đọc hết thông báo!"
-                : "Thông báo mới sẽ xuất hiện ở đây"}
+                ? t("notifications.tab.empty_all_read")
+                : t("notifications.tab.empty_subtitle")}
             </p>
           </div>
         ) : (
@@ -682,7 +742,7 @@ const NotificationTab = () => {
                           {notification.title}
                           {isNew && (
                             <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">
-                              MỚI
+                              {t("notifications.center.new_badge")}
                             </span>
                           )}
                           {isUnread && !isNew && (
@@ -713,7 +773,8 @@ const NotificationTab = () => {
                           )}
                           {notification.readAt && (
                             <span className="text-green-400">
-                              ✓ Đã đọc {formatTime(notification.readAt)}
+                              ✓ {t("notifications.center.read_label")}{" "}
+                              {formatTime(notification.readAt)}
                             </span>
                           )}
                         </div>
@@ -731,7 +792,7 @@ const NotificationTab = () => {
                               markAsRead(notification.id);
                             }}
                             className="p-2 text-gray-400 hover:text-blue-500 hover:bg-gray-700 rounded transition-colors"
-                            title="Đánh dấu đã đọc"
+                            title={t("notifications.mark_as_read")}
                           >
                             <FaEye />
                           </button>
@@ -742,7 +803,7 @@ const NotificationTab = () => {
                             deleteNotification(notification.id);
                           }}
                           className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-700 rounded transition-colors"
-                          title="Xóa thông báo"
+                          title={t("notifications.tab.delete_notification")}
                         >
                           <FaTrash />
                         </button>

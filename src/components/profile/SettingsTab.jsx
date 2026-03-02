@@ -5,7 +5,6 @@ import { useTheme } from "../../context/ThemeContext";
 import { useSettings } from "../../context/SettingsContext";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import { useTranslation } from "react-i18next";
-import { Settings, Bell, Shield, Palette, Globe, Download } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SettingsTab = () => {
@@ -47,7 +46,7 @@ const SettingsTab = () => {
     if (window.confirm(t("settings.account.logout_confirm"))) {
       await logout();
       navigateWithLoading("/", {
-        loadingMessage: "Đang đăng xuất...",
+        loadingMessage: t("header.loading_logout"),
       });
     }
   };
@@ -66,7 +65,7 @@ const SettingsTab = () => {
       t("settings.account.logout_confirm"), // Reusing this key for now
     );
     if (confirmed) {
-      toast.error("Feature in development"); // Generic error message
+      toast.error(t("settings.messages.feature_in_development"));
     }
   };
 
@@ -75,9 +74,8 @@ const SettingsTab = () => {
       {/* Notification Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
         <h3
-          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6`}
         >
-          <Bell className="mr-2 h-5 w-5" />
           {t("settings.notifications.title")}
         </h3>
 
@@ -175,9 +173,8 @@ const SettingsTab = () => {
       {/* Appearance Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
         <h3
-          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6`}
         >
-          <Palette className="mr-2 h-5 w-5" />
           {t("settings.appearance.title")}
         </h3>
 
@@ -213,10 +210,18 @@ const SettingsTab = () => {
               onChange={(e) => handleSettingChange("language", e.target.value)}
               className={`w-full px-3 py-2 ${themeClasses.secondary} border ${themeClasses.border} rounded-lg ${themeClasses.textPrimary} focus:ring-2 focus:ring-blue-500`}
             >
-              <option value="vi">Tiếng Việt</option>
-              <option value="en">English</option>
-              <option value="zh">中文</option>
-              <option value="ja">日本語</option>
+              <option value="vi">
+                {t("settings.appearance.language_options.vi")}
+              </option>
+              <option value="en">
+                {t("settings.appearance.language_options.en")}
+              </option>
+              <option value="zh">
+                {t("settings.appearance.language_options.zh")}
+              </option>
+              <option value="ja">
+                {t("settings.appearance.language_options.ja")}
+              </option>
             </select>
           </div>
         </div>
@@ -225,9 +230,8 @@ const SettingsTab = () => {
       {/* Playback Settings */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
         <h3
-          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6`}
         >
-          <Settings className="mr-2 h-5 w-5" />
           {t("settings.playback.title")}
         </h3>
 
@@ -259,18 +263,16 @@ const SettingsTab = () => {
       {/* Account Management */}
       <div className={`${themeClasses.cardSecondary} rounded-lg p-6`}>
         <h3
-          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6 flex items-center`}
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-6`}
         >
-          <Shield className="mr-2 h-5 w-5" />
           {t("settings.account.title")}
         </h3>
 
         <div className="space-y-4">
           <button
-            onClick={() => toast.info("Contact admin to delete account")}
-            className="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            onClick={() => toast.info(t("settings.account.contact_admin"))}
+            className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
-            <Shield className="mr-2 h-4 w-4" />
             {t("settings.account.delete_account")}
           </button>
 
@@ -286,9 +288,8 @@ const SettingsTab = () => {
       {/* Privacy Notice */}
       <div className="bg-blue-900/50 border border-blue-700 rounded-lg p-4">
         <p className="text-blue-200 text-sm">
-          <strong>Lưu ý về quyền riêng tư:</strong> Tất cả cài đặt của bạn được
-          lưu trữ an toàn và chỉ được sử dụng để cải thiện trải nghiệm của bạn.
-          Chúng tôi không chia sẻ thông tin cá nhân với bên thứ ba.
+          <strong>{t("settings.privacy.title")}</strong>{" "}
+          {t("settings.privacy.message")}
         </p>
       </div>
     </div>

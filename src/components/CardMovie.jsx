@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SkeletonWrapper from "./SkeletonWrapper";
 import WatchlistButton from "./WatchlistButton";
+import { Link } from "react-router-dom";
 
 function CardMovie({ movie }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -58,54 +59,59 @@ function CardMovie({ movie }) {
       {/* Expanded Hover Overlay – slide up từ dưới */}
       <div
         className={`
-          absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col justify-end
+          absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent flex flex-col justify-end
           transition-all duration-500 ease-out
-          ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12 pointer-events-none"}
-          z-20 p-4 sm:p-6
+          ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}
+          z-20 p-4 sm:p-5
         `}
       >
-        <div className="space-y-3 sm:space-y-4">
-          {/* Title lớn hơn */}
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white line-clamp-2 drop-shadow-lg">
+        <div className="space-y-3">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white line-clamp-2 drop-shadow-lg">
             {movie.title}
           </h3>
 
-          {/* Year + Genres */}
-          <div className="flex items-center gap-3 text-sm sm:text-base">
-            <span className="text-yellow-400 font-semibold">
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <span className="text-yellow-300 font-semibold px-2 py-1 bg-yellow-400/15 rounded-full border border-yellow-300/20">
               {movie.release_year}
             </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {movie.movieTypes?.slice(0, 3).map((type) => (
                 <span
                   key={type.id}
-                  className="px-2 py-0.5 bg-white/10 backdrop-blur-sm rounded-full text-xs sm:text-sm border border-white/20"
+                  className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[11px] sm:text-xs border border-white/20 text-gray-100"
                 >
                   {type.name}
                 </span>
               ))}
               {movie.movieTypes?.length > 3 && (
-                <span className="text-gray-400 text-xs">
+                <span className="text-gray-300 text-[11px]">
                   +{movie.movieTypes.length - 3}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-4">
-            <button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30">
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Link
+              to={`/movie/${movie.id}`}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30 text-sm"
+            >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
               {t("movie.watch_now")}
-            </button>
+            </Link>
 
-            <WatchlistButton movieId={movie.id} size="large" />
+            <Link
+              to={`/movie/${movie.id}`}
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-medium py-2.5 px-3 rounded-lg transition-all text-sm text-center"
+            >
+              {t("movie.view_detail")}
+            </Link>
 
-            <button className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-medium py-3 px-4 rounded-lg transition-all">
-              Chi tiết
-            </button>
+            <div className="col-span-2 [&_button]:!py-2.5 [&_button]:!rounded-lg [&_button]:!text-sm [&_button]:!font-medium">
+              <WatchlistButton movieId={movie.id} />
+            </div>
           </div>
         </div>
       </div>

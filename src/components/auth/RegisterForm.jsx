@@ -3,8 +3,10 @@ import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { fetchJson } from "../../services/api";
 import { ClipLoader } from "react-spinners";
+import { useTranslation } from "react-i18next";
 
 function RegisterForm({ onClose, onSwitchToLogin }) {
+  const { t } = useTranslation();
   const [registerForm, setRegisterForm] = useState({
     userName: "",
     passWord: "",
@@ -33,41 +35,39 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
 
     // Validate username
     if (!registerForm.userName.trim()) {
-      validationErrors.userName = "Tên đăng nhập không được để trống";
+      validationErrors.userName = t("register.errors.username_required");
     } else if (registerForm.userName.length < 3) {
-      validationErrors.userName = "Tên đăng nhập phải có ít nhất 3 ký tự";
+      validationErrors.userName = t("register.errors.username_min");
     }
 
     // Validate password
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!registerForm.passWord) {
-      validationErrors.passWord = "Mật khẩu không được để trống";
+      validationErrors.passWord = t("register.errors.password_required");
     } else if (!passwordRegex.test(registerForm.passWord)) {
-      validationErrors.passWord =
-        "Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 số và 1 ký tự đặc biệt, tối thiểu 8 ký tự";
+      validationErrors.passWord = t("register.errors.password_invalid");
     }
 
     // Validate full name
     if (!registerForm.fullName.trim()) {
-      validationErrors.fullName = "Họ tên không được để trống";
+      validationErrors.fullName = t("register.errors.fullname_required");
     }
 
     // Validate email
     const emailRegex = /^[^\s@]+@(gmail\.com|yahoo\.com|outlook\.com)$/;
     if (!registerForm.email) {
-      validationErrors.email = "Email không được để trống";
+      validationErrors.email = t("register.errors.email_required");
     } else if (!emailRegex.test(registerForm.email)) {
-      validationErrors.email =
-        "Chỉ chấp nhận email từ gmail.com, yahoo.com hoặc outlook.com";
+      validationErrors.email = t("register.errors.email_domain");
     }
 
     // Validate phone number
     const phoneRegex = /^\d{10}$/;
     if (!registerForm.phoneNumber) {
-      validationErrors.phoneNumber = "Số điện thoại không được để trống";
+      validationErrors.phoneNumber = t("register.errors.phone_required");
     } else if (!phoneRegex.test(registerForm.phoneNumber)) {
-      validationErrors.phoneNumber = "Số điện thoại phải có đúng 10 chữ số";
+      validationErrors.phoneNumber = t("register.errors.phone_invalid");
     }
 
     setErrors(validationErrors);
@@ -85,20 +85,14 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
     }
 
     // Show warning about potential delay
-    toast.info(
-      "⚠️ Lưu ý: Server miễn phí có thể sleep và cần 1-2 phút để khởi động. Hệ thống sẽ tự động thử lại nếu cần!",
-      {
-        autoClose: 5000,
-        position: "top-center",
-      }
-    );
+    toast.info(t("register.toasts.server_sleep_warning"), {
+      autoClose: 5000,
+      position: "top-center",
+    });
 
     setIsSubmitting(true);
     try {
-      toast.info(
-        "Đang kết nối đến server... Hệ thống sẽ tự động retry nếu timeout!",
-        { autoClose: false }
-      );
+      toast.info(t("register.toasts.connecting"), { autoClose: false });
       const options = {
         method: "POST",
         headers: {
@@ -113,14 +107,14 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
       const message =
         typeof response === "string"
           ? response
-          : response?.message || "OTP đã được gửi đến email của bạn";
+          : response?.message || t("register.toasts.otp_sent");
       toast.dismiss(); // Dismiss loading toast
       toast.success(message);
       setVerifyEmail(registerForm.email);
       setShowVerifyOtp(true);
     } catch (error) {
       toast.dismiss(); // Dismiss loading toast
-      toast.error(error.message || "Lỗi khi gửi OTP");
+      toast.error(error.message || t("register.toasts.send_otp_error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -134,7 +128,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
     try {
       await fetchJson(
         `/api/auth/verify-otp?email=${encodeURIComponent(
-          verifyEmail
+          verifyEmail,
         )}&otp=${encodeURIComponent(otp)}`,
         {
           method: "POST",
@@ -143,13 +137,13 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             Accept: "application/json",
           },
           credentials: "include",
-        }
+        },
       );
-      toast.success("Xác thực OTP thành công. Vui lòng đăng nhập.");
+      toast.success(t("register.toasts.otp_verify_success"));
       setShowVerifyOtp(false);
       onSwitchToLogin(); // Chuyển sang form login
     } catch (error) {
-      toast.error(error.message || "OTP không hợp lệ");
+      toast.error(error.message || t("register.toasts.otp_invalid"));
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -174,7 +168,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             <FaTimes />
           </button>
           <h2 className="text-xl text-white font-semibold mb-4">
-            Xác thực OTP
+            {t("register.otp.title")}
           </h2>
           <form
             onSubmit={(e) => {
@@ -192,7 +186,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder="Nhập mã OTP"
+              placeholder={t("register.otp.placeholder")}
               disabled={isVerifyingOtp}
               className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
               required
@@ -205,10 +199,10 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
               {isVerifyingOtp ? (
                 <>
                   <ClipLoader size={20} color="#000000" className="mr-2" />
-                  Đang xác thực...
+                  {t("register.otp.verifying")}
                 </>
               ) : (
-                "Xác thực"
+                t("register.otp.submit")
               )}
             </button>
           </form>
@@ -237,10 +231,10 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
           <FaTimes />
         </button>
         <h2 className="text-xl text-white font-semibold mb-4">
-          Tạo tài khoản mới
+          {t("register.title")}
         </h2>
         <p className="text-gray-300 mb-6">
-          Nếu bạn đã có tài khoản,{" "}
+          {t("register.have_account")}{" "}
           <button
             type="button"
             onClick={(e) => {
@@ -249,7 +243,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             }}
             className="text-blue-300"
           >
-            đăng nhập
+            {t("register.login_link")}
           </button>
         </p>
         <form onSubmit={handleSubmit}>
@@ -258,7 +252,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             name="userName"
             value={registerForm.userName}
             onChange={handleChange}
-            placeholder="Tên hiển thị"
+            placeholder={t("register.placeholders.username")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -271,7 +265,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             name="fullName"
             value={registerForm.fullName}
             onChange={handleChange}
-            placeholder="Tên đầy đủ"
+            placeholder={t("register.placeholders.fullname")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -297,7 +291,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             name="phoneNumber"
             value={registerForm.phoneNumber}
             onChange={handleChange}
-            placeholder="Số điện thoại"
+            placeholder={t("register.placeholders.phone")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -312,7 +306,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             name="passWord"
             value={registerForm.passWord}
             onChange={handleChange}
-            placeholder="Mật khẩu"
+            placeholder={t("register.placeholders.password")}
             disabled={isSubmitting}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
             required
@@ -328,10 +322,10 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
             {isSubmitting ? (
               <>
                 <ClipLoader size={20} color="#000000" className="mr-2" />
-                Đang xử lý...
+                {t("register.submitting")}
               </>
             ) : (
-              "Đăng ký"
+              t("register.submit")
             )}
           </button>
         </form>

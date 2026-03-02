@@ -1,12 +1,14 @@
 // hooks/useWatchingProgress.js
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import WatchingProgressService from "../services/WatchingProgressService";
 import ViewTrackingService from "../services/ViewTrackingService";
 import TrendingService from "../services/TrendingService";
 import { fetchJson } from "../services/api";
 
 export const useWatchingProgress = (userId) => {
+  const { t } = useTranslation();
   const [watchingList, setWatchingList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -114,19 +116,19 @@ export const useWatchingProgress = (userId) => {
     } catch (err) {
       console.error("Error in fetchWatchingList:", err);
       setIsAPIAvailable(false);
-      setError("Không thể tải danh sách phim đang xem");
+      setError(t("watchingProgress.errors.load_watching_list"));
       setWatchingList([]);
     } finally {
       setIsLoading(false);
     }
-  }, [currentUserId, getAuthToken]);
+  }, [currentUserId, getAuthToken, t]);
 
   // Bắt đầu xem phim
   const startWatching = useCallback(
     async (movieId, movieTitle, totalDuration = 7200) => {
       const token = getAuthToken();
       if (!token) {
-        throw new Error("Yêu cầu đăng nhập để theo dõi tiến độ xem");
+        throw new Error(t("watchingProgress.errors.login_required"));
       }
 
       // If currentUserId is not ready yet, wait for it
@@ -159,7 +161,7 @@ export const useWatchingProgress = (userId) => {
 
         if (result.status === "SUCCESS" || result.success) {
           setIsAPIAvailable(true);
-          toast.success(`Bắt đầu xem: ${movieTitle}`);
+          toast.success(t("watchingProgress.toasts.started", { movieTitle }));
 
           // Set active session for tracking
           activeSessionRef.current = {
@@ -186,12 +188,12 @@ export const useWatchingProgress = (userId) => {
       } catch (err) {
         console.error("Error in startWatching:", err);
         setIsAPIAvailable(false);
-        setError("Không thể bắt đầu xem phim");
-        toast.error("Không thể bắt đầu phiên xem");
+        setError(t("watchingProgress.errors.start_watching"));
+        toast.error(t("watchingProgress.toasts.start_failed"));
         throw err;
       }
     },
-    [currentUserId, fetchWatchingList, getUserId, userId, getAuthToken],
+    [currentUserId, fetchWatchingList, getUserId, userId, getAuthToken, t],
   );
 
   // Cập nhật tiến độ với View Tracking tích hợp
@@ -375,18 +377,18 @@ export const useWatchingProgress = (userId) => {
             prev.filter((item) => item.movieId !== movieId.toString()),
           );
 
-          toast.success("Đã đánh dấu hoàn thành");
+          toast.success(t("watchingProgress.toasts.mark_completed_success"));
           return true;
         }
 
         return false;
       } catch (err) {
-        setError("Không thể đánh dấu hoàn thành");
-        toast.error("Không thể đánh dấu hoàn thành");
+        setError(t("watchingProgress.errors.mark_completed"));
+        toast.error(t("watchingProgress.toasts.mark_completed_failed"));
         return false;
       }
     },
-    [currentUserId],
+    [currentUserId, t],
   );
 
   // Xóa khỏi danh sách
@@ -405,18 +407,18 @@ export const useWatchingProgress = (userId) => {
             prev.filter((item) => item.movieId !== movieId.toString()),
           );
 
-          toast.success("Đã xóa khỏi danh sách");
+          toast.success(t("watchingProgress.toasts.removed"));
           return true;
         }
 
         return false;
       } catch (err) {
-        setError("Không thể xóa phim");
-        toast.error("Không thể xóa khỏi danh sách");
+        setError(t("watchingProgress.errors.remove_movie"));
+        toast.error(t("watchingProgress.toasts.remove_failed"));
         return false;
       }
     },
-    [currentUserId],
+    [currentUserId, t],
   );
 
   // Lấy thống kê

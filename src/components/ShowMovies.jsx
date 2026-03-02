@@ -124,7 +124,7 @@ const ShowMovies = ({ onDataLoaded }) => {
         >
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-white">Đang chuẩn bị nội dung...</p>
+            <p className="text-white">{t("home.preparing_content")}</p>
           </div>
         </div>
       );
@@ -138,7 +138,7 @@ const ShowMovies = ({ onDataLoaded }) => {
       {/* Remove animation when used in Home wrapper */}
       <nav className="flex items-center space-x-2 py-4">
         <Link to="/" className="text-white text-lg sm:text-xl font-semibold">
-          Movies
+          {t("navigation.movies")}
         </Link>
         <span className="text-white">{<FaChevronRight />}</span>
         <span className="text-blue-500 text-lg sm:text-xl font-semibold">

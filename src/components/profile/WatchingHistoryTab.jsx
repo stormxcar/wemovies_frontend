@@ -6,13 +6,11 @@ import { useAuth } from "../../context/AuthContext";
 import { useWatchingProgress } from "../../hooks/useWatchingProgress";
 import ViewCountDisplay from "../ViewCountDisplay";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
-const WatchingHistoryTab = ({
-  movies,
-  loading,
-  onRefresh,
-  title = "Phim đang xem",
-}) => {
+const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
+  const { t, i18n } = useTranslation();
+  const resolvedTitle = title || t("watchingHistory.title");
   const [watchingMovies, setWatchingMovies] = useState(movies || []);
   const [watchingStats, setWatchingStats] = useState(null);
   const [isLoading, setIsLoading] = useState(loading || true);
@@ -52,7 +50,7 @@ const WatchingHistoryTab = ({
     const userId = getUserId(user);
     if (!userId) {
       console.warn("No valid userId found, cannot fetch watching data");
-      setError("Không thể xác định người dùng");
+      setError(t("watchingHistory.errors.user_not_found"));
       setIsLoading(false);
       return;
     }
@@ -91,7 +89,8 @@ const WatchingHistoryTab = ({
             })
             .map((item) => ({
               movieId: item.movieId,
-              movieTitle: item.movieTitle || "Không có tên",
+              movieTitle:
+                item.movieTitle || t("watchingHistory.untitled_movie"),
               currentTime: Math.max(0, Math.floor(item.currentTime || 0)), // Ensure non-negative
               totalDuration: Math.max(1, item.totalDuration || 7200), // Avoid division by zero
               percentage: Math.min(
@@ -101,7 +100,7 @@ const WatchingHistoryTab = ({
               lastWatched: item.lastWatched || new Date().toISOString(),
               startedAt: item.startedAt,
               sessionId: item.sessionId,
-              moviePoster: item.moviePoster || "/api/placeholder/300/400",
+              moviePoster: item.moviePoster || "/placeholder-professional.svg",
               source: item.source || "hybrid",
             }))
         : [];
@@ -126,12 +125,20 @@ const WatchingHistoryTab = ({
       }
     } catch (error) {
       console.error("❌ Error fetching watching data:", error);
-      setError("Không thể tải danh sách phim đang xem");
+      setError(t("watchingHistory.errors.load_failed"));
       setWatchingMovies([]);
     } finally {
       setIsLoading(false);
     }
-  }, [user, getUserId, watchingList, hookLoading, refreshList, isAPIAvailable]);
+  }, [
+    user,
+    getUserId,
+    watchingList,
+    hookLoading,
+    refreshList,
+    isAPIAvailable,
+    t,
+  ]);
 
   const fetchWatchingStats = useCallback(async () => {
     const userId = getUserId(user);
@@ -197,7 +204,7 @@ const WatchingHistoryTab = ({
       // Then update local data
       await Promise.all([fetchWatchingData(), fetchWatchingStats()]);
 
-      toast.success("Đã làm mới danh sách phim!");
+      toast.success(t("watchingHistory.toasts.refreshed"));
 
       // Call external refresh callback if provided
       if (onRefresh) {
@@ -205,7 +212,7 @@ const WatchingHistoryTab = ({
       }
     } catch (error) {
       console.error("❌ Error during manual refresh:", error);
-      toast.error("Có lỗi khi làm mới dữ liệu");
+      toast.error(t("watchingHistory.toasts.refresh_error"));
     } finally {
       setRefreshing(false);
       setIsLoading(false);
@@ -266,7 +273,7 @@ const WatchingHistoryTab = ({
           lastWatched: item.lastWatched,
           startedAt: item.startedAt,
           sessionId: item.sessionId,
-          moviePoster: item.moviePoster || "/api/placeholder/300/400",
+          moviePoster: item.moviePoster || "/placeholder-professional.svg",
           source: item.source || "hybrid",
         }));
 
@@ -313,7 +320,7 @@ const WatchingHistoryTab = ({
   const handleRemoveFromWatching = async (movieId) => {
     const userId = getUserId(user);
     if (!userId) {
-      toast.error("Không thể xác định người dùng");
+      toast.error(t("watchingHistory.errors.user_not_found"));
       return;
     }
 
@@ -324,7 +331,7 @@ const WatchingHistoryTab = ({
       const result = await removeFromWatching(movieId); // Hook handles userId internally
 
       if (result?.success !== false) {
-        toast.success("Đã xóa khỏi danh sách đang xem!");
+        toast.success(t("watchingHistory.toasts.removed"));
 
         // Optimistically update local state
         setWatchingMovies((prev) =>
@@ -338,19 +345,21 @@ const WatchingHistoryTab = ({
         }, 500);
       } else {
         toast.error(
-          `Không thể xóa khỏi danh sách: ${result?.message || "Lỗi không xác định"}`,
+          t("watchingHistory.errors.remove_failed", {
+            message: result?.message || t("watchingHistory.errors.unknown"),
+          }),
         );
       }
     } catch (error) {
       console.error("❌ Error removing from watching list:", error);
-      toast.error("Có lỗi xảy ra khi xóa phim!");
+      toast.error(t("watchingHistory.errors.remove_exception"));
     }
   };
 
   const markAsCompleted = async (movieId) => {
     const userId = getUserId(user);
     if (!userId) {
-      toast.error("Không thể xác định người dùng");
+      toast.error(t("watchingHistory.errors.user_not_found"));
       return;
     }
 
@@ -361,7 +370,7 @@ const WatchingHistoryTab = ({
       const result = await markCompleted(movieId); // Hook handles userId internally
 
       if (result?.success !== false) {
-        toast.success("Đã đánh dấu hoàn thành!");
+        toast.success(t("watchingHistory.toasts.completed"));
 
         // Optimistically update local state
         setWatchingMovies((prev) =>
@@ -379,21 +388,23 @@ const WatchingHistoryTab = ({
         }, 500);
       } else {
         toast.error(
-          `Không thể đánh dấu hoàn thành: ${result?.message || "Lỗi không xác định"}`,
+          t("watchingHistory.errors.complete_failed", {
+            message: result?.message || t("watchingHistory.errors.unknown"),
+          }),
         );
       }
     } catch (error) {
       console.error("❌ Error marking as completed:", error);
-      toast.error("Có lỗi xảy ra khi đánh dấu hoàn thành!");
+      toast.error(t("watchingHistory.errors.complete_exception"));
     }
   };
 
   const formatProgress = (percentage) => {
-    if (percentage >= 95) return "Sắp xong";
-    if (percentage >= 75) return "Đang xem";
-    if (percentage >= 50) return "Đang theo dõi";
-    if (percentage >= 25) return "Mới bắt đầu";
-    return "Vừa khởi tạo";
+    if (percentage >= 95) return t("watchingHistory.progress.almost_done");
+    if (percentage >= 75) return t("watchingHistory.progress.watching");
+    if (percentage >= 50) return t("watchingHistory.progress.following");
+    if (percentage >= 25) return t("watchingHistory.progress.just_started");
+    return t("watchingHistory.progress.initialized");
   };
 
   const getProgressColor = (percentage) => {
@@ -410,10 +421,14 @@ const WatchingHistoryTab = ({
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} tuần trước`;
-    return date.toLocaleDateString("vi-VN");
+    if (diffDays === 1) return t("watchingHistory.time.yesterday");
+    if (diffDays < 7)
+      return t("watchingHistory.time.days_ago", { count: diffDays });
+    if (diffDays < 30)
+      return t("watchingHistory.time.weeks_ago", {
+        count: Math.ceil(diffDays / 7),
+      });
+    return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US");
   };
 
   const formatTime = (seconds) => {
@@ -431,7 +446,9 @@ const WatchingHistoryTab = ({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-gray-400">Đang tải danh sách phim...</span>
+        <span className="ml-3 text-gray-400">
+          {t("watchingHistory.loading")}
+        </span>
       </div>
     );
   }
@@ -452,7 +469,9 @@ const WatchingHistoryTab = ({
           <div className="flex items-center">
             <div className="text-red-400 mr-2">⚠️</div>
             <div>
-              <p className="text-red-200 font-medium">Có lỗi xảy ra</p>
+              <p className="text-red-200 font-medium">
+                {t("watchingHistory.error_title")}
+              </p>
               <p className="text-red-300 text-sm">{error}</p>
             </div>
           </div>
@@ -461,7 +480,7 @@ const WatchingHistoryTab = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-semibold text-white">{title}</h3>
+          <h3 className="text-xl font-semibold text-white">{resolvedTitle}</h3>
         </div>
         {onRefresh && (
           <div className="flex gap-2">
@@ -473,7 +492,7 @@ const WatchingHistoryTab = ({
               {refreshing && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               )}
-              Làm mới
+              {t("watchingHistory.refresh")}
             </button>
             <button
               onClick={() => {
@@ -487,10 +506,10 @@ const WatchingHistoryTab = ({
                 console.log("isLoading:", isLoading);
                 console.log("refreshing:", refreshing);
                 console.log("error:", error);
-                toast.success("Debug info logged to console!");
+                toast.success(t("watchingHistory.toasts.debug_logged"));
               }}
               className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-              title="Debug thông tin trong Console"
+              title={t("watchingHistory.debug_title")}
             >
               🐛
             </button>
@@ -499,29 +518,35 @@ const WatchingHistoryTab = ({
       </div>
 
       {/* Watching Stats - chỉ hiển thị cho continue watching */}
-      {title === "Phim đang xem" && watchingStats && (
+      {resolvedTitle === t("watchingHistory.title") && watchingStats && (
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-600 mb-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            📊 Thống kê xem phim
+            📊 {t("watchingHistory.stats.title")}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-500">
                 {watchingStats.totalMovies || 0}
               </div>
-              <div className="text-gray-400 text-sm">Đang xem</div>
+              <div className="text-gray-400 text-sm">
+                {t("watchingHistory.stats.watching")}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-500">
                 {Math.floor((watchingStats.totalWatchTime || 0) / 3600)}h
               </div>
-              <div className="text-gray-400 text-sm">Tổng thời gian</div>
+              <div className="text-gray-400 text-sm">
+                {t("watchingHistory.stats.total_time")}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-500">
                 {watchingStats.averageProgress?.toFixed(1) || 0}%
               </div>
-              <div className="text-gray-400 text-sm">TB tiến trình</div>
+              <div className="text-gray-400 text-sm">
+                {t("watchingHistory.stats.avg_progress")}
+              </div>
             </div>
           </div>
         </div>
@@ -531,17 +556,17 @@ const WatchingHistoryTab = ({
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📺</div>
           <h3 className="text-xl font-semibold text-white mb-2">
-            Chưa có phim nào đang xem
+            {t("watchingHistory.empty_title")}
           </h3>
           <p className="text-gray-400 mb-6">
-            Bắt đầu xem phim để theo dõi tiến trình của bạn
+            {t("watchingHistory.empty_subtitle")}
           </p>
           <Link
             to="/"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Eye className="mr-2 h-4 w-4" />
-            Khám phá phim
+            {t("watchingHistory.discover_movies")}
           </Link>
         </div>
       ) : (
@@ -595,7 +620,10 @@ const WatchingHistoryTab = ({
                       {/* Episode info for series */}
                       {movie.episodeNumber && movie.totalEpisodes && (
                         <p className="text-blue-400 text-sm mb-2">
-                          Tập {movie.episodeNumber} / {movie.totalEpisodes}
+                          {t("watchingHistory.episode", {
+                            current: movie.episodeNumber,
+                            total: movie.totalEpisodes,
+                          })}
                         </p>
                       )}
 
@@ -603,7 +631,9 @@ const WatchingHistoryTab = ({
                       <div className="flex items-center text-gray-500 text-sm mb-2">
                         <Calendar className="mr-1 h-3 w-3" />
                         <span>
-                          Xem lần cuối: {formatLastWatched(movie.lastWatched)}
+                          {t("watchingHistory.last_watched", {
+                            time: formatLastWatched(movie.lastWatched),
+                          })}
                         </span>
                       </div>
 
@@ -661,7 +691,9 @@ const WatchingHistoryTab = ({
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                       >
                         <Play className="mr-1 h-4 w-4" />
-                        {movie.percentage < 10 ? "Bắt đầu xem" : "Tiếp tục"}
+                        {movie.percentage < 10
+                          ? t("watchingHistory.start_watching")
+                          : t("watchingHistory.continue")}
                       </Link>
 
                       <div className="flex space-x-1">
@@ -669,7 +701,7 @@ const WatchingHistoryTab = ({
                           <button
                             onClick={() => markAsCompleted(movie.movieId)}
                             className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
-                            title="Đánh dấu hoàn thành"
+                            title={t("watchingHistory.mark_completed")}
                           >
                             <CheckCircle className="h-3 w-3" />
                           </button>
@@ -679,7 +711,7 @@ const WatchingHistoryTab = ({
                             handleRemoveFromWatching(movie.movieId)
                           }
                           className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
-                          title="Xóa khỏi danh sách"
+                          title={t("watchingHistory.remove_from_list")}
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const ImageUpload = ({
   onImageChange,
@@ -10,6 +11,7 @@ const ImageUpload = ({
   className = "",
   radioName = "uploadType", // Unique name for radio buttons
 }) => {
+  const { t } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState(currentImageUrl);
   const [uploadType, setUploadType] = useState("url"); // 'url' or 'file'
   const [urlInput, setUrlInput] = useState(currentImageUrl);
@@ -40,13 +42,17 @@ const ImageUpload = ({
     if (file) {
       // Validate file size
       if (file.size > maxSize) {
-        toast.error(`File size must be less than ${maxSize / (1024 * 1024)}MB`);
+        toast.error(
+          t("imageUpload.errors.file_too_large", {
+            maxSizeMB: maxSize / (1024 * 1024),
+          }),
+        );
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select a valid image file");
+        toast.error(t("imageUpload.errors.invalid_file_type"));
         return;
       }
 
@@ -102,7 +108,7 @@ const ImageUpload = ({
             onChange={() => handleTypeChange("file")}
             className="mr-2"
           />
-          Upload File
+          {t("imageUpload.upload_file")}
         </label>
       </div>
 
@@ -112,7 +118,7 @@ const ImageUpload = ({
           type="url"
           value={urlInput}
           onChange={handleUrlChange}
-          placeholder="Nhập URL ảnh..."
+          placeholder={t("imageUpload.enter_url")}
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       )}
@@ -132,10 +138,11 @@ const ImageUpload = ({
             onClick={handleFileButtonClick}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
           >
-            Chọn file
+            {t("imageUpload.choose_file")}
           </button>
           <span className="text-sm text-gray-500">
-            {fileInputRef.current?.files[0]?.name || "Chưa chọn file"}
+            {fileInputRef.current?.files[0]?.name ||
+              t("imageUpload.no_file_selected")}
           </span>
         </div>
       )}
@@ -149,7 +156,7 @@ const ImageUpload = ({
             className="w-32 h-32 object-cover border border-gray-300 rounded-md"
             onError={() => {
               setPreviewUrl("");
-              toast.error("Không thể tải ảnh. Vui lòng kiểm tra URL.");
+              toast.error(t("imageUpload.errors.cannot_load_image"));
             }}
           />
           <button

@@ -6,8 +6,10 @@ import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const NotificationCenter = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { navigateWithLoading } = useLoading();
@@ -210,7 +212,7 @@ const NotificationCenter = () => {
       // Update unread count
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      toast.error("Không thể đánh dấu đã đọc");
+      toast.error(t("notifications.center.toasts.mark_read_failed"));
     }
   };
 
@@ -232,9 +234,9 @@ const NotificationCenter = () => {
         })),
       );
       setUnreadCount(0);
-      toast.success("Đã đánh dấu tất cả là đã đọc!");
+      toast.success(t("notifications.center.toasts.mark_all_success"));
     } catch (error) {
-      toast.error("Có lỗi xảy ra!");
+      toast.error(t("notifications.center.toasts.generic_error"));
     }
   };
 
@@ -249,7 +251,7 @@ const NotificationCenter = () => {
         window.open(notification.actionUrl, "_blank");
       } else {
         navigateWithLoading(notification.actionUrl, {
-          loadingMessage: "Đang mở thông báo...",
+          loadingMessage: t("notifications.center.loading_open"),
         });
       }
     }
@@ -267,10 +269,14 @@ const NotificationCenter = () => {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    return `${diffDays} ngày trước`;
+    if (diffMins < 1) return t("notifications.center.time.just_now");
+    if (diffMins < 60) {
+      return t("notifications.center.time.minutes_ago", { count: diffMins });
+    }
+    if (diffHours < 24) {
+      return t("notifications.center.time.hours_ago", { count: diffHours });
+    }
+    return t("notifications.center.time.days_ago", { count: diffDays });
   };
 
   const getConnectionStatusColor = () => {
@@ -293,7 +299,7 @@ const NotificationCenter = () => {
         ref={bellRef}
         className="notification-bell relative cursor-pointer p-2 rounded-full hover:bg-gray-700 transition-colors duration-200"
         onClick={() => setIsOpen(!isOpen)}
-        title={`${unreadCount} thông báo chưa đọc`}
+        title={t("notifications.center.unread_title", { count: unreadCount })}
       >
         <FaBell className="text-white text-xl" />
 
@@ -321,7 +327,7 @@ const NotificationCenter = () => {
           <div className="notification-header flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800">
             <h3 className="text-white font-semibold text-lg flex items-center">
               <FaBell className="mr-2" />
-              Thông báo
+              {t("notifications.title")}
             </h3>
             <div className="flex items-center space-x-2">
               {unreadCount > 0 && (
@@ -330,7 +336,7 @@ const NotificationCenter = () => {
                   className="text-blue-400 text-sm hover:text-blue-300 transition-colors flex items-center"
                 >
                   <FaCheck className="mr-1" />
-                  Đọc tất cả
+                  {t("notifications.center.read_all")}
                 </button>
               )}
             </div>
@@ -341,15 +347,17 @@ const NotificationCenter = () => {
             {loading ? (
               <div className="p-6 text-center text-gray-400">
                 <div className="animate-spin text-2xl mb-2">🔄</div>
-                <p>Đang tải...</p>
+                <p>{t("common.loading")}</p>
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-6 text-center text-gray-400">
                 <div className="text-4xl mb-3">📭</div>
                 <p className="text-lg font-medium mb-1">
-                  Chưa có thông báo nào
+                  {t("notifications.center.empty_title")}
                 </p>
-                <p className="text-sm">Thông báo mới sẽ xuất hiện ở đây</p>
+                <p className="text-sm">
+                  {t("notifications.center.empty_subtitle")}
+                </p>
               </div>
             ) : (
               notifications.map((notification) => {
@@ -385,7 +393,7 @@ const NotificationCenter = () => {
                           {notification.title}
                           {isNew && (
                             <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
-                              Mới
+                              {t("notifications.center.new_badge")}
                             </span>
                           )}
                         </div>
@@ -407,7 +415,7 @@ const NotificationCenter = () => {
                           )}
                           {notification.readAt && (
                             <span className="ml-2 text-green-400">
-                              ✓ Đã đọc
+                              ✓ {t("notifications.center.read_label")}
                             </span>
                           )}
                         </div>
@@ -437,7 +445,7 @@ const NotificationCenter = () => {
               className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
               onClick={() => setIsOpen(false)}
             >
-              Xem tất cả thông báo
+              {t("notifications.center.view_all")}
             </Link>
           </div>
         </div>

@@ -1,17 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
-import { fetchJson, fetchCategories, fetchMovieType } from "../services/api";
+import {
+  fetchJson,
+  fetchCategories,
+  fetchMovieType,
+  fetchCountries,
+  fetchMovieByHot,
+} from "../services/api";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 function MovieList({ movies = [], onMovieClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { categoryName } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showFilter, setShowFilter] = useState(false);
   const {
     category,
@@ -21,6 +27,8 @@ function MovieList({ movies = [], onMovieClick }) {
   } = location.state || {};
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [allMovies, setAllMovies] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [suggestedMovies, setSuggestedMovies] = useState([]);
 
   const [types, setTypes] = useState([]); // Thể loại (categories) - Drama, Action, etc.
   const [movieTypes, setMovieTypes] = useState([]); // Loại phim (movie types) - Phim lẻ, Phim bộ, etc.
@@ -29,20 +37,81 @@ function MovieList({ movies = [], onMovieClick }) {
   useDocumentTitle(title || categoryName || t("navigation.movies"));
 
   // Filter states
-  const [selectedCountry, setSelectedCountry] = useState(t("common.all"));
-  const [selectedMovieType, setSelectedMovieType] = useState(t("common.all"));
-  const [selectedRating, setSelectedRating] = useState(t("common.all"));
-  const [selectedGenre, setSelectedGenre] = useState(t("common.all"));
-  const [selectedVersion, setSelectedVersion] = useState(t("common.all"));
-  const [selectedYear, setSelectedYear] = useState(t("common.all"));
-  const [selectedSort, setSelectedSort] = useState(t("filter.newest"));
+  const allLabel = t("common.all");
+  const newestSortLabel = t("movieList.sort_options.newest");
+  const updatedSortLabel = t("movieList.sort_options.recently_updated");
+  const viewsSortLabel = t("movieList.sort_options.views");
+  const yearSortLabel = t("movieList.sort_options.production_year");
+  const subtitleVersionLabel = t("movieList.version_options.sub");
+  const dubbedVersionLabel = t("movieList.version_options.dubbed");
+  const voiceoverVersionLabel = t("movieList.version_options.voiceover");
+
+  const [selectedCountry, setSelectedCountry] = useState(allLabel);
+  const [selectedMovieType, setSelectedMovieType] = useState(allLabel);
+  const [selectedRating, setSelectedRating] = useState(allLabel);
+  const [selectedGenre, setSelectedGenre] = useState(allLabel);
+  const [selectedVersion, setSelectedVersion] = useState(allLabel);
+  const [selectedYear, setSelectedYear] = useState(allLabel);
+  const [selectedSort, setSelectedSort] = useState(newestSortLabel);
+
+  const countryOptions = useMemo(() => {
+    const names = countries
+      .map((country) => country?.name)
+      .filter((name) => Boolean(name));
+    return [allLabel, ...names];
+  }, [allLabel, countries]);
+
+  const yearOptions = useMemo(() => {
+    const years = [
+      ...new Set(
+        allMovies
+          .map((movie) => movie?.release_year)
+          .filter((year) => year !== null && year !== undefined && year !== ""),
+      ),
+    ]
+      .map((year) => String(year))
+      .sort((a, b) => Number(b) - Number(a));
+
+    return [allLabel, ...years];
+  }, [allLabel, allMovies]);
+
+  const versionOptions = [
+    allLabel,
+    subtitleVersionLabel,
+    dubbedVersionLabel,
+    voiceoverVersionLabel,
+  ];
+
+  const sortOptions = [
+    newestSortLabel,
+    updatedSortLabel,
+    viewsSortLabel,
+    yearSortLabel,
+  ];
+
+  useEffect(() => {
+    setSelectedCountry(allLabel);
+    setSelectedMovieType(allLabel);
+    setSelectedRating(allLabel);
+    setSelectedGenre(allLabel);
+    setSelectedVersion(allLabel);
+    setSelectedYear(allLabel);
+    setSelectedSort(newestSortLabel);
+  }, [i18n.language]);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [categoriesResponse, movieTypesResponse] = await Promise.all([
+        const [
+          categoriesResponse,
+          movieTypesResponse,
+          countriesResponse,
+          hotMoviesResponse,
+        ] = await Promise.all([
           fetchCategories(), // Thể loại (movieCategories) - Drama, Action, etc.
           fetchMovieType(), // Loại phim (movieTypes) - có thể là dữ liệu khác
+          fetchCountries(),
+          fetchMovieByHot(),
         ]);
 
         console.log("Categories response:", categoriesResponse); // Debug log
@@ -54,13 +123,23 @@ function MovieList({ movies = [], onMovieClick }) {
         const movieTypesArray = Array.isArray(movieTypesResponse)
           ? movieTypesResponse
           : [];
+        const countriesArray = Array.isArray(countriesResponse)
+          ? countriesResponse
+          : [];
+        const hotMoviesArray = Array.isArray(hotMoviesResponse)
+          ? hotMoviesResponse
+          : [];
 
         setTypes(categoriesArray); // Thể loại cho filter "Thể loại"
         setMovieTypes(movieTypesArray); // Loại phim (nếu cần dùng)
+        setCountries(countriesArray);
+        setSuggestedMovies(hotMoviesArray.slice(0, 14));
       } catch (error) {
         console.error("Error fetching data:", error);
         setTypes([]);
         setMovieTypes([]);
+        setCountries([]);
+        setSuggestedMovies([]);
       }
     };
     fetchAll();
@@ -125,7 +204,7 @@ function MovieList({ movies = [], onMovieClick }) {
     let filtered = [...allMovies];
 
     // Filter by year
-    if (selectedYear !== "Tất cả") {
+    if (selectedYear !== allLabel) {
       filtered = filtered.filter(
         (movie) =>
           movie.release_year && movie.release_year.toString() === selectedYear,
@@ -133,14 +212,14 @@ function MovieList({ movies = [], onMovieClick }) {
     }
 
     // Filter by country
-    if (selectedCountry !== "Tất cả") {
+    if (selectedCountry !== allLabel) {
       filtered = filtered.filter(
         (movie) => movie.country && movie.country.name === selectedCountry,
       );
     }
 
     // Filter by movie type (loại phim) - sử dụng data thật từ movieTypes
-    if (selectedMovieType !== "Tất cả") {
+    if (selectedMovieType !== allLabel) {
       filtered = filtered.filter(
         (movie) =>
           movie.movieTypes &&
@@ -149,12 +228,12 @@ function MovieList({ movies = [], onMovieClick }) {
     }
 
     // Filter by age rating
-    if (selectedRating !== "Tất cả") {
+    if (selectedRating !== allLabel) {
       filtered = filtered.filter((movie) => movie.ageRating === selectedRating);
     }
 
     // Filter by genre (thể loại)
-    if (selectedGenre !== "Tất cả") {
+    if (selectedGenre !== allLabel) {
       filtered = filtered.filter(
         (movie) =>
           movie.movieCategories &&
@@ -163,25 +242,25 @@ function MovieList({ movies = [], onMovieClick }) {
     }
 
     // Filter by version (phiên bản)
-    if (selectedVersion !== "Tất cả") {
-      if (selectedVersion === "Phụ đề") {
+    if (selectedVersion !== allLabel) {
+      if (selectedVersion === subtitleVersionLabel) {
         filtered = filtered.filter((movie) => movie.vietSub === true);
       } else if (
-        selectedVersion === "Lồng tiếng" ||
-        selectedVersion === "Thuyết minh"
+        selectedVersion === dubbedVersionLabel ||
+        selectedVersion === voiceoverVersionLabel
       ) {
         filtered = filtered.filter((movie) => movie.vietSub === false);
       }
     }
 
     // Apply sorting
-    if (selectedSort === "Mới nhất") {
+    if (selectedSort === newestSortLabel) {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (selectedSort === "Mới cập nhật") {
+    } else if (selectedSort === updatedSortLabel) {
       filtered.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    } else if (selectedSort === "Lượt xem") {
+    } else if (selectedSort === viewsSortLabel) {
       filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-    } else if (selectedSort === "Năm sản xuất") {
+    } else if (selectedSort === yearSortLabel) {
       filtered.sort((a, b) => (b.release_year || 0) - (a.release_year || 0));
     }
 
@@ -200,13 +279,13 @@ function MovieList({ movies = [], onMovieClick }) {
 
   // Reset filters
   const resetFilters = () => {
-    setSelectedCountry("Tất cả");
-    setSelectedMovieType("Tất cả");
-    setSelectedRating("Tất cả");
-    setSelectedGenre("Tất cả");
-    setSelectedVersion("Tất cả");
-    setSelectedYear("Tất cả");
-    setSelectedSort("Mới nhất");
+    setSelectedCountry(allLabel);
+    setSelectedMovieType(allLabel);
+    setSelectedRating(allLabel);
+    setSelectedGenre(allLabel);
+    setSelectedVersion(allLabel);
+    setSelectedYear(allLabel);
+    setSelectedSort(newestSortLabel);
     // Don't need to call applyFiltersInternal here as useEffect will handle it
   };
 
@@ -231,7 +310,7 @@ function MovieList({ movies = [], onMovieClick }) {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-      <div className="relative rounded-lg w-full h-64 sm:h-72 md:h-80 lg:h-64 cursor-pointer mx-auto mt-8 sm:mt-12 lg:mt-20">
+      <div className="relative rounded-lg w-full h-64 sm:h-72 md:h-80 lg:h-64 cursor-pointer mx-auto mt-8 mb-10 sm:mt-12 lg:mt-20">
         <div
           className="relative w-full h-full overflow-visible"
           onMouseEnter={() => setIsHovered(true)}
@@ -261,7 +340,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </div>
           {isHovered && (
             <div
-              className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[320px] lg:w-[350px] h-[350px] sm:h-[380px] lg:h-[400px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex flex-col gap-0 overflow-visible pointer-events-auto hidden sm:flex"
+              className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[320px] lg:w-[350px] h-[350px] sm:h-[380px] lg:h-[400px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex-col gap-0 overflow-visible pointer-events-auto hidden sm:flex"
               style={{ opacity: isHovered ? 1 : 0 }}
             >
               <img
@@ -278,9 +357,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 <h3 className="text-base lg:text-lg font-bold truncate">
                   {movie.title}
                 </h3>
-                <p className="text-sm">Năm: {movie.release_year}</p>
+                <p className="text-sm">
+                  {t("movieList.labels.year")}: {movie.release_year}
+                </p>
                 <button className="mt-2 bg-blue-500 text-white p-2 rounded text-sm hover:bg-blue-600 transition-colors">
-                  Xem ngay
+                  {t("movie.watch_now")}
                 </button>
               </div>
             </div>
@@ -297,66 +378,66 @@ function MovieList({ movies = [], onMovieClick }) {
 
       {/* Selected Filters Display */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {selectedCountry !== "Tất cả" && (
+        {selectedCountry !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Quốc gia: {selectedCountry}
+            {t("movie.country")}: {selectedCountry}
             <button
-              onClick={() => setSelectedCountry("Tất cả")}
+              onClick={() => setSelectedCountry(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
             </button>
           </span>
         )}
-        {selectedYear !== "Tất cả" && (
+        {selectedYear !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Năm: {selectedYear}
+            {t("movieList.labels.year")}: {selectedYear}
             <button
-              onClick={() => setSelectedYear("Tất cả")}
+              onClick={() => setSelectedYear(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
             </button>
           </span>
         )}
-        {selectedGenre !== "Tất cả" && (
+        {selectedGenre !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Thể loại: {selectedGenre}
+            {t("movie.genre")}: {selectedGenre}
             <button
-              onClick={() => setSelectedGenre("Tất cả")}
+              onClick={() => setSelectedGenre(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
             </button>
           </span>
         )}
-        {selectedMovieType !== "Tất cả" && (
+        {selectedMovieType !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Loại phim: {selectedMovieType}
+            {t("movieList.labels.movie_type")}: {selectedMovieType}
             <button
-              onClick={() => setSelectedMovieType("Tất cả")}
+              onClick={() => setSelectedMovieType(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
             </button>
           </span>
         )}
-        {selectedRating !== "Tất cả" && (
+        {selectedRating !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Xếp hạng: {selectedRating}
+            {t("movie.rating")}: {selectedRating}
             <button
-              onClick={() => setSelectedRating("Tất cả")}
+              onClick={() => setSelectedRating(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
             </button>
           </span>
         )}
-        {selectedVersion !== "Tất cả" && (
+        {selectedVersion !== allLabel && (
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-            Phiên bản: {selectedVersion}
+            {t("movieList.labels.version")}: {selectedVersion}
             <button
-              onClick={() => setSelectedVersion("Tất cả")}
+              onClick={() => setSelectedVersion(allLabel)}
               className="text-white hover:text-red-300"
             >
               ×
@@ -372,7 +453,7 @@ function MovieList({ movies = [], onMovieClick }) {
         }}
         className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4"
       >
-        <h3>Bộ lọc</h3>
+        <h3>{t("movieList.filter_title")}</h3>
         <span className="flex items-center gap-2 text-white">
           <FaFilter />
         </span>
@@ -383,24 +464,10 @@ function MovieList({ movies = [], onMovieClick }) {
           <div className="flex flex-col gap-4 pr-10 pl-6">
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Quốc gia:
+                {t("movie.country")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
-                {[
-                  "Tất cả",
-                  "Anh",
-                  "Canada",
-                  "Hàn Quốc",
-                  "Hồng Kông",
-                  "Mỹ",
-                  "Nhật Bản",
-                  "Pháp",
-                  "Thái Lan",
-                  "Trung Quốc",
-                  "Úc",
-                  "Đài Loan",
-                  "Đức",
-                ].map((item) => (
+                {countryOptions.map((item) => (
                   <li
                     key={item}
                     className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
@@ -417,18 +484,18 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="flex items-center ">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Loại phim:
+                {t("movieList.labels.movie_type")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
                 <li
                   className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                    selectedMovieType === "Tất cả"
+                    selectedMovieType === allLabel
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-700"
                   }`}
-                  onClick={() => setSelectedMovieType("Tất cả")}
+                  onClick={() => setSelectedMovieType(allLabel)}
                 >
-                  Tất cả
+                  {allLabel}
                 </li>
                 {movieTypes.map((item) => (
                   <li
@@ -447,10 +514,10 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Xếp hạng:
+                {t("movie.rating")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
-                {["Tất cả", "P", "K", "T13", "T16", "T18"].map((item) => (
+                {[allLabel, "P", "K", "T13", "T16", "T18"].map((item) => (
                   <li
                     key={item}
                     className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
@@ -467,18 +534,18 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="flex">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Thể loại:
+                {t("movie.genre")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
                 <li
                   className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                    selectedGenre === "Tất cả"
+                    selectedGenre === allLabel
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-700"
                   }`}
-                  onClick={() => setSelectedGenre("Tất cả")}
+                  onClick={() => setSelectedGenre(allLabel)}
                 >
-                  Tất cả
+                  {allLabel}
                 </li>
                 {types.map((item) => (
                   <li
@@ -497,50 +564,30 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Phiên bản:
+                {t("movieList.labels.version")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
-                {["Tất cả", "Phụ đề", "Lồng tiếng", "Thuyết minh"].map(
-                  (item) => (
-                    <li
-                      key={item}
-                      className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                        selectedVersion === item
-                          ? "bg-blue-600 text-white"
-                          : "hover:bg-gray-700"
-                      }`}
-                      onClick={() => setSelectedVersion(item)}
-                    >
-                      {item}
-                    </li>
-                  ),
-                )}
+                {versionOptions.map((item) => (
+                  <li
+                    key={item}
+                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
+                      selectedVersion === item
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-700"
+                    }`}
+                    onClick={() => setSelectedVersion(item)}
+                  >
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Năm sản xuất:
+                {t("movieList.labels.production_year")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
-                {[
-                  "Tất cả",
-                  "2025",
-                  "2024",
-                  "2023",
-                  "2022",
-                  "2021",
-                  "2020",
-                  "2019",
-                  "2018",
-                  "2017",
-                  "2016",
-                  "2015",
-                  "2014",
-                  "2013",
-                  "2012",
-                  "2011",
-                  "2010",
-                ].map((item) => (
+                {yearOptions.map((item) => (
                   <li
                     key={item}
                     className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
@@ -557,24 +604,22 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
-                Sắp xếp:
+                {t("movieList.labels.sort")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
-                {["Mới nhất", "Mới cập nhật", "Lượt xem", "Năm sản xuất"].map(
-                  (item) => (
-                    <li
-                      key={item}
-                      className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                        selectedSort === item
-                          ? "bg-blue-600 text-white"
-                          : "hover:bg-gray-700"
-                      }`}
-                      onClick={() => setSelectedSort(item)}
-                    >
-                      {item}
-                    </li>
-                  ),
-                )}
+                {sortOptions.map((item) => (
+                  <li
+                    key={item}
+                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
+                      selectedSort === item
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-700"
+                    }`}
+                    onClick={() => setSelectedSort(item)}
+                  >
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="mt-8 flex justify-start space-x-4">
@@ -582,19 +627,19 @@ function MovieList({ movies = [], onMovieClick }) {
                 className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition-colors"
                 onClick={applyFilters}
               >
-                Lọc kết quả
+                {t("movieList.actions.apply_filters")}
               </button>
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
                 onClick={resetFilters}
               >
-                Xóa tất cả bộ lọc
+                {t("movieList.actions.reset_filters")}
               </button>
               <button
                 className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
                 onClick={() => setShowFilter(false)}
               >
-                Đóng
+                {t("common.close")}
               </button>
             </div>
           </div>
@@ -613,10 +658,27 @@ function MovieList({ movies = [], onMovieClick }) {
           ))
         ) : (
           <div className="col-span-full flex items-center justify-center h-80 text-white">
-            Không có phim nào được tìm thấy
+            {t("movieList.no_movies_found")}
           </div>
         )}
       </div>
+
+      {currentMovies.length === 0 && suggestedMovies.length > 0 && (
+        <section className="mt-10">
+          <h3 className="text-xl font-semibold mb-4">
+            {t("search.suggestion_title")}
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-6 xl:gap-8">
+            {suggestedMovies.map((movie) => (
+              <CardMovie
+                key={`suggested-${movie.id}`}
+                movie={movie}
+                onMovieClick={handleMovieClick}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Pagination */}
       {pageCount > 1 && (
@@ -642,7 +704,7 @@ function MovieList({ movies = [], onMovieClick }) {
             disabledClassName="opacity-50 cursor-not-allowed"
           />
           <span className="ml-2 text-gray-300">
-            Trang {currentPage + 1} / {pageCount}
+            {t("movieList.pagination.page")} {currentPage + 1} / {pageCount}
           </span>
         </div>
       )}

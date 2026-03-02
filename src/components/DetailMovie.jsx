@@ -29,7 +29,7 @@ const DetailMovie = () => {
   const toastTimeoutRef = useRef(null);
 
   // Set document title based on movie title
-  useDocumentTitle(movieDetail?.data?.title || "Chi tiết phim");
+  useDocumentTitle(movieDetail?.data?.title || t("movieDetail.page_title"));
   // Initialize watching tracker
   const [relatedMovies, setRelatedMovies] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -99,7 +99,7 @@ const DetailMovie = () => {
   const handleCreateSchedule = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để tạo lịch xem");
+      toast.error(t("movieDetail.toasts.login_required_schedule"));
       return;
     }
 
@@ -114,20 +114,20 @@ const DetailMovie = () => {
           notes: scheduleNotes,
         }),
       });
-      toast.success("Tạo lịch xem thành công!");
+      toast.success(t("movieDetail.toasts.schedule_created"));
       setShowScheduleForm(false);
       setScheduleDateTime("");
       setScheduleNotes("");
       setScheduleReminder(true);
       checkScheduleStatus();
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi tạo lịch xem");
+      toast.error(t("movieDetail.toasts.schedule_create_error"));
     }
   };
 
   const handleToggleWatchLater = async () => {
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+      toast.error(t("movieDetail.toasts.login_required_feature"));
       return;
     }
 
@@ -138,7 +138,7 @@ const DetailMovie = () => {
           method: "DELETE",
         });
         setIsInWatchLater(false);
-        toast.success("Đã xóa khỏi danh sách xem sau!");
+        toast.success(t("movieDetail.toasts.removed_watch_later"));
       } else {
         // Add to watch later
         try {
@@ -166,12 +166,12 @@ const DetailMovie = () => {
             setIsInWatchLater(true);
             toast.info("Phim đã có trong danh sách xem sau");
           } else {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
+            toast.error(t("movieDetail.toasts.generic_error_retry"));
           }
         }
       }
     } catch (error) {
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
+      toast.error(t("movieDetail.toasts.generic_error_retry"));
     }
   };
 
@@ -188,7 +188,7 @@ const DetailMovie = () => {
   useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
-        setLoading("movieDetail", true, "Đang tải thông tin phim...");
+        setLoading("movieDetail", true, t("movieDetail.loading_message"));
         const data = await fetchJson(`/api/movies/${id}`);
 
         setMovieDetail(data);
@@ -255,7 +255,7 @@ const DetailMovie = () => {
           {movieDetail.data.vietSub && (
             <div className="my-3 mb-6">
               <span className="bg-green-500 text-white px-2 py-1 rounded-lg">
-                Việt Sub
+                {t("movieDetail.viet_sub")}
               </span>
             </div>
           )}
@@ -279,7 +279,7 @@ const DetailMovie = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Xem phim</span>
+                <span>{t("movieDetail.watch_movie")}</span>
               </Link>
               {movieDetail.data.trailer && (
                 <button
@@ -306,7 +306,7 @@ const DetailMovie = () => {
               <button
                 onClick={() => {
                   if (!isAuthenticated) {
-                    toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+                    toast.error(t("movieDetail.toasts.login_required_feature"));
                     return;
                   }
                   handleToggleWatchLater();
@@ -318,25 +318,31 @@ const DetailMovie = () => {
                 }`}
               >
                 <FaClock />
-                <span>{isInWatchLater ? "Đã thêm" : "Xem sau"}</span>
+                <span>
+                  {isInWatchLater
+                    ? t("movieDetail.added")
+                    : t("movie.watch_later")}
+                </span>
               </button>
               <button
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({
                       title: movieDetail.data.title,
-                      text: `Xem phim ${movieDetail.data.title}`,
+                      text: t("movieDetail.share_text", {
+                        title: movieDetail.data.title,
+                      }),
                       url: window.location.href,
                     });
                   } else {
                     navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link đã được sao chép vào clipboard");
+                    toast.success(t("movieDetail.toasts.link_copied"));
                   }
                 }}
                 className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
               >
                 <FaShare />
-                <span>Chia sẻ</span>
+                <span>{t("movieDetail.share")}</span>
               </button>
             </div>
           </div>
@@ -347,7 +353,7 @@ const DetailMovie = () => {
                   onClick={() => setShowModal(false)}
                   className="text-white float-right mb-8"
                 >
-                  Close
+                  {t("common.close")}
                 </button>
                 <iframe
                   src={convertToEmbedUrl(movieDetail.data.trailer)}
@@ -365,7 +371,7 @@ const DetailMovie = () => {
       <div className="my-12 mx-4 sm:mx-8 md:mx:12 lg:mx-16 mb-8">
         <nav className="mb-8 flex items-center space-x-2">
           <Link to="/" className="text-white text-xl font-semibold">
-            Movies
+            {t("navigation.movies")}
           </Link>{" "}
           <span className="text-white mx-2">{<FaChevronRight />}</span>
           {category && (
@@ -399,14 +405,14 @@ const DetailMovie = () => {
 
           <div className="w-[70%] pl-12">
             <h2 className="font-bold my-4 text-white sm:text-xl md:text-2xl">
-              Nội dung chi tiết
+              {t("movieDetail.detail_content")}
             </h2>
             <h1 className="text-2xl mb-2 text-white">
               {movieDetail.data.title}
             </h1>
             <div>
               <div className="my-3">
-                <span className="text-white">Đạo diễn: </span>
+                <span className="text-white">{t("movie.director")}: </span>
                 <span className="text-white">{movieDetail.data.director}</span>
               </div>
               <div className="my-3">
@@ -416,11 +422,15 @@ const DetailMovie = () => {
               <div className="my-3">
                 <span className="text-white">{t("movie.duration")}: </span>
                 <span className="text-white">
-                  {movieDetail.data.duration} phút
+                  {t("movieDetail.duration_minutes", {
+                    value: movieDetail.data.duration,
+                  })}
                 </span>
               </div>
               <div className="my-3">
-                <span className="text-white">Description: </span>
+                <span className="text-white">
+                  {t("movieDetail.description")}:{" "}
+                </span>
                 <span
                   className="text-white"
                   dangerouslySetInnerHTML={{
@@ -435,7 +445,7 @@ const DetailMovie = () => {
                   onClick={() => {
                     if (!isAuthenticated) {
                       toast.error(
-                        "Vui lòng đăng nhập để sử dụng tính năng này",
+                        t("movieDetail.toasts.login_required_feature"),
                       );
                       return;
                     }
@@ -448,36 +458,44 @@ const DetailMovie = () => {
                   }`}
                 >
                   <FaClock />
-                  <span>{isInWatchLater ? "Đã thêm" : "Xem sau"}</span>
+                  <span>
+                    {isInWatchLater
+                      ? t("movieDetail.added")
+                      : t("movie.watch_later")}
+                  </span>
                 </button>
                 <button
                   onClick={() => {
                     if (navigator.share) {
                       navigator.share({
                         title: movieDetail.data.title,
-                        text: `Xem phim ${movieDetail.data.title}`,
+                        text: t("movieDetail.share_text", {
+                          title: movieDetail.data.title,
+                        }),
                         url: window.location.href,
                       });
                     } else {
                       navigator.clipboard.writeText(window.location.href);
-                      toast.success("Link đã được sao chép vào clipboard");
+                      toast.success(t("movieDetail.toasts.link_copied"));
                     }
                   }}
                   className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   <FaShare />
-                  <span>Chia sẻ</span>
+                  <span>{t("movieDetail.share")}</span>
                 </button>
                 {isScheduled ? (
                   <span className="flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 px-4 py-2.5 rounded-lg font-medium">
                     <FaCalendarAlt />
-                    <span>Đã lên lịch</span>
+                    <span>{t("movieDetail.scheduled")}</span>
                   </span>
                 ) : (
                   <button
                     onClick={() => {
                       if (!isAuthenticated) {
-                        toast.error("Vui lòng đăng nhập để tạo lịch xem");
+                        toast.error(
+                          t("movieDetail.toasts.login_required_schedule"),
+                        );
                         return;
                       }
                       setShowScheduleForm(true);
@@ -485,7 +503,7 @@ const DetailMovie = () => {
                     className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   >
                     <FaCalendarAlt />
-                    <span>Lên lịch xem</span>
+                    <span>{t("movieDetail.schedule_watch")}</span>
                   </button>
                 )}
               </div>
@@ -501,7 +519,9 @@ const DetailMovie = () => {
                           className="inline-block text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-blue-600 hover:to-blue-700 py-3 px-6 rounded-lg text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                           state={{ movieDetail: movieDetail.data }}
                         >
-                          Tập {link.episodeNumber}
+                          {t("movieDetail.episode", {
+                            number: link.episodeNumber,
+                          })}
                         </Link>
                       </div>
                     ))
@@ -516,7 +536,7 @@ const DetailMovie = () => {
 
       <div className=" mx-12 mt-40">
         <HorizontalMovies
-          title="Phim liên quan"
+          title={t("movieDetail.related_movies")}
           movies={relatedMovies}
           to="/allmovies"
           onMovieClick={handleMovieClick}
@@ -541,12 +561,12 @@ const DetailMovie = () => {
               </svg>
             </button>
             <h3 className="text-xl text-white font-semibold mb-6 pr-8">
-              Lên lịch xem phim
+              {t("movieDetail.schedule_modal.title")}
             </h3>
             <form onSubmit={handleCreateSchedule} className="space-y-4">
               <div>
                 <label className="block text-gray-300 mb-2 font-medium">
-                  Thời gian xem:
+                  {t("movieDetail.schedule_modal.watch_time")}
                 </label>
                 <input
                   type="datetime-local"
@@ -558,14 +578,16 @@ const DetailMovie = () => {
               </div>
               <div>
                 <label className="block text-gray-300 mb-2 font-medium">
-                  Ghi chú (tùy chọn):
+                  {t("movieDetail.schedule_modal.notes_optional")}
                 </label>
                 <textarea
                   value={scheduleNotes}
                   onChange={(e) => setScheduleNotes(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                   rows="3"
-                  placeholder="Ghi chú cho lịch xem..."
+                  placeholder={t(
+                    "movieDetail.schedule_modal.notes_placeholder",
+                  )}
                 />
               </div>
               <div>
@@ -576,14 +598,16 @@ const DetailMovie = () => {
                     onChange={(e) => setScheduleReminder(e.target.checked)}
                     className="mr-3 w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                   />
-                  <span className="font-medium">Nhắc nhở trước 30 phút</span>
+                  <span className="font-medium">
+                    {t("movieDetail.schedule_modal.remind_30m")}
+                  </span>
                 </label>
               </div>
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg mt-6"
               >
-                Tạo lịch xem
+                {t("movieDetail.schedule_modal.create")}
               </button>
             </form>
           </div>

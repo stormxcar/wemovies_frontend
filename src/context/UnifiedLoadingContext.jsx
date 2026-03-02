@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageLoader from "../components/loading/PageLoader";
+import i18n from "../i18n";
 
 const LoadingContext = createContext();
 
@@ -17,13 +18,15 @@ export const LoadingProvider = ({ children }) => {
   // Global app loading states
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [appLoadingMessage, setAppLoadingMessage] = useState(
-    "Khởi tạo ứng dụng...",
+    i18n.t("loading.app_init"),
   );
   const [appProgress, setAppProgress] = useState(0);
 
   // Page transition loading
   const [pageLoading, setPageLoading] = useState(false);
-  const [pageLoadingMessage, setPageLoadingMessage] = useState("Đang tải...");
+  const [pageLoadingMessage, setPageLoadingMessage] = useState(
+    i18n.t("loading.default"),
+  );
 
   // Component synchronization for pages like Home
   const [componentsLoaded, setComponentsLoaded] = useState({
@@ -43,22 +46,22 @@ export const LoadingProvider = ({ children }) => {
       try {
         // Simulate app initialization steps
         setAppProgress(10);
-        setAppLoadingMessage("Khởi tạo ứng dụng...");
+        setAppLoadingMessage(i18n.t("loading.app_init"));
 
         await new Promise((resolve) => setTimeout(resolve, 300));
         setComponentsLoaded((prev) => ({ ...prev, auth: true }));
         setAppProgress(25);
-        setAppLoadingMessage("Kiểm tra đăng nhập...");
+        setAppLoadingMessage(i18n.t("loading.check_auth"));
 
         await new Promise((resolve) => setTimeout(resolve, 200));
         setComponentsLoaded((prev) => ({ ...prev, ui: true }));
         setAppProgress(50);
-        setAppLoadingMessage("Tải giao diện...");
+        setAppLoadingMessage(i18n.t("loading.load_ui"));
 
         await new Promise((resolve) => setTimeout(resolve, 100));
         setComponentsLoaded((prev) => ({ ...prev, app: true }));
         setAppProgress(75);
-        setAppLoadingMessage("Hoàn tất...");
+        setAppLoadingMessage(i18n.t("loading.complete"));
 
         await new Promise((resolve) => setTimeout(resolve, 200));
         setAppProgress(100);
@@ -95,7 +98,7 @@ export const LoadingProvider = ({ children }) => {
   );
 
   // ===== PAGE TRANSITION LOADING =====
-  const showPageLoading = useCallback((message = "Đang tải trang...") => {
+  const showPageLoading = useCallback((message = i18n.t("loading.page")) => {
     setPageLoadingMessage(message);
     setPageLoading(true);
   }, []);
@@ -107,7 +110,8 @@ export const LoadingProvider = ({ children }) => {
   // ===== NAVIGATION WITH LOADING =====
   const navigateWithLoading = useCallback(
     (to, options = {}) => {
-      const { loadingMessage = "Đang chuyển trang...", delay = 500 } = options;
+      const { loadingMessage = i18n.t("loading.navigate"), delay = 500 } =
+        options;
 
       showPageLoading(loadingMessage);
 
@@ -126,7 +130,7 @@ export const LoadingProvider = ({ children }) => {
       if (!to) return;
 
       navigateWithLoading(to, {
-        loadingMessage: loadingMessage || "Đang chuyển trang...",
+        loadingMessage: loadingMessage || i18n.t("loading.navigate"),
       });
     };
 
@@ -167,7 +171,7 @@ export const LoadingProvider = ({ children }) => {
   }, []);
 
   const showAppLoader = useCallback(
-    (message = "Đang tải...", showProgress = false) => {
+    (message = i18n.t("loading.default"), showProgress = false) => {
       setIsAppLoading(true);
       setAppLoadingMessage(message);
       if (!showProgress) {

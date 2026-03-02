@@ -9,12 +9,12 @@ import { useTranslation } from "react-i18next";
 const ContinueWatchingSection = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
-  const { 
-    watchingList, 
-    isLoading: loading, 
-    error, 
+  const {
+    watchingList,
+    isLoading: loading,
+    error,
     removeFromWatching,
-    isAPIAvailable 
+    isAPIAvailable,
   } = useWatchingProgress(user);
 
   // Show only first 6 movies for homepage
@@ -32,11 +32,11 @@ const ContinueWatchingSection = () => {
   };
 
   const formatProgress = (percentage) => {
-    if (percentage >= 95) return "Sắp xong";
-    if (percentage >= 75) return "Đang xem";
-    if (percentage >= 50) return "Đang theo dõi";
-    if (percentage >= 25) return "Mới bắt đầu";
-    return "Vừa khởi tạo";
+    if (percentage >= 95) return t("continueSection.progress.almost_done");
+    if (percentage >= 75) return t("continueSection.progress.watching");
+    if (percentage >= 50) return t("continueSection.progress.following");
+    if (percentage >= 25) return t("continueSection.progress.just_started");
+    return t("continueSection.progress.initialized");
   };
 
   const getProgressColor = (percentage) => {
@@ -129,7 +129,7 @@ const ContinueWatchingSection = () => {
                 <button
                   onClick={() => handleRemoveFromWatching(movie.movieId)}
                   className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                  title="Xóa khỏi danh sách"
+                  title={t("continueSection.remove")}
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -150,7 +150,7 @@ const ContinueWatchingSection = () => {
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                 >
                   <Play className="mr-1 h-4 w-4" />
-                  Tiếp tục
+                  {t("continueSection.continue")}
                 </Link>
               </div>
             </div>
@@ -162,7 +162,10 @@ const ContinueWatchingSection = () => {
               </h3>
               {movie.episodeNumber && movie.totalEpisodes && (
                 <p className="text-blue-400 text-xs">
-                  Tập {movie.episodeNumber}/{movie.totalEpisodes}
+                  {t("continueSection.episode", {
+                    current: movie.episodeNumber,
+                    total: movie.totalEpisodes,
+                  })}
                 </p>
               )}
             </div>

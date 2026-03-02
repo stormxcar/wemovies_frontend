@@ -271,7 +271,7 @@ const AddMovie = () => {
       setLoading(false);
       setError(null);
       // invalidate list so the new movie appears immediately
-+      await queryClient.invalidateQueries({ queryKey: ["movies"] });
+      +(await queryClient.invalidateQueries({ queryKey: ["movies"] }));
       // Reset form and navigate
       setFormData({
         title: "",

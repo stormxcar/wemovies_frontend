@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { fetchJson } from "../../services/api";
+import { useTranslation } from "react-i18next";
 
 function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {
@@ -18,12 +20,12 @@ function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
             Accept: "application/json",
           },
           credentials: "include",
-        }
+        },
       );
-      toast.success("Xác thực OTP thành công. Vui lòng đăng nhập.");
+      toast.success(t("register.toasts.otp_verify_success"));
       onVerifySuccess();
     } catch (error) {
-      toast.error(error.message || "OTP không hợp lệ");
+      toast.error(error.message || t("register.toasts.otp_invalid"));
     }
   };
 
@@ -42,7 +44,9 @@ function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
         >
           <FaTimes />
         </button>
-        <h2 className="text-xl text-white font-semibold mb-4">Xác thực OTP</h2>
+        <h2 className="text-xl text-white font-semibold mb-4">
+          {t("register.otp.title")}
+        </h2>
         <form onSubmit={handleSubmit}>
           <input
             type="email"
@@ -54,7 +58,7 @@ function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
             type="text"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Nhập mã OTP"
+            placeholder={t("register.otp.placeholder")}
             className="w-full px-4 py-2 mb-4 bg-gray-900/10 border-[1px] border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
             required
           />
@@ -62,7 +66,7 @@ function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
             type="submit"
             className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
           >
-            Xác thực
+            {t("register.otp.submit")}
           </button>
         </form>
       </div>

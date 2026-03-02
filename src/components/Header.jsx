@@ -22,6 +22,7 @@ import {
   fetchCategories,
   fetchCountries,
   fetchMovieType,
+  fetchMovieByHot,
   fetchJson,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -29,8 +30,14 @@ import { useTheme } from "../context/ThemeContext";
 import { useLoading } from "../context/UnifiedLoadingContext";
 
 function Header() {
+  const RECENT_SEARCHES_KEY = "wemovies_recent_searches";
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
+  const [hotSuggestions, setHotSuggestions] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
   const { setLoading, isLoading } = useLoading();
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -47,6 +54,39 @@ function Header() {
   const { t, i18n } = useTranslation();
   const { navigateWithLoading } = useLoading();
 
+  const parseMoviesResponse = useCallback((response) => {
+    if (Array.isArray(response)) return response;
+    if (response && Array.isArray(response.data)) return response.data;
+    if (response && Array.isArray(response.movies)) return response.movies;
+    return [];
+  }, []);
+
+  const saveRecentSearch = useCallback(
+    (value) => {
+      const normalized = value?.trim();
+      if (!normalized) return;
+
+      const merged = [
+        normalized,
+        ...recentSearches.filter((item) => item !== normalized),
+      ].slice(0, 8);
+
+      setRecentSearches(merged);
+      localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(merged));
+    },
+    [recentSearches],
+  );
+
+  const searchMoviesByKeyword = useCallback(
+    async (keyword) => {
+      const response = await fetchJson(
+        `/api/movies/search?keyword=${encodeURIComponent(keyword)}`,
+      );
+      return parseMoviesResponse(response);
+    },
+    [parseMoviesResponse],
+  );
+
   // Language toggle handler
   const toggleLanguage = useCallback(() => {
     const newLanguage = i18n.language === "vi" ? "en" : "vi";
@@ -62,20 +102,55 @@ function Header() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesData, countriesData, typesData] = await Promise.all([
-          fetchCategories(),
-          fetchCountries(),
-          fetchMovieType(),
-        ]);
+        const [categoriesData, countriesData, typesData, hotMovies] =
+          await Promise.all([
+            fetchCategories(),
+            fetchCountries(),
+            fetchMovieType(),
+            fetchMovieByHot(),
+          ]);
         setCategories(Array.isArray(categoriesData) ? categoriesData : []);
         setCountries(Array.isArray(countriesData) ? countriesData : []);
         setTypes(Array.isArray(typesData) ? typesData : []);
+        setHotSuggestions(
+          Array.isArray(hotMovies) ? hotMovies.slice(0, 8) : [],
+        );
+
+        const storedRecent = localStorage.getItem(RECENT_SEARCHES_KEY);
+        if (storedRecent) {
+          const parsedRecent = JSON.parse(storedRecent);
+          if (Array.isArray(parsedRecent)) {
+            setRecentSearches(parsedRecent.slice(0, 8));
+          }
+        }
       } catch (error) {
-        handleApiError(error, "Lỗi khi tải dữ liệu");
+        handleApiError(error, t("header.error_load_data"));
       }
     };
     fetchData();
-  }, [handleApiError]);
+  }, [handleApiError, t]);
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setSearchSuggestions([]);
+      setIsSearchingSuggestions(false);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      setIsSearchingSuggestions(true);
+      try {
+        const movies = await searchMoviesByKeyword(query.trim());
+        setSearchSuggestions(movies.slice(0, 8));
+      } catch {
+        setSearchSuggestions([]);
+      } finally {
+        setIsSearchingSuggestions(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query, searchMoviesByKeyword]);
 
   // Handle scroll effect
   useEffect(() => {
@@ -89,31 +164,76 @@ function Header() {
     if (!query.trim()) return;
     setLoading("search", true, t("header.searching"));
     try {
-      const response = await fetchJson(
-        `/api/movies/search?keyword=${encodeURIComponent(query)}`,
-      );
-
-      // Handle different response formats
-      let movies = [];
-      if (Array.isArray(response)) {
-        movies = response;
-      } else if (response && Array.isArray(response.data)) {
-        movies = response.data;
-      } else if (response && Array.isArray(response.movies)) {
-        movies = response.movies;
-      }
+      const normalizedQuery = query.trim();
+      const movies = await searchMoviesByKeyword(normalizedQuery);
+      saveRecentSearch(normalizedQuery);
 
       navigateWithLoading("/search", {
-        state: { movies: movies },
-        loadingMessage: "Đang mở kết quả tìm kiếm...",
+        state: { movies, query: normalizedQuery },
+        loadingMessage: t("header.loading_search_results"),
       });
+      setShowSearchDropdown(false);
     } catch (error) {
-      handleApiError(error, "Lỗi khi tìm kiếm phim");
+      handleApiError(error, t("header.error_search_movies"));
     } finally {
       setLoading("search", false);
       setIsSearchOpen(false);
     }
-  }, [query, navigate, handleApiError, setLoading]);
+  }, [
+    query,
+    handleApiError,
+    navigateWithLoading,
+    saveRecentSearch,
+    searchMoviesByKeyword,
+    setLoading,
+    t,
+  ]);
+
+  const handleQuickSearch = useCallback(
+    async (keyword) => {
+      if (!keyword?.trim()) return;
+      setQuery(keyword);
+      setLoading("search", true, t("header.searching"));
+      try {
+        const normalizedQuery = keyword.trim();
+        const movies = await searchMoviesByKeyword(normalizedQuery);
+        saveRecentSearch(normalizedQuery);
+        navigateWithLoading("/search", {
+          state: { movies, query: normalizedQuery },
+          loadingMessage: t("header.loading_search_results"),
+        });
+        setShowSearchDropdown(false);
+        setIsSearchOpen(false);
+      } catch (error) {
+        handleApiError(error, t("header.error_search_movies"));
+      } finally {
+        setLoading("search", false);
+      }
+    },
+    [
+      handleApiError,
+      navigateWithLoading,
+      saveRecentSearch,
+      searchMoviesByKeyword,
+      setLoading,
+      t,
+    ],
+  );
+
+  const openMovieFromSuggestion = useCallback(
+    (movie) => {
+      if (!movie?.id) return;
+      saveRecentSearch(movie.title || "");
+      setShowSearchDropdown(false);
+      setIsSearchOpen(false);
+      navigateWithLoading(`/movie/${movie.id}`, {
+        loadingMessage: t("header.loading_open_movie", {
+          title: movie.title || t("common.loading"),
+        }),
+      });
+    },
+    [navigateWithLoading, saveRecentSearch, t],
+  );
 
   const handleKeyDownToSearch = (event) => {
     if (event.key === "Enter") handleSearch();
@@ -125,7 +245,87 @@ function Header() {
     setShowRegister(false);
     setShowLogin(false);
     setShowUserModal(false);
+    setShowSearchDropdown(false);
   }, []);
+
+  const renderSearchDropdown = () => (
+    <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+      {query.trim() ? (
+        <>
+          <div className="px-4 py-2 border-b border-gray-700 text-xs text-gray-400">
+            {isSearchingSuggestions
+              ? t("header.dropdown.searching")
+              : t("header.dropdown.related_results")}
+          </div>
+          {isSearchingSuggestions ? (
+            <div className="px-4 py-6 text-sm text-gray-300">
+              {t("header.searching")}
+            </div>
+          ) : searchSuggestions.length > 0 ? (
+            searchSuggestions.map((movie) => (
+              <button
+                key={movie.id}
+                onClick={() => openMovieFromSuggestion(movie)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-800 transition-colors border-b border-gray-800/70"
+              >
+                <p className="text-sm text-white line-clamp-1">{movie.title}</p>
+                <p className="text-xs text-gray-400">
+                  {(movie.release_year || "N/A") + " • "}
+                  {Number(movie.views || 0).toLocaleString()} {t("home.views")}
+                </p>
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-6 text-sm text-gray-300">
+              {t("search.no_results")}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="p-4 space-y-4">
+          {recentSearches.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+                {t("header.dropdown.recent_searches")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {recentSearches.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => handleQuickSearch(item)}
+                    className="px-3 py-1.5 text-xs rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {hotSuggestions.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+                {t("header.dropdown.hot_movies")}
+              </p>
+              <div className="space-y-2">
+                {hotSuggestions.slice(0, 6).map((movie) => (
+                  <button
+                    key={movie.id}
+                    onClick={() => openMovieFromSuggestion(movie)}
+                    className="w-full px-3 py-2 text-left bg-gray-800/70 hover:bg-gray-700 rounded-lg"
+                  >
+                    <p className="text-sm text-white line-clamp-1">
+                      {movie.title}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   const handleLoginSuccess = useCallback(
     async (userData) => {
@@ -140,11 +340,11 @@ function Header() {
         userData.role?.roleName || userData.roleName || userData.role || "USER";
       if (userRole === "ADMIN") {
         navigateWithLoading("/admin", {
-          loadingMessage: "Đang vào trang quản trị...",
+          loadingMessage: t("header.loading_admin"),
         });
       } else {
         navigateWithLoading("/", {
-          loadingMessage: "Đang chuyển về trang chủ...",
+          loadingMessage: t("header.loading_home"),
         });
       }
 
@@ -158,29 +358,29 @@ function Header() {
           credentials: "include",
         });
       } catch (error) {
-        handleApiError(error, "Lỗi khi lấy phim yêu thích");
+        handleApiError(error, t("header.error_watchlist"));
       }
     },
-    [handleApiError, navigateWithLoading],
+    [handleApiError, navigateWithLoading, t],
   );
 
   const handleLogout = useCallback(async () => {
     try {
       setShowUserModal(false);
       await logout();
-      toast.success("Đăng xuất thành công!");
+      toast.success(t("header.logout_success"));
       navigateWithLoading("/", {
-        loadingMessage: "Đang đăng xuất...",
+        loadingMessage: t("header.loading_logout"),
       });
     } catch (error) {
       // Vẫn logout ngay cả khi có lỗi
       await logout();
       setShowUserModal(false);
       navigateWithLoading("/", {
-        loadingMessage: "Đang chuyển về trang chủ...",
+        loadingMessage: t("header.loading_home"),
       });
     }
-  }, [logout, navigateWithLoading]);
+  }, [logout, navigateWithLoading, t]);
 
   // Navigate to movies by category, country, or type
   const navigateToMovies = useCallback(
@@ -209,11 +409,11 @@ function Header() {
             movies,
             title: name,
           },
-          loadingMessage: `Đang mở danh sách ${name}...`,
+          loadingMessage: t("header.loading_open_list", { name }),
         });
         closeModal();
       } catch (error) {
-        handleApiError(error, `Lỗi khi tải phim cho ${name}`);
+        handleApiError(error, t("header.error_load_movies_for", { name }));
 
         // Navigate anyway with empty movies array to show the page
         navigateWithLoading(`/movies/${name}`, {
@@ -221,12 +421,12 @@ function Header() {
             movies: [],
             title: name,
           },
-          loadingMessage: `Đang mở danh sách ${name}...`,
+          loadingMessage: t("header.loading_open_list", { name }),
         });
         closeModal();
       }
     },
-    [navigateWithLoading, handleApiError, closeModal],
+    [navigateWithLoading, handleApiError, closeModal, t],
   );
 
   return (
@@ -243,7 +443,7 @@ function Header() {
             onClick={(e) => {
               e.stopPropagation();
               navigateWithLoading("/", {
-                loadingMessage: "Đang chuyển về trang chủ...",
+                loadingMessage: t("header.loading_home"),
               });
             }}
             className="text-2xl font-bold hover:text-blue-300 transition-colors"
@@ -264,7 +464,7 @@ function Header() {
               setIsSearchOpen(true);
             }}
             className="md:hidden p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            aria-label="Open search"
+            aria-label={t("header.open_search")}
           >
             <Search className="h-5 w-5" />
           </button>
@@ -275,18 +475,23 @@ function Header() {
               onClick={() => setIsSearchOpen(false)}
             >
               <div
-                className="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md"
+                className="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md relative"
                 onClick={(e) => e.stopPropagation()}
               >
                 <input
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setShowSearchDropdown(true);
+                  }}
+                  onFocus={() => setShowSearchDropdown(true)}
                   onKeyDown={handleKeyDownToSearch}
                   placeholder={t("header.search_placeholder")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   autoFocus
                 />
+                {showSearchDropdown && renderSearchDropdown()}
                 <button
                   onClick={handleSearch}
                   className="w-full mt-3 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -300,17 +505,22 @@ function Header() {
             </div>
           )}
 
-          <div className="hidden md:flex items-center search-container">
+          <div className="hidden md:flex items-center search-container relative w-full max-w-xl">
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowSearchDropdown(true);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
               onKeyDown={handleKeyDownToSearch}
               placeholder={t("header.search_placeholder")}
               className={`w-full px-4 py-2 rounded-lg text-white ${
                 isScrolled ? "bg-gray-800" : "bg-gray-900/50"
               } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-400`}
             />
+            {showSearchDropdown && renderSearchDropdown()}
           </div>
 
           <div className="hidden md:flex items-center space-x-6 ml-6">
@@ -419,8 +629,8 @@ function Header() {
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
                 title={
                   isDarkMode
-                    ? "Chuyển sang chế độ sáng"
-                    : "Chuyển sang chế độ tối"
+                    ? t("header.theme_to_light")
+                    : t("header.theme_to_dark")
                 }
               >
                 {isDarkMode ? (
@@ -439,8 +649,8 @@ function Header() {
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
                 title={
                   i18n.language === "vi"
-                    ? "Switch to English"
-                    : "Chuyển sang Tiếng Việt"
+                    ? t("header.switch_to_english")
+                    : t("header.switch_to_vietnamese")
                 }
               >
                 <Languages className="h-4 w-4 text-green-400" />
@@ -462,7 +672,7 @@ function Header() {
                     alt="Avatar"
                     className="w-10 h-10 rounded-full border-2 border-blue-300"
                   />
-                  <span className="text-white">{user.displayName}</span>
+                  <span className="text-white">{user?.fullName}</span>
                 </button>
                 {showUserModal && (
                   <div
@@ -471,11 +681,9 @@ function Header() {
                   >
                     <div className="px-4 py-3 border-b bg-gray-50">
                       <h3 className="font-semibold text-gray-900">
-                        {user.displayName}
+                        {user?.fullName}
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        {user.role?.roleName || "User"}
-                      </p>
+                     
                     </div>
                     <div className="py-2">
                       <button
@@ -533,8 +741,8 @@ function Header() {
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
                 title={
                   isDarkMode
-                    ? "Chuyển sang chế độ sáng"
-                    : "Chuyển sang chế độ tối"
+                    ? t("header.theme_to_light")
+                    : t("header.theme_to_dark")
                 }
               >
                 {isDarkMode ? (
@@ -553,8 +761,8 @@ function Header() {
                 className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
                 title={
                   i18n.language === "vi"
-                    ? "Switch to English"
-                    : "Chuyển sang Tiếng Việt"
+                    ? t("header.switch_to_english")
+                    : t("header.switch_to_vietnamese")
                 }
               >
                 <Languages className="h-4 w-4 text-green-400" />

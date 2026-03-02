@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Clock, Play, Trash2, Calendar, RefreshCw } from "lucide-react";
+import { Play, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { fetchJson } from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 
 const WatchLaterTab = ({ movies, loading, onRefresh }) => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("watch-later");
   const [watchLaterMovies, setWatchLaterMovies] = useState([]);
@@ -24,11 +26,11 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
 
       // Load scheduled movies (PENDING status)
       const scheduledResponse = await fetchJson(
-        "/api/schedules?status=PENDING"
+        "/api/schedules?status=PENDING",
       );
       setScheduledMovies(scheduledResponse || []);
     } catch (error) {
-      toast.error("Có lỗi khi tải danh sách phim!");
+      toast.error(t("watchLater.toasts.load_error"));
     } finally {
       setTabLoading(false);
     }
@@ -43,10 +45,10 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       await fetchJson(`/api/schedules/watch-later/${movieId}`, {
         method: "DELETE",
       });
-      toast.success("Đã xóa khỏi danh sách xem sau!");
+      toast.success(t("watchLater.toasts.removed_watch_later"));
       loadSchedules(); // Refresh data
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa phim!");
+      toast.error(t("watchLater.toasts.remove_movie_error"));
     }
   };
 
@@ -55,17 +57,17 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       await fetchJson(`/api/schedules/${scheduleId}`, {
         method: "DELETE",
       });
-      toast.success("Đã xóa lịch xem phim!");
+      toast.success(t("watchLater.toasts.removed_schedule"));
       loadSchedules(); // Refresh data
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa lịch!");
+      toast.error(t("watchLater.toasts.remove_schedule_error"));
     }
   };
 
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString(i18n.language === "vi" ? "vi-VN" : "en-US", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -116,14 +118,18 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
               to={`/movie/${movie.id}`}
               className="text-blue-400 hover:text-blue-300 text-sm font-medium"
             >
-              Xem chi tiết
+              {t("watchLater.view_detail")}
             </Link>
             <button
               onClick={() => onRemove(showScheduleTime ? item.id : movie.id)}
-              className="text-red-400 hover:text-red-300 p-1"
-              title={showScheduleTime ? "Xóa lịch xem" : "Xóa khỏi xem sau"}
+              className="text-red-400 hover:text-red-300 text-sm font-medium"
+              title={
+                showScheduleTime
+                  ? t("watchLater.remove_schedule")
+                  : t("watchLater.remove_watch_later")
+              }
             >
-              <Trash2 className="h-4 w-4" />
+              {t("common.delete")}
             </button>
           </div>
         </div>
@@ -135,7 +141,9 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-white">Danh sách phim</h3>
+        <h3 className="text-xl font-semibold text-white">
+          {t("watchLater.title")}
+        </h3>
         <button
           onClick={loadSchedules}
           disabled={tabLoading}
@@ -144,7 +152,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           <RefreshCw
             className={`h-4 w-4 ${tabLoading ? "animate-spin" : ""}`}
           />
-          <span>Làm mới</span>
+          <span>{t("watchLater.refresh")}</span>
         </button>
       </div>
 
@@ -152,25 +160,23 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       <div className="flex space-x-1 mb-6 bg-gray-800 p-1 rounded-lg">
         <button
           onClick={() => setActiveTab("watch-later")}
-          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === "watch-later"
               ? "bg-blue-600 text-white"
               : "text-gray-300 hover:text-white hover:bg-gray-700"
           }`}
         >
-          <Clock className="h-4 w-4" />
-          <span>Xem sau ({watchLaterMovies.length})</span>
+          {t("watchLater.tab_watch_later", { count: watchLaterMovies.length })}
         </button>
         <button
           onClick={() => setActiveTab("scheduled")}
-          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === "scheduled"
               ? "bg-blue-600 text-white"
               : "text-gray-300 hover:text-white hover:bg-gray-700"
           }`}
         >
-          <Calendar className="h-4 w-4" />
-          <span>Đã lên lịch ({scheduledMovies.length})</span>
+          {t("watchLater.tab_scheduled", { count: scheduledMovies.length })}
         </button>
       </div>
 
@@ -183,12 +189,11 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
         // Watch Later Tab
         watchLaterMovies.length === 0 ? (
           <div className="text-center py-12">
-            <Clock className="mx-auto h-16 w-16 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-300 mb-2">
-              Chưa có phim nào trong danh sách xem sau
+              {t("watchLater.empty_watch_later_title")}
             </h3>
             <p className="text-gray-500">
-              Thêm phim vào danh sách xem sau để xem sau này!
+              {t("watchLater.empty_watch_later_subtitle")}
             </p>
           </div>
         ) : (
@@ -206,12 +211,11 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       ) : // Scheduled Tab
       scheduledMovies.length === 0 ? (
         <div className="text-center py-12">
-          <Calendar className="mx-auto h-16 w-16 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-300 mb-2">
-            Chưa có lịch xem phim nào
+            {t("watchLater.empty_scheduled_title")}
           </h3>
           <p className="text-gray-500">
-            Tạo lịch xem phim với thời gian cụ thể!
+            {t("watchLater.empty_scheduled_subtitle")}
           </p>
         </div>
       ) : (

@@ -389,3 +389,25 @@ export const deleteUser = async (id) => {
     throw error;
   }
 };
+
+export const fetchAdminReportDashboard = async () => {
+  const reportEndpoints = [
+    "/api/reports/dashboard",
+    "/api/reports/overview",
+    "/api/report/dashboard",
+    "/api/admin/reports/dashboard",
+  ];
+
+  for (const endpoint of reportEndpoints) {
+    try {
+      const data = await fetchJson(endpoint);
+      if (data) {
+        return data?.data ?? data;
+      }
+    } catch {
+      // Try next endpoint for compatibility with different backend route names
+    }
+  }
+
+  return null;
+};

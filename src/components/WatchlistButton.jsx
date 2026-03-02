@@ -4,12 +4,13 @@ import {
   addToWatchlist,
   removeFromWatchlist,
   checkIsInWatchlist,
-  fetchJson,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const WatchlistButton = ({ movieId, size = "normal" }) => {
+  const { t } = useTranslation();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -24,7 +25,7 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
     try {
       const inList = await checkIsInWatchlist(movieId);
       setIsInWatchlist(inList);
-    } catch (error) {
+    } catch {
       // AuthContext sẽ tự động handle 401/403 và logout nếu cần
     }
   };
@@ -34,7 +35,7 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+      toast.error(t("watchlistButton.toasts.login_required"));
       return;
     }
 
@@ -43,14 +44,14 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
       if (isInWatchlist) {
         await removeFromWatchlist(movieId);
         setIsInWatchlist(false);
-        toast.success("Đã xóa khỏi danh sách yêu thích");
+        toast.success(t("watchlistButton.toasts.removed"));
       } else {
         await addToWatchlist(movieId);
         setIsInWatchlist(true);
-        toast.success("Đã thêm vào danh sách yêu thích");
+        toast.success(t("watchlistButton.toasts.added"));
       }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại");
+    } catch {
+      toast.error(t("watchlistButton.toasts.error"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,11 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
         ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-105 hover:shadow-lg"}
         flex items-center justify-center space-x-2
       `}
-      title={isInWatchlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+      title={
+        isInWatchlist
+          ? t("watchlistButton.titles.remove")
+          : t("watchlistButton.titles.add")
+      }
     >
       {loading ? (
         <div
@@ -88,7 +93,11 @@ const WatchlistButton = ({ movieId, size = "normal" }) => {
             fill={isInWatchlist ? "currentColor" : "none"}
             stroke="currentColor"
           />
-          <span>{isInWatchlist ? "Đã thích" : "Yêu thích"}</span>
+          <span>
+            {isInWatchlist
+              ? t("watchlistButton.labels.liked")
+              : t("watchlistButton.labels.favorite")}
+          </span>
         </>
       )}
     </button>

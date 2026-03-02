@@ -14,6 +14,7 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { fetchJson } from "../../services/api";
 import api from "../../services/api";
 
@@ -23,6 +24,7 @@ const vnDateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
 const ProfileTab = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -88,7 +90,7 @@ const ProfileTab = () => {
         avatar: data.avatar || "",
       });
     } catch (error) {
-      toast.error("Không thể tải thông tin profile");
+      toast.error(t("profileTab.toasts.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -102,12 +104,12 @@ const ProfileTab = () => {
     const isPhoneValid = validateProfileField("phone", profileData.phone);
     const isBirthDateValid = validateProfileField(
       "birthDate",
-      profileData.birthDate
+      profileData.birthDate,
     );
     const isAddressValid = validateProfileField("address", profileData.address);
 
     if (!isNameValid || !isPhoneValid || !isBirthDateValid || !isAddressValid) {
-      toast.error("Vui lòng sửa các lỗi trong form trước khi lưu");
+      toast.error(t("profileTab.toasts.fix_form_before_save"));
       return;
     }
 
@@ -126,13 +128,11 @@ const ProfileTab = () => {
           const date = new Date(
             parseInt(year),
             parseInt(month) - 1,
-            parseInt(day)
+            parseInt(day),
           );
           formattedDateOfBirth = date.toISOString().split("T")[0]; // yyyy-MM-dd format
         } else {
-          throw new Error(
-            "Ngày sinh phải có format dd/MM/yyyy (ví dụ: 12/12/2004)"
-          );
+          throw new Error(t("profileTab.validation.birth_format_example"));
         }
       }
 
@@ -150,13 +150,13 @@ const ProfileTab = () => {
         },
       });
 
-      toast.success("Cập nhật thông tin thành công!");
+      toast.success(t("profileTab.toasts.update_success"));
       setIsEditing(false);
       setProfileErrors({}); // Clear all errors
       // Reload profile data
       loadProfile();
     } catch (error) {
-      toast.error(error.message || "Có lỗi xảy ra. Vui lòng thử lại!");
+      toast.error(error.message || t("profileTab.toasts.generic_error_retry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -168,19 +168,19 @@ const ProfileTab = () => {
     // Validate all password fields
     const isCurrentValid = validatePasswordField(
       "currentPassword",
-      passwordData.currentPassword
+      passwordData.currentPassword,
     );
     const isNewValid = validatePasswordField(
       "newPassword",
-      passwordData.newPassword
+      passwordData.newPassword,
     );
     const isConfirmValid = validatePasswordField(
       "confirmPassword",
-      passwordData.confirmPassword
+      passwordData.confirmPassword,
     );
 
     if (!isCurrentValid || !isNewValid || !isConfirmValid) {
-      toast.error("Vui lòng sửa các lỗi trong form trước khi đổi mật khẩu");
+      toast.error(t("profileTab.toasts.fix_password_form"));
       return;
     }
 
@@ -192,7 +192,7 @@ const ProfileTab = () => {
         newPassword: passwordData.newPassword,
       });
 
-      toast.success("Đổi mật khẩu thành công!");
+      toast.success(t("profileTab.toasts.password_changed"));
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -201,7 +201,7 @@ const ProfileTab = () => {
       setPasswordErrors({}); // Clear all errors
       setShowChangePassword(false);
     } catch (error) {
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
+      toast.error(t("profileTab.toasts.generic_error_retry"));
     }
   };
 
@@ -210,13 +210,13 @@ const ProfileTab = () => {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("File ảnh phải nhỏ hơn 5MB");
+        toast.error(t("profileTab.toasts.avatar_size_limit"));
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Vui lòng chọn file ảnh hợp lệ");
+        toast.error(t("profileTab.toasts.avatar_invalid_type"));
         return;
       }
 
@@ -233,7 +233,7 @@ const ProfileTab = () => {
 
   const handleUploadAvatar = async () => {
     if (!selectedAvatarFile) {
-      toast.error("Vui lòng chọn ảnh trước");
+      toast.error(t("profileTab.toasts.choose_avatar_first"));
       return;
     }
 
@@ -248,7 +248,7 @@ const ProfileTab = () => {
         },
       });
 
-      toast.success("Upload avatar thành công!");
+      toast.success(t("profileTab.toasts.avatar_upload_success"));
       setShowAvatarUpload(false);
       setSelectedAvatarFile(null);
       setAvatarPreview("");
@@ -256,7 +256,7 @@ const ProfileTab = () => {
       // Reload profile to get new avatar URL
       loadProfile();
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi upload avatar");
+      toast.error(t("profileTab.toasts.avatar_upload_failed"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -269,11 +269,11 @@ const ProfileTab = () => {
     switch (field) {
       case "name":
         if (!value.trim()) {
-          errors.name = "Họ và tên không được để trống";
+          errors.name = t("profileTab.validation.name_required");
         } else if (value.trim().length < 2) {
-          errors.name = "Họ và tên phải có ít nhất 2 ký tự";
+          errors.name = t("profileTab.validation.name_min");
         } else if (value.trim().length > 100) {
-          errors.name = "Họ và tên không được dài quá 100 ký tự";
+          errors.name = t("profileTab.validation.name_max");
         } else {
           delete errors.name;
         }
@@ -281,7 +281,7 @@ const ProfileTab = () => {
 
       case "phone":
         if (value && !phoneRegex.test(value.replace(/\s/g, ""))) {
-          errors.phone = "Số điện thoại không hợp lệ (VD: 0123456789)";
+          errors.phone = t("profileTab.validation.phone_invalid");
         } else {
           delete errors.phone;
         }
@@ -290,30 +290,30 @@ const ProfileTab = () => {
       case "birthDate":
         if (value) {
           if (!vnDateRegex.test(value.trim())) {
-            errors.birthDate = "Ngày sinh phải có format dd/MM/yyyy";
+            errors.birthDate = t("profileTab.validation.birth_format");
           } else {
             const [, day, month, year] = value.trim().match(vnDateRegex);
             const date = new Date(
               parseInt(year),
               parseInt(month) - 1,
-              parseInt(day)
+              parseInt(day),
             );
             const now = new Date();
             const minDate = new Date(
               now.getFullYear() - 100,
               now.getMonth(),
-              now.getDate()
+              now.getDate(),
             );
             const maxDate = new Date(
               now.getFullYear() - 13,
               now.getMonth(),
-              now.getDate()
+              now.getDate(),
             );
 
             if (date > maxDate) {
-              errors.birthDate = "Bạn phải từ đủ 13 tuổi trở lên";
+              errors.birthDate = t("profileTab.validation.birth_min_age");
             } else if (date < minDate) {
-              errors.birthDate = "Ngày sinh không hợp lệ";
+              errors.birthDate = t("profileTab.validation.birth_invalid");
             } else {
               delete errors.birthDate;
             }
@@ -325,7 +325,7 @@ const ProfileTab = () => {
 
       case "address":
         if (value && value.length > 255) {
-          errors.address = "Địa chỉ không được dài quá 255 ký tự";
+          errors.address = t("profileTab.validation.address_max");
         } else {
           delete errors.address;
         }
@@ -342,7 +342,9 @@ const ProfileTab = () => {
     switch (field) {
       case "currentPassword":
         if (!value) {
-          errors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
+          errors.currentPassword = t(
+            "profileTab.validation.current_password_required",
+          );
         } else {
           delete errors.currentPassword;
         }
@@ -350,12 +352,13 @@ const ProfileTab = () => {
 
       case "newPassword":
         if (!value) {
-          errors.newPassword = "Vui lòng nhập mật khẩu mới";
+          errors.newPassword = t("profileTab.validation.new_password_required");
         } else if (value.length < 6) {
-          errors.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
+          errors.newPassword = t("profileTab.validation.new_password_min");
         } else if (!passwordRegex.test(value)) {
-          errors.newPassword =
-            "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số";
+          errors.newPassword = t(
+            "profileTab.validation.new_password_complexity",
+          );
         } else {
           delete errors.newPassword;
         }
@@ -363,9 +366,13 @@ const ProfileTab = () => {
 
       case "confirmPassword":
         if (!value) {
-          errors.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
+          errors.confirmPassword = t(
+            "profileTab.validation.confirm_password_required",
+          );
         } else if (value !== passwordData.newPassword) {
-          errors.confirmPassword = "Mật khẩu xác nhận không khớp";
+          errors.confirmPassword = t(
+            "profileTab.validation.confirm_password_mismatch",
+          );
         } else {
           delete errors.confirmPassword;
         }
@@ -413,17 +420,21 @@ const ProfileTab = () => {
             <button
               onClick={() => setShowAvatarUpload(true)}
               className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
-              title="Thay đổi avatar"
+              title={t("profileTab.change_avatar")}
             >
               <Edit2 className="h-4 w-4" />
             </button>
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-white mb-2">
-              {profileData.name || "N/A"}
+              {profileData.name || t("home.not_available")}
             </h2>
-            <p className="text-gray-400">{profileData.email || "N/A"}</p>
-            <p className="text-gray-500 text-sm mt-1">Thành viên</p>
+            <p className="text-gray-400">
+              {profileData.email || t("home.not_available")}
+            </p>
+            <p className="text-gray-500 text-sm mt-1">
+              {t("profileTab.member")}
+            </p>
           </div>
           <div className="space-y-2">
             <button
@@ -433,12 +444,12 @@ const ProfileTab = () => {
               {isEditing ? (
                 <>
                   <X className="mr-2 h-4 w-4" />
-                  Hủy
+                  {t("common.cancel")}
                 </>
               ) : (
                 <>
                   <Edit2 className="mr-2 h-4 w-4" />
-                  Chỉnh sửa
+                  {t("common.edit")}
                 </>
               )}
             </button>
@@ -447,7 +458,7 @@ const ProfileTab = () => {
               className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors w-full"
             >
               <Lock className="mr-2 h-4 w-4" />
-              Đổi mật khẩu
+              {t("profileTab.change_password")}
             </button>
           </div>
         </div>
@@ -457,7 +468,7 @@ const ProfileTab = () => {
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
           <User className="mr-2 h-5 w-5" />
-          Thông tin cá nhân
+          {t("profileTab.personal_info")}
         </h3>
 
         <form onSubmit={handleSaveProfile}>
@@ -465,7 +476,7 @@ const ProfileTab = () => {
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Họ và tên
+                {t("profileTab.full_name")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -480,7 +491,7 @@ const ProfileTab = () => {
                   className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.name ? "border-red-500" : "border-gray-600"
                   }`}
-                  placeholder="Nhập họ và tên"
+                  placeholder={t("profileTab.placeholders.full_name")}
                 />
                 {profileErrors.name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -493,7 +504,7 @@ const ProfileTab = () => {
             {/* Email - Read only */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email
+                {t("auth.email")}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -505,14 +516,14 @@ const ProfileTab = () => {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Email không thể thay đổi
+                {t("profileTab.email_immutable")}
               </p>
             </div>
 
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Số điện thoại
+                {t("profileTab.phone")}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -527,7 +538,7 @@ const ProfileTab = () => {
                   className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.phone ? "border-red-500" : "border-gray-600"
                   }`}
-                  placeholder="Nhập số điện thoại"
+                  placeholder={t("profileTab.placeholders.phone")}
                 />
                 {profileErrors.phone && (
                   <p className="text-red-500 text-xs mt-1">
@@ -540,7 +551,7 @@ const ProfileTab = () => {
             {/* Gender */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Giới tính
+                {t("profileTab.gender")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -552,10 +563,16 @@ const ProfileTab = () => {
                   disabled={isSubmitting || !isEditing}
                   className="pl-10 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">Chọn giới tính</option>
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
+                  <option value="">{t("profileTab.gender_select")}</option>
+                  <option value="MALE">
+                    {t("profileTab.gender_options.male")}
+                  </option>
+                  <option value="FEMALE">
+                    {t("profileTab.gender_options.female")}
+                  </option>
+                  <option value="OTHER">
+                    {t("profileTab.gender_options.other")}
+                  </option>
                 </select>
               </div>
             </div>
@@ -563,7 +580,7 @@ const ProfileTab = () => {
             {/* Birth Date */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Ngày sinh
+                {t("profileTab.birth_date")}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -578,7 +595,7 @@ const ProfileTab = () => {
                     validateProfileField("birthDate", e.target.value);
                   }}
                   disabled={isSubmitting || !isEditing}
-                  placeholder="dd/MM/yyyy (ví dụ: 12/12/2004)"
+                  placeholder={t("profileTab.placeholders.birth_date")}
                   className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.birthDate
                       ? "border-red-500"
@@ -596,7 +613,7 @@ const ProfileTab = () => {
             {/* Address */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Địa chỉ
+                {t("profileTab.address")}
               </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -611,7 +628,7 @@ const ProfileTab = () => {
                   className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.address ? "border-red-500" : "border-gray-600"
                   }`}
-                  placeholder="Nhập địa chỉ"
+                  placeholder={t("profileTab.placeholders.address")}
                 />
                 {profileErrors.address && (
                   <p className="text-red-500 text-xs mt-1">
@@ -630,7 +647,7 @@ const ProfileTab = () => {
                 disabled={isSubmitting}
                 className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Hủy
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
@@ -640,12 +657,12 @@ const ProfileTab = () => {
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Đang lưu...
+                    {t("profileTab.saving")}
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Lưu thay đổi
+                    {t("profileTab.save_changes")}
                   </>
                 )}
               </button>
@@ -659,7 +676,7 @@ const ProfileTab = () => {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <Lock className="mr-2 h-5 w-5" />
-            Đổi mật khẩu
+            {t("profileTab.change_password")}
           </h3>
 
           <form onSubmit={handleChangePassword}>
@@ -667,7 +684,7 @@ const ProfileTab = () => {
               {/* Current Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Mật khẩu hiện tại
+                  {t("profileTab.current_password")}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -687,7 +704,7 @@ const ProfileTab = () => {
                         ? "border-red-500"
                         : "border-gray-600"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="Nhập mật khẩu hiện tại"
+                    placeholder={t("profileTab.placeholders.current_password")}
                     required
                   />
                   {passwordErrors.currentPassword && (
@@ -712,7 +729,7 @@ const ProfileTab = () => {
               {/* New Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Mật khẩu mới
+                  {t("profileTab.new_password")}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -729,7 +746,7 @@ const ProfileTab = () => {
                       if (passwordData.confirmPassword) {
                         validatePasswordField(
                           "confirmPassword",
-                          passwordData.confirmPassword
+                          passwordData.confirmPassword,
                         );
                       }
                     }}
@@ -739,7 +756,7 @@ const ProfileTab = () => {
                         ? "border-red-500"
                         : "border-gray-600"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="Nhập mật khẩu mới"
+                    placeholder={t("profileTab.placeholders.new_password")}
                     required
                   />
                   {passwordErrors.newPassword && (
@@ -764,7 +781,7 @@ const ProfileTab = () => {
               {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Xác nhận mật khẩu mới
+                  {t("profileTab.confirm_new_password")}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -785,7 +802,9 @@ const ProfileTab = () => {
                         ? "border-red-500"
                         : "border-gray-600"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder={t(
+                      "profileTab.placeholders.confirm_new_password",
+                    )}
                     required
                   />
                   {passwordErrors.confirmPassword && (
@@ -818,7 +837,7 @@ const ProfileTab = () => {
                 disabled={isSubmitting}
                 className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Hủy
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
@@ -830,12 +849,12 @@ const ProfileTab = () => {
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Đang đổi mật khẩu...
+                    {t("profileTab.changing_password")}
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Đổi mật khẩu
+                    {t("profileTab.change_password")}
                   </>
                 )}
               </button>
@@ -844,29 +863,6 @@ const ProfileTab = () => {
         </div>
       )}
 
-      {/* Statistics */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
-        <h3 className="text-lg font-semibold text-white mb-4">Thống kê</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-500">127</div>
-            <div className="text-gray-400 text-sm">Phim đã xem</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-500">15</div>
-            <div className="text-gray-400 text-sm">Yêu thích</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-500">8</div>
-            <div className="text-gray-400 text-sm">Đang xem</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-500">245h</div>
-            <div className="text-gray-400 text-sm">Thời gian xem</div>
-          </div>
-        </div>
-      </div>
-
       {/* Avatar Upload Modal */}
       {showAvatarUpload && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -874,7 +870,7 @@ const ProfileTab = () => {
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center justify-between">
               <span className="flex items-center">
                 <User className="mr-2 h-5 w-5" />
-                Thay đổi avatar
+                {t("profileTab.change_avatar")}
               </span>
               <button
                 onClick={() => {
@@ -892,7 +888,7 @@ const ProfileTab = () => {
               {/* File Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Chọn ảnh mới
+                  {t("profileTab.select_new_image")}
                 </label>
                 <input
                   type="file"
@@ -901,7 +897,7 @@ const ProfileTab = () => {
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Dung lượng tối đa: 5MB. Định dạng: JPG, PNG, GIF
+                  {t("profileTab.avatar_note")}
                 </p>
               </div>
 
@@ -927,7 +923,7 @@ const ProfileTab = () => {
                   className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
                   disabled={uploadingAvatar}
                 >
-                  Hủy
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={handleUploadAvatar}
@@ -937,12 +933,12 @@ const ProfileTab = () => {
                   {uploadingAvatar ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Đang upload...
+                      {t("profileTab.uploading")}
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Upload
+                      {t("profileTab.upload")}
                     </>
                   )}
                 </button>

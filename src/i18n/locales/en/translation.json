@@ -11,7 +11,18 @@
     "close": "Close",
     "search": "Search",
     "back": "Back",
-    "all": "All"
+    "all": "All",
+    "no_data": "No movies available"
+  },
+  "loading": {
+    "default": "Loading...",
+    "page": "Loading page...",
+    "navigate": "Switching page...",
+    "app_init": "Initializing application...",
+    "check_auth": "Checking authentication...",
+    "load_ui": "Loading interface...",
+    "complete": "Finalizing...",
+    "preparing_default": "Preparing ..."
   },
   "header": {
     "search_placeholder": "Search movies...",
@@ -24,7 +35,30 @@
     "profile": "Profile",
     "favorites": "Favorites",
     "continue_watching": "Continue Watching",
-    "settings": "Settings"
+    "settings": "Settings",
+    "logout_success": "Logged out successfully!",
+    "loading_admin": "Opening admin page...",
+    "loading_home": "Returning to homepage...",
+    "loading_logout": "Logging out...",
+    "error_watchlist": "Failed to load watchlist",
+    "error_load_data": "Failed to load data",
+    "loading_search_results": "Opening search results...",
+    "error_search_movies": "Failed to search movies",
+    "loading_open_list": "Opening {{name}} list...",
+    "error_load_movies_for": "Failed to load movies for {{name}}",
+    "theme_to_light": "Switch to light mode",
+    "theme_to_dark": "Switch to dark mode",
+    "switch_to_english": "Switch to English",
+    "switch_to_vietnamese": "Switch to Vietnamese",
+    "role_user": "User",
+    "open_search": "Open search",
+    "loading_open_movie": "Opening movie {{title}}...",
+    "dropdown": {
+      "searching": "Finding related results...",
+      "related_results": "Related results",
+      "recent_searches": "Recent searches",
+      "hot_movies": "Hot movie suggestions"
+    }
   },
   "navigation": {
     "home": "Home",
@@ -45,7 +79,55 @@
     "no_account": "Don't have an account?",
     "have_account": "Already have an account?",
     "register_now": "Register now",
-    "login_now": "Login now"
+    "login_now": "Login now",
+    "locked": "Temporarily locked",
+    "google_success": "Google login successful!",
+    "google_admin_success": "Admin Google login successful!",
+    "google_invalid_account": "Google account is invalid or not verified",
+    "google_login_failed": "Google login failed",
+    "google_backend_failed": "Backend error while processing Google login. Please try again later.",
+    "google_no_token": "Google ID Token was not received",
+    "login_success": "Login successful!",
+    "login_failed": "Login failed",
+    "login_failed_retry": "Login failed. Please try again.",
+    "network_error": "Network connection error. Please check your internet.",
+    "server_error": "Server error: {{status}}",
+    "server_unreachable": "Cannot connect to server. Please try again later.",
+    "block_message": "Your IP has been temporarily blocked due to too many incorrect password attempts. Please try again in {{minutes}} minutes.",
+    "forgot": {
+      "enter_email": "Please enter your email",
+      "description": "Enter your email to receive an OTP for password reset",
+      "email_placeholder": "Enter your email",
+      "sending": "Sending...",
+      "send_otp": "Send OTP",
+      "otp_sent": "An OTP has been sent to your email. Please check your inbox.",
+      "send_otp_error": "An error occurred while sending OTP. Please try again."
+    },
+    "reset": {
+      "title": "Reset password",
+      "description": "Enter the OTP sent to {{email}} and your new password",
+      "submit": "Reset password",
+      "submitting": "Processing...",
+      "placeholders": {
+        "otp": "Enter OTP code",
+        "new_password": "New password (at least 6 characters)",
+        "confirm_password": "Confirm new password"
+      },
+      "errors": {
+        "otp_required": "Please enter OTP code",
+        "new_password_required": "Please enter new password",
+        "password_mismatch": "Password confirmation does not match",
+        "password_min": "Password must be at least 6 characters"
+      },
+      "toasts": {
+        "success": "Password reset successful! Please log in again.",
+        "error": "An error occurred while resetting password. Please try again."
+      }
+    }
+  },
+  "route": {
+    "login_required": "Please log in to access this page!",
+    "admin_only": "Only admins can access this page!"
   },
   "profile": {
     "tabs": {
@@ -75,7 +157,13 @@
       "dark_mode": "Dark mode",
       "dark_description": "Use dark interface",
       "language": "Language",
-      "language_description": "Select display language"
+      "language_description": "Select display language",
+      "language_options": {
+        "vi": "Vietnamese",
+        "en": "English",
+        "zh": "Chinese",
+        "ja": "Japanese"
+      }
     },
     "playback": {
       "title": "Playback",
@@ -91,7 +179,8 @@
       "title": "Account Management",
       "delete_account": "Request account deletion",
       "logout": "Logout",
-      "logout_confirm": "Are you sure you want to logout?"
+      "logout_confirm": "Are you sure you want to logout?",
+      "contact_admin": "Please contact admin to delete your account"
     },
     "messages": {
       "updated": "Settings have been updated!",
@@ -99,7 +188,43 @@
       "dark_mode_off": "Switched to light mode!",
       "autoplay_on": "Auto play enabled!",
       "autoplay_off": "Auto play disabled!",
-      "language_changed": "Language changed!"
+      "language_changed": "Language changed!",
+      "feature_in_development": "Feature in development"
+    },
+    "privacy": {
+      "title": "Privacy note:",
+      "message": "All your settings are stored securely and only used to improve your experience. We do not share personal information with third parties."
+    }
+  },
+  "profilePage": {
+    "default_user": "User name",
+    "member_since": "Member since {{year}}",
+    "currently_viewing": "Currently viewing",
+    "navigation": "Navigation",
+    "active": "Active",
+    "quick_stats": "Quick stats",
+    "favorite_movies": "Favorite movies",
+    "watched": "Watched",
+    "ratings": "Ratings"
+  },
+  "watchLater": {
+    "title": "Movie list",
+    "refresh": "Refresh",
+    "view_detail": "View detail",
+    "remove_schedule": "Remove schedule",
+    "remove_watch_later": "Remove from watch later",
+    "tab_watch_later": "Watch later ({{count}})",
+    "tab_scheduled": "Scheduled ({{count}})",
+    "empty_watch_later_title": "No movies in watch later",
+    "empty_watch_later_subtitle": "Add movies to your watch later list!",
+    "empty_scheduled_title": "No schedules yet",
+    "empty_scheduled_subtitle": "Create a schedule with a specific time!",
+    "toasts": {
+      "load_error": "Error loading movie list!",
+      "removed_watch_later": "Removed from watch later list!",
+      "remove_movie_error": "An error occurred while removing movie!",
+      "removed_schedule": "Schedule removed!",
+      "remove_schedule_error": "An error occurred while removing schedule!"
     }
   },
   "notifications": {
@@ -107,10 +232,112 @@
     "no_notifications": "No new notifications",
     "mark_as_read": "Mark as read",
     "mark_all_read": "Mark all as read",
-    "delete_all": "Delete all"
+    "delete_all": "Delete all",
+    "center": {
+      "unread_title": "{{count}} unread notifications",
+      "read_all": "Read all",
+      "empty_title": "No notifications yet",
+      "empty_subtitle": "New notifications will appear here",
+      "new_badge": "New",
+      "read_label": "Read",
+      "view_all": "View all notifications",
+      "loading_open": "Opening notification...",
+      "toasts": {
+        "mark_read_failed": "Unable to mark as read",
+        "mark_all_success": "All notifications marked as read!",
+        "generic_error": "Something went wrong!"
+      },
+      "time": {
+        "just_now": "Just now",
+        "minutes_ago": "{{count}} minutes ago",
+        "hours_ago": "{{count}} hours ago",
+        "days_ago": "{{count}} days ago"
+      }
+    },
+    "tab": {
+      "all_notifications": "All notifications",
+      "loading": "Loading notifications...",
+      "loading_open": "Opening notification...",
+      "search_placeholder": "Search by title or content...",
+      "clear_filters": "Clear filters",
+      "selected_count": "{{count}} notifications selected",
+      "list_title": "Notifications ({{count}})",
+      "empty_title": "No notifications",
+      "empty_subtitle": "New notifications will appear here",
+      "empty_all_read": "You've read all notifications!",
+      "delete_notification": "Delete notification",
+      "confirm_delete_one": "Are you sure you want to delete this notification?",
+      "confirm_delete_selected": "Are you sure you want to delete {{count}} notifications?",
+      "filters": {
+        "status": "Status",
+        "type": "Notification type"
+      },
+      "filter_values": {
+        "all": "All ({{count}})",
+        "unread": "Unread ({{count}})",
+        "read": "Read ({{count}})"
+      },
+      "stats": {
+        "total": "Total",
+        "total_sub": "All notifications",
+        "unread": "Unread",
+        "unread_sub": "Need attention",
+        "read": "Read",
+        "read_sub": "Handled"
+      },
+      "type_options": {
+        "all": "All",
+        "new_episode": "New episode",
+        "new_movie": "New movie",
+        "reminder": "Reminder",
+        "recommendation": "Recommendation",
+        "continue_watching": "Continue watching",
+        "system": "System",
+        "promotion": "Promotion"
+      },
+      "toasts": {
+        "load_failed": "Unable to load notifications",
+        "marked_read": "Marked as read",
+        "marked_selected": "Marked {{count}} notifications as read",
+        "marked_all_read": "All notifications marked as read",
+        "deleted_selected": "Deleted {{count}} notifications",
+        "deleted_one": "Notification deleted",
+        "generic_error": "Something went wrong"
+      },
+      "time": {
+        "just_now": "Just now",
+        "minutes_ago": "{{count}} minutes ago",
+        "hours_ago": "{{count}} hours ago",
+        "days_ago": "{{count}} days ago"
+      }
+    }
+  },
+  "review": {
+    "no_rating": "No ratings yet",
+    "count": "({{count}} reviews)",
+    "cta": "Review",
+    "user_reviews": "User reviews",
+    "user_fallback": "User",
+    "toasts": {
+      "login_required": "Please log in to leave a review",
+      "rating_required": "Please select a star rating",
+      "submit_success": "Review submitted successfully!",
+      "server_error": "Internal server error - check backend logs",
+      "forbidden": "Forbidden - check user role",
+      "unauthorized": "Not logged in",
+      "submit_error": "An error occurred while submitting your review"
+    },
+    "modal": {
+      "title": "Rate this movie",
+      "rating": "Stars:",
+      "comment_optional": "Comment (optional):",
+      "comment_placeholder": "Write your comment...",
+      "submit": "Submit review"
+    }
   },
   "movie": {
     "watch_now": "Watch Now",
+    "view_detail" : "Detail",
     "add_to_favorites": "Add to Favorites",
     "remove_from_favorites": "Remove from Favorites",
     "watch_later": "Watch Later",
@@ -124,38 +351,507 @@
     "cast": "Cast"
   },
   "search": {
-    "no_results": "No movies found"
+    "no_results": "No movies found",
+    "explore_title": "Discover movies",
+    "suggestion_title": "Recommendations for you",
+    "suggestion_subtitle": "Start with popular and recently updated picks below.",
+    "result_for": "Results for \"{{keyword}}\"",
+    "found_count": "Found {{count}} matching results",
+    "popular_now": "Trending now",
+    "newly_updated": "Recently updated",
+    "hot_now": "Hot now",
+    "by_category": "{{category}} for you"
   },
-  "common": {
-    "no_data": "No movies available",
-    "error": "Error"
+  "banner": {
+    "add_watch_later": "Add to watch later",
+    "in_watch_later": "In watch later",
+    "added_watch_later": "Added to watch later list",
+    "already_in_watch_later": "Movie is already in watch later list"
   },
   "notfound": {
-    "search": {
-      "no_results": "No movies found"
+    "title": "Page not found",
+    "message": "Sorry, the page you're looking for doesn’t exist or has been moved. Go back home to discover great movies!",
+    "home_button": "Go Home",
+    "search_button": "Search Movies",
+    "view_all_movies": "View All Movies",
+    "advanced_search": "Advanced Search"
+  },
+  "filter": {
+    "newest": "Newest",
+    "label": "Filter movies:",
+    "apply": "Apply"
+  },
+  "continue": {
+    "title": "Continue Watching",
+    "view_all": "View All",
+    "error_loading": "Unable to load continue watching list",
+    "removed": "Removed from continue watching!"
+  },
+  "continueWatchingComponent": {
+    "title_with_count": "Continue Watching ({{count}})",
+    "empty_title": "No unfinished movies yet",
+    "empty_subtitle": "Start watching to see progress here",
+    "sync_prefix": "Sync",
+    "sync_from_server": "Sync from server",
+    "remove_from_list": "Remove from list",
+    "source": {
+      "redis": "🔄 Redis",
+      "local": "💾 Local"
     },
-    "notfound": {
-      "title": "Page not found",
-      "message": "Sorry, the page you're looking for doesn’t exist or has been moved. Go back home to discover great movies!",
-      "home_button": "Go Home",
-      "search_button": "Search Movies",
-      "view_all_movies": "View All Movies",
-      "advanced_search": "Advanced Search"
+    "toasts": {
+      "continue_success": "Continue watching {{title}}",
+      "continue_error": "Unable to continue watching",
+      "removed": "Removed {{title}} from the list",
+      "remove_error": "Unable to remove from list"
     },
-    "filter": {
+    "time": {
+      "minutes_ago": "{{count}} minutes ago",
+      "hours_ago": "{{count}} hours ago",
+      "days_ago": "{{count}} days ago"
+    },
+    "stats": {
+      "sessions": "{{count}} session(s)",
+      "pending_sync": "{{count}} pending sync"
+    }
+  },
+  "footer": {
+    "slogan": "Great movies all day",
+    "links": {
+      "faq": "FAQ",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "description": "With a user-friendly interface, rich movie collection and fast loading speed, we will bring you the best entertainment experience.",
+    "copyright": "© 2025 wemovies"
+  },
+  "movieList": {
+    "filter_title": "Filters",
+    "no_movies_found": "No movies found",
+    "labels": {
+      "year": "Year",
+      "movie_type": "Movie type",
+      "version": "Version",
+      "production_year": "Production year",
+      "sort": "Sort"
+    },
+    "actions": {
+      "apply_filters": "Apply filters",
+      "reset_filters": "Reset all filters"
+    },
+    "pagination": {
+      "page": "Page"
+    },
+    "sort_options": {
       "newest": "Newest",
-      "label": "Filter movies:",
-      "apply": "Apply"
+      "recently_updated": "Recently updated",
+      "views": "Views",
+      "production_year": "Production year"
     },
-    "continue": {
-      "title": "Continue Watching",
-      "view_all": "View All",
-      "error_loading": "Unable to load continue watching list",
-      "removed": "Removed from continue watching!"
+    "version_options": {
+      "sub": "Subbed",
+      "dubbed": "Dubbed",
+      "voiceover": "Voiceover"
     },
-    "footer": {
-      "description": "With a user-friendly interface, rich movie collection and fast loading speed, we will bring you the best entertainment experience.",
-      "copyright": "© 2025 wemovies"
+    "country_options": {
+      "uk": "United Kingdom",
+      "canada": "Canada",
+      "korea": "South Korea",
+      "hong_kong": "Hong Kong",
+      "usa": "United States",
+      "japan": "Japan",
+      "france": "France",
+      "thailand": "Thailand",
+      "china": "China",
+      "australia": "Australia",
+      "taiwan": "Taiwan",
+      "germany": "Germany"
+    }
+  },
+  "register": {
+    "title": "Create a new account",
+    "have_account": "If you already have an account,",
+    "login_link": "log in",
+    "submit": "Register",
+    "submitting": "Processing...",
+    "placeholders": {
+      "username": "Display name",
+      "fullname": "Full name",
+      "phone": "Phone number",
+      "password": "Password"
+    },
+    "errors": {
+      "username_required": "Username is required",
+      "username_min": "Username must be at least 3 characters",
+      "password_required": "Password is required",
+      "password_invalid": "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character, minimum 8 characters",
+      "fullname_required": "Full name is required",
+      "email_required": "Email is required",
+      "email_domain": "Only gmail.com, yahoo.com, or outlook.com emails are accepted",
+      "phone_required": "Phone number is required",
+      "phone_invalid": "Phone number must be exactly 10 digits"
+    },
+    "toasts": {
+      "server_sleep_warning": "⚠️ Note: The free server may sleep and take 1-2 minutes to start. The system will retry automatically if needed!",
+      "connecting": "Connecting to server... The system will retry automatically if timeout occurs!",
+      "otp_sent": "OTP has been sent to your email",
+      "send_otp_error": "Error sending OTP",
+      "otp_verify_success": "OTP verified successfully. Please log in.",
+      "otp_invalid": "Invalid OTP"
+    },
+    "otp": {
+      "title": "OTP Verification",
+      "placeholder": "Enter OTP code",
+      "verifying": "Verifying...",
+      "submit": "Verify"
+    }
+  },
+  "trending": {
+    "title": "Trending Movies",
+    "title_with_count": "Trending Movies ({{count}})",
+    "retry": "Retry",
+    "refresh_title": "Refresh trending",
+    "empty_title": "No trending movies yet",
+    "empty_subtitle": "The system is calculating popular movies",
+    "watch_now": "Watch now",
+    "view_all": "View all",
+    "view_all_trending": "View all trending movies",
+    "stats": {
+      "hot_movies": "Hot movies",
+      "cycle": "Cycle",
+      "views_today": "Views today",
+      "trending_score": "Trending score"
+    },
+    "toasts": {
+      "load_movie_info_failed": "Unable to load movie details",
+      "refreshed": "Trending movies refreshed",
+      "movie_not_found": "Movie details not found"
+    },
+    "errors": {
+      "fetch_movies": "Unable to load trending movies",
+      "fetch_stats": "Unable to load trending statistics",
+      "track_view": "Unable to track view",
+      "fetch_views": "Unable to fetch view count"
+    }
+  },
+  "watchlist": {
+    "empty_title": "No favorite movies yet",
+    "empty_subtitle": "Add movies to your favorites for quick access",
+    "discover_movies": "Discover movies",
+    "title_with_count": "Favorite Movies ({{count}})",
+    "refresh": "Refresh",
+    "added_on": "Added on: {{date}}",
+    "showing_count": "Showing {{count}} favorite movies"
+  },
+  "watchlistButton": {
+    "toasts": {
+      "login_required": "Please log in to use this feature",
+      "removed": "Removed from favorites",
+      "added": "Added to favorites",
+      "error": "Something went wrong. Please try again"
+    },
+    "titles": {
+      "remove": "Remove from favorites",
+      "add": "Add to favorites"
+    },
+    "labels": {
+      "liked": "Liked",
+      "favorite": "Favorite"
+    }
+  },
+  "watchingHistory": {
+    "title": "Continue Watching",
+    "untitled_movie": "Untitled",
+    "loading": "Loading watching list...",
+    "error_title": "Something went wrong",
+    "refresh": "Refresh",
+    "discover_movies": "Discover movies",
+    "episode": "Episode {{current}} / {{total}}",
+    "last_watched": "Last watched: {{time}}",
+    "start_watching": "Start watching",
+    "continue": "Continue",
+    "mark_completed": "Mark as completed",
+    "remove_from_list": "Remove from list",
+    "debug_title": "Debug info in Console",
+    "empty_title": "No movies in progress",
+    "empty_subtitle": "Start watching movies to track your progress",
+    "stats": {
+      "title": "Watching Statistics",
+      "watching": "Watching",
+      "total_time": "Total time",
+      "avg_progress": "Avg progress"
+    },
+    "progress": {
+      "almost_done": "Almost done",
+      "watching": "Watching",
+      "following": "Following",
+      "just_started": "Just started",
+      "initialized": "Initialized"
+    },
+    "time": {
+      "yesterday": "Yesterday",
+      "days_ago": "{{count}} days ago",
+      "weeks_ago": "{{count}} weeks ago"
+    },
+    "toasts": {
+      "refreshed": "Watching list refreshed!",
+      "refresh_error": "Error refreshing data",
+      "removed": "Removed from watching list!",
+      "completed": "Marked as completed!",
+      "debug_logged": "Debug info logged to console!"
+    },
+    "errors": {
+      "user_not_found": "Unable to identify user",
+      "load_failed": "Unable to load watching list",
+      "unknown": "Unknown error",
+      "remove_failed": "Unable to remove from list: {{message}}",
+      "remove_exception": "An error occurred while removing movie!",
+      "complete_failed": "Unable to mark completed: {{message}}",
+      "complete_exception": "An error occurred while marking completed!"
+    }
+  },
+  "profileTab": {
+    "member": "Member",
+    "change_avatar": "Change avatar",
+    "change_password": "Change password",
+    "personal_info": "Personal information",
+    "full_name": "Full name",
+    "email_immutable": "Email cannot be changed",
+    "phone": "Phone number",
+    "gender": "Gender",
+    "gender_select": "Select gender",
+    "birth_date": "Date of birth",
+    "address": "Address",
+    "saving": "Saving...",
+    "save_changes": "Save changes",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_new_password": "Confirm new password",
+    "changing_password": "Changing password...",
+    "statistics": "Statistics",
+    "select_new_image": "Select new image",
+    "avatar_note": "Maximum size: 5MB. Formats: JPG, PNG, GIF",
+    "uploading": "Uploading...",
+    "upload": "Upload",
+    "placeholders": {
+      "full_name": "Enter full name",
+      "phone": "Enter phone number",
+      "birth_date": "dd/MM/yyyy (example: 12/12/2004)",
+      "address": "Enter address",
+      "current_password": "Enter current password",
+      "new_password": "Enter new password",
+      "confirm_new_password": "Re-enter new password"
+    },
+    "gender_options": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "stats": {
+      "movies_watched": "Movies watched",
+      "favorites": "Favorites",
+      "watching": "Watching",
+      "watch_time": "Watch time"
+    },
+    "validation": {
+      "name_required": "Full name is required",
+      "name_min": "Full name must be at least 2 characters",
+      "name_max": "Full name must not exceed 100 characters",
+      "phone_invalid": "Invalid phone number (e.g., 0123456789)",
+      "birth_format": "Date of birth must be in dd/MM/yyyy format",
+      "birth_format_example": "Date of birth must be in dd/MM/yyyy format (example: 12/12/2004)",
+      "birth_min_age": "You must be at least 13 years old",
+      "birth_invalid": "Invalid date of birth",
+      "address_max": "Address must not exceed 255 characters",
+      "current_password_required": "Please enter current password",
+      "new_password_required": "Please enter new password",
+      "new_password_min": "Password must be at least 6 characters",
+      "new_password_complexity": "Password must contain at least 1 uppercase, 1 lowercase, and 1 number",
+      "confirm_password_required": "Please confirm new password",
+      "confirm_password_mismatch": "Password confirmation does not match"
+    },
+    "toasts": {
+      "load_failed": "Unable to load profile information",
+      "fix_form_before_save": "Please fix form errors before saving",
+      "update_success": "Profile updated successfully!",
+      "generic_error_retry": "An error occurred. Please try again!",
+      "fix_password_form": "Please fix form errors before changing password",
+      "password_changed": "Password changed successfully!",
+      "avatar_size_limit": "Image file must be smaller than 5MB",
+      "avatar_invalid_type": "Please choose a valid image file",
+      "choose_avatar_first": "Please select an image first",
+      "avatar_upload_success": "Avatar uploaded successfully!",
+      "avatar_upload_failed": "An error occurred while uploading avatar"
+    }
+  },
+  "movieDetail": {
+    "page_title": "Movie details",
+    "loading_message": "Loading movie details...",
+    "viet_sub": "Viet Sub",
+    "watch_movie": "Watch movie",
+    "added": "Added",
+    "share": "Share",
+    "share_text": "Watch {{title}}",
+    "detail_content": "Detail content",
+    "description": "Description",
+    "duration_minutes": "{{value}} minutes",
+    "scheduled": "Scheduled",
+    "schedule_watch": "Schedule watch",
+    "episode": "Episode {{number}}",
+    "related_movies": "Related movies",
+    "schedule_modal": {
+      "title": "Schedule movie watching",
+      "watch_time": "Watch time:",
+      "notes_optional": "Notes (optional):",
+      "notes_placeholder": "Notes for your schedule...",
+      "remind_30m": "Remind 30 minutes before",
+      "create": "Create schedule"
+    },
+    "toasts": {
+      "login_required_schedule": "Please log in to create a schedule",
+      "schedule_created": "Schedule created successfully!",
+      "schedule_create_error": "An error occurred while creating schedule",
+      "login_required_feature": "Please log in to use this feature",
+      "removed_watch_later": "Removed from watch later list!",
+      "generic_error_retry": "An error occurred. Please try again!",
+      "link_copied": "Link copied to clipboard"
+    }
+  },
+  "mobileMenu": {
+    "open_menu": "Open menu",
+    "title": "Menu",
+    "description": "Navigate the website and discover movies",
+    "types": "Genres ({{count}})",
+    "categories": "Categories",
+    "countries": "Countries ({{count}})",
+    "search_types": "Search genres...",
+    "search_countries": "Search countries...",
+    "no_types": "No genres found",
+    "no_countries": "No countries found"
+  },
+  "continueSection": {
+    "remove": "Remove from list",
+    "continue": "Continue",
+    "episode": "Episode {{current}}/{{total}}",
+    "progress": {
+      "almost_done": "Almost done",
+      "watching": "Watching",
+      "following": "Following",
+      "just_started": "Just started",
+      "initialized": "Initialized"
+    }
+  },
+  "authContext": {
+    "session_expired": "Session has expired",
+    "login_again": "Please log in again"
+  },
+  "watchingProgress": {
+    "errors": {
+      "load_watching_list": "Unable to load watching list",
+      "login_required": "Login is required to track watching progress",
+      "start_watching": "Unable to start watching",
+      "mark_completed": "Unable to mark as completed",
+      "remove_movie": "Unable to remove movie"
+    },
+    "toasts": {
+      "started": "Started watching: {{movieTitle}}",
+      "start_failed": "Unable to start watching session",
+      "mark_completed_success": "Marked as completed",
+      "mark_completed_failed": "Unable to mark as completed",
+      "removed": "Removed from list",
+      "remove_failed": "Unable to remove from list"
+    }
+  },
+  "watchingList": {
+    "loading": "Loading...",
+    "load_error_title": "Failed to load data",
+    "retry": "Retry",
+    "empty_title": "No movies currently watching",
+    "empty_subtitle": "Start watching movies to see them here",
+    "sync_data": "Sync data",
+    "mark_completed": "Mark completed",
+    "remove_from_list": "Remove from list",
+    "continue": "Continue",
+    "confirm_mark_completed": "Mark this movie as fully watched?",
+    "confirm_remove": "Remove \"{{movieTitle}}\" from watching list?",
+    "episode": "Episode {{current}}/{{total}}",
+    "time": {
+      "minutes_ago": "{{count}} minutes ago",
+      "hours_ago": "{{count}} hours ago"
+    },
+    "progress": {
+      "almost_done": "Almost finished",
+      "watched_most": "Watched most",
+      "halfway": "Halfway through",
+      "just_started": "Just started",
+      "initialized": "Initialized"
+    },
+    "stats": {
+      "sessions": "📊 {{count}} sessions",
+      "completed": "✅ {{count}} completed"
+    }
+  },
+  "authPage": {
+    "verify_title": "Verify OTP",
+    "verify_button": "Verify",
+    "placeholders": {
+      "username": "Username",
+      "full_name": "Full name",
+      "phone": "Phone number",
+      "otp": "Enter OTP code"
+    },
+    "toasts": {
+      "otp_sent": "OTP has been sent to your email",
+      "otp_error": "Failed to send OTP",
+      "verify_success": "OTP verified successfully. Please log in.",
+      "otp_invalid": "Invalid OTP",
+      "login_no_response": "Login failed: No response"
+    }
+  },
+  "imageUpload": {
+    "upload_file": "Upload file",
+    "enter_url": "Enter image URL...",
+    "choose_file": "Choose file",
+    "no_file_selected": "No file selected",
+    "errors": {
+      "file_too_large": "File size must be less than {{maxSizeMB}}MB",
+      "invalid_file_type": "Please select a valid image file",
+      "cannot_load_image": "Cannot load image. Please check the URL."
+    }
+  },
+  "home": {
+    "title": "Home",
+    "view_all": "View all",
+    "featured_prefix": "Featured",
+    "featured_movie_fallback": "Featured movie",
+    "not_available": "N/A",
+    "views": "views",
+    "rating": "Rating",
+    "reviews": "reviews",
+    "points": "points",
+    "featured": "Featured",
+    "not_featured": "Not featured",
+    "preparing_content": "Preparing content...",
+    "loading": {
+      "banner": "Loading banner...",
+      "preparing_home": "Preparing homepage",
+      "finishing_ui": "Finishing interface...",
+      "completed": "Completed!"
+    },
+    "sections": {
+      "by_category": "Explore by category",
+      "by_country": "Explore by country",
+      "user_highlights": "User rating highlights",
+      "community_reviews": "Community review highlights",
+      "top10_chart": "Top 10 movie chart"
+    },
+    "buttons": {
+      "view_top_rated_movie": "View top-rated movie",
+      "view_movie": "View movie"
+    },
+    "defaults": {
+      "positive_review": "Users left positive feedback for this movie."
     }
   }
 }

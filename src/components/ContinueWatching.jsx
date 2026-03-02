@@ -5,12 +5,14 @@ import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import ViewCountDisplay from "./ViewCountDisplay";
 import { FaPlay, FaTrash, FaClock, FaSync } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const ContinueWatching = ({
   className = "",
   showTitle = true,
   maxItems = 6,
 }) => {
+  const { t, i18n } = useTranslation();
   const [continueWatchingList, setContinueWatchingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,7 +84,7 @@ const ContinueWatching = ({
       }
     } catch (error) {
       setContinueWatchingList([]);
-      toast.error("Không thể tải danh sách phim đang xem");
+      toast.error(t("continue.error_loading"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -117,10 +119,20 @@ const ContinueWatching = ({
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
+    if (diffMins < 60) {
+      return t("continueWatchingComponent.time.minutes_ago", {
+        count: diffMins,
+      });
+    }
+    if (diffHours < 24) {
+      return t("continueWatchingComponent.time.hours_ago", {
+        count: diffHours,
+      });
+    }
+    if (diffDays < 7) {
+      return t("continueWatchingComponent.time.days_ago", { count: diffDays });
+    }
+    return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US");
   };
 
   const handleContinueWatching = (item) => {
@@ -140,9 +152,13 @@ const ContinueWatching = ({
         },
       });
 
-      toast.success(`Tiếp tục xem ${item.movieTitle}`);
+      toast.success(
+        t("continueWatchingComponent.toasts.continue_success", {
+          title: item.movieTitle,
+        }),
+      );
     } catch (error) {
-      toast.error("Không thể tiếp tục xem phim");
+      toast.error(t("continueWatchingComponent.toasts.continue_error"));
     }
   };
 
@@ -156,12 +172,16 @@ const ContinueWatching = ({
         setContinueWatchingList((prev) =>
           prev.filter((session) => session.movieId !== item.movieId),
         );
-        toast.success(`Đã xóa ${item.movieTitle} khỏi danh sách`);
+        toast.success(
+          t("continueWatchingComponent.toasts.removed", {
+            title: item.movieTitle,
+          }),
+        );
       } else {
-        toast.error("Không thể xóa khỏi danh sách");
+        toast.error(t("continueWatchingComponent.toasts.remove_error"));
       }
     } catch (error) {
-      toast.error("Không thể xóa khỏi danh sách");
+      toast.error(t("continueWatchingComponent.toasts.remove_error"));
     }
   };
 
@@ -190,13 +210,15 @@ const ContinueWatching = ({
     return (
       <div className={className}>
         {showTitle && (
-          <h2 className="text-xl font-bold mb-4 text-white">Tiếp tục xem</h2>
+          <h2 className="text-xl font-bold mb-4 text-white">
+            {t("continue.title")}
+          </h2>
         )}
         <div className="bg-gray-800 rounded-lg p-8 text-center text-gray-400">
           <FaClock className="text-4xl mx-auto mb-4 opacity-50" />
-          <p>Chưa có phim nào đang xem dở</p>
+          <p>{t("continueWatchingComponent.empty_title")}</p>
           <p className="text-sm mt-2">
-            Bắt đầu xem phim để thấy tiến trình tại đây
+            {t("continueWatchingComponent.empty_subtitle")}
           </p>
         </div>
       </div>
@@ -208,19 +230,22 @@ const ContinueWatching = ({
       {showTitle && (
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">
-            Tiếp tục xem ({continueWatchingList.length})
+            {t("continueWatchingComponent.title_with_count", {
+              count: continueWatchingList.length,
+            })}
           </h2>
           <div className="flex items-center gap-2">
             {lastSync && (
               <span className="text-xs text-gray-400">
-                Sync: {formatRelativeTime(lastSync.toISOString())}
+                {t("continueWatchingComponent.sync_prefix")}:{" "}
+                {formatRelativeTime(lastSync.toISOString())}
               </span>
             )}
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 hover:text-white transition-colors disabled:opacity-50"
-              title="Đồng bộ từ server"
+              title={t("continueWatchingComponent.sync_from_server")}
             >
               <FaSync
                 className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`}
@@ -255,7 +280,9 @@ const ContinueWatching = ({
                     : "bg-yellow-600 bg-opacity-90 text-white"
                 }`}
               >
-                {item.source === "redis" ? "🔄 Redis" : "💾 Local"}
+                {item.source === "redis"
+                  ? t("continueWatchingComponent.source.redis")
+                  : t("continueWatchingComponent.source.local")}
               </div>
             </div>
 
@@ -287,13 +314,13 @@ const ContinueWatching = ({
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors"
                 >
                   <FaPlay className="text-xs" />
-                  Tiếp tục
+                  {t("movie.continue_watching")}
                 </button>
 
                 <button
                   onClick={() => handleRemoveFromList(item)}
                   className="bg-gray-600 hover:bg-red-600 text-white p-2 rounded transition-colors"
-                  title="Xóa khỏi danh sách"
+                  title={t("continueWatchingComponent.remove_from_list")}
                 >
                   <FaTrash className="text-xs" />
                 </button>
@@ -339,10 +366,18 @@ const LocalStorageInfo = () => {
   return (
     <div className="bg-gray-900 rounded-lg p-3 text-xs text-gray-400">
       <div className="flex justify-center gap-4 flex-wrap">
-        <span>📊 {stats.totalSessions || 0} session(s)</span>
+        <span>
+          📊{" "}
+          {t("continueWatchingComponent.stats.sessions", {
+            count: stats.totalSessions || 0,
+          })}
+        </span>
         {stats.pendingSync > 0 && (
           <span className="text-yellow-400">
-            ⏳ {stats.pendingSync} chờ sync
+            ⏳{" "}
+            {t("continueWatchingComponent.stats.pending_sync", {
+              count: stats.pendingSync,
+            })}
           </span>
         )}
         <span>💾 {stats.storageSize || "0 KB"}</span>

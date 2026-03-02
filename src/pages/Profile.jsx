@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getWatchlist, fetchJson } from "../services/api";
 // import { trackUserAction } from "../services/analytics";
 import WatchlistTab from "../components/profile/WatchlistTab";
@@ -16,14 +17,15 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { themeClasses } = useTheme();
+  const { t } = useTranslation();
 
   const tabs = [
-    { id: "profile", name: "Thông tin cá nhân", icon: "👤" },
-    { id: "watchlist", name: "Phim yêu thích", icon: "❤️" },
-    { id: "watch-later", name: "Xem sau", icon: "⏰" },
-    { id: "continue-watching", name: "Phim đang xem", icon: "📺" },
-    { id: "notifications", name: "Thông báo", icon: "🔔" },
-    { id: "settings", name: "Cài đặt", icon: "⚙️" },
+    { id: "profile", name: t("profile.tabs.profile") },
+    { id: "watchlist", name: t("profile.tabs.watchlist") },
+    { id: "watch-later", name: t("profile.tabs.watch_later") },
+    { id: "continue-watching", name: t("profile.tabs.continue_watching") },
+    { id: "notifications", name: t("profile.tabs.notifications") },
+    { id: "settings", name: t("profile.tabs.settings") },
   ];
 
   const isValidTab = (tabId) => {
@@ -186,14 +188,16 @@ const Profile = () => {
               </div>
               <div className="text-white">
                 <h1 className="text-3xl font-bold mb-1">
-                  {user?.displayName || "Tên người dùng"}
+                  {user?.fullName || t("profilePage.default_user")}
                 </h1>
                 <div className="flex items-center space-x-4 text-gray-300">
                   <span className="px-2 py-1 bg-blue-600 text-xs font-semibold rounded-full">
                     {user?.role?.roleName || "User"}
                   </span>
                   <span className="text-sm">
-                    Thành viên từ {new Date().getFullYear()}
+                    {t("profilePage.member_since", {
+                      year: new Date().getFullYear(),
+                    })}
                   </span>
                 </div>
                 {user?.email && (
@@ -204,13 +208,13 @@ const Profile = () => {
 
             {/* Current tab indicator */}
             <div className="text-right">
-              <p className="text-gray-400 text-sm mb-1">Đang xem</p>
-              <div className="flex items-center space-x-2 text-white">
-                <span className="text-2xl">
-                  {tabs.find((tab) => tab.id === activeTab)?.icon}
-                </span>
+              <p className="text-gray-400 text-sm mb-1">
+                {t("profilePage.currently_viewing")}
+              </p>
+              <div className="text-white">
                 <span className="text-lg font-semibold">
-                  {tabs.find((tab) => tab.id === activeTab)?.name}
+                  {tabs.find((tab) => tab.id === activeTab)?.name ||
+                    t("profile.tabs.profile")}
                 </span>
               </div>
             </div>
@@ -222,60 +226,30 @@ const Profile = () => {
           <div className="lg:col-span-1">
             <nav className={`${themeClasses.card} rounded-lg shadow-xl p-4`}>
               <h2 className="text-white font-semibold mb-4 text-lg">
-                Điều hướng
+                {t("profilePage.navigation")}
               </h2>
               <ul className="space-y-2">
                 {tabs.map((tab) => (
                   <li key={tab.id}>
                     <button
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                      className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
                         activeTab === tab.id
-                          ? "bg-blue-600 text-white shadow-lg transform scale-105 border-l-4 border-blue-400"
-                          : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary} hover:scale-102`
+                          ? "bg-blue-600 text-white shadow-lg border-l-4 border-blue-400"
+                          : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary}`
                       }`}
                     >
-                      <span
-                        className={`text-xl ${
-                          activeTab === tab.id
-                            ? "animate-pulse"
-                            : "group-hover:scale-110"
-                        } transition-transform`}
-                      >
-                        {tab.icon}
-                      </span>
-                      <span className="font-medium">{tab.name}</span>
+                      <span className="font-medium text-left">{tab.name}</span>
                       {activeTab === tab.id && (
-                        <span className="ml-auto text-blue-300">●</span>
+                        <span className="ml-auto text-blue-200 text-xs font-semibold uppercase">
+                          {t("profilePage.active")}
+                        </span>
                       )}
                     </button>
                   </li>
                 ))}
               </ul>
             </nav>
-
-            {/* Quick Stats */}
-            <div
-              className={`mt-6 ${themeClasses.card} rounded-lg shadow-xl p-4`}
-            >
-              <h3 className="text-white font-semibold mb-3">Thống kê</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Phim yêu thích</span>
-                  <span className="text-white font-medium">
-                    {watchlist.length}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Đã xem</span>
-                  <span className="text-white font-medium">0</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Đánh giá</span>
-                  <span className="text-white font-medium">0</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Main Content */}

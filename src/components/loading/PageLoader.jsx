@@ -1,12 +1,16 @@
 import React from "react";
 import { FaFilm, FaPlay } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 const PageLoader = ({
   isVisible = true,
-  message = "Đang chuẩn bị ...",
+  message,
   progress = 0,
   showProgress = false,
 }) => {
+  const { t } = useTranslation();
+  const resolvedMessage = message || t("loading.preparing_default");
+
   if (!isVisible) return null;
 
   return (
@@ -94,9 +98,9 @@ const PageLoader = ({
           <h1 className="text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 drop-shadow-2xl">
             WeMovies
           </h1>
-          
+
           <p className="text-white text-2xl tracking-[4px] font-light animate-typewriter overflow-hidden whitespace-nowrap border-r-4 border-yellow-400">
-            {message}
+            {resolvedMessage}
           </p>
         </div>
 
@@ -124,10 +128,18 @@ const PageLoader = ({
 
         {/* Genre tags (smaller & elegant) */}
         <div className="absolute inset-0 pointer-events-none text-xs uppercase tracking-widest font-medium">
-          <span className="absolute top-4 left-1/3 text-yellow-200/80 animate-float">ACTION</span>
-          <span className="absolute top-20 right-1/4 text-blue-200/70 animate-float-delayed">DRAMA</span>
-          <span className="absolute bottom-28 left-1/4 text-red-200/70 animate-float-delayed-2">COMEDY</span>
-          <span className="absolute bottom-12 right-1/3 text-purple-200/70 animate-float">THRILLER</span>
+          <span className="absolute top-4 left-1/3 text-yellow-200/80 animate-float">
+            ACTION
+          </span>
+          <span className="absolute top-20 right-1/4 text-blue-200/70 animate-float-delayed">
+            DRAMA
+          </span>
+          <span className="absolute bottom-28 left-1/4 text-red-200/70 animate-float-delayed-2">
+            COMEDY
+          </span>
+          <span className="absolute bottom-12 right-1/3 text-purple-200/70 animate-float">
+            THRILLER
+          </span>
         </div>
       </div>
 
