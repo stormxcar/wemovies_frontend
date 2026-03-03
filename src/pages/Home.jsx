@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Banner from "../components/Banner";
@@ -20,6 +20,7 @@ const Home = () => {
   const [topCountrySections, setTopCountrySections] = useState([]);
   const [topReviewedMovies, setTopReviewedMovies] = useState([]);
   const [topReviewEntries, setTopReviewEntries] = useState([]);
+  const reviewSummaryCacheRef = useRef(new Map());
   const { updateProgress } = useGlobalLoading();
 
   // Set document title for homepage
@@ -128,70 +129,99 @@ const Home = () => {
 
         const ratingCandidates = [...safeMovies]
           .sort((a, b) => (b?.views || 0) - (a?.views || 0))
-          .slice(0, 40);
+          .slice(0, 12);
 
-        const reviewedCandidates = await Promise.all(
-          ratingCandidates.map(async (movie) => {
-            try {
-              const [averageRes, reviewsRes] = await Promise.all([
-                fetchJson(`/api/reviews/${movie.id}/average-rating`),
-                fetchJson(`/api/reviews/${movie.id}/reviews`),
-              ]);
+        const loadReviewHighlights = async () => {
+          const reviewedCandidates = await Promise.all(
+            ratingCandidates.map(async (movie) => {
+              const cacheKey = String(movie.id);
+              const cachedSummary = reviewSummaryCacheRef.current.get(cacheKey);
 
-              const averageRating = Number(averageRes?.data ?? averageRes ?? 0);
-              const reviews = reviewsRes?.data || reviewsRes || [];
-              const reviewCount = Array.isArray(reviews) ? reviews.length : 0;
+              if (cachedSummary) {
+                return { ...movie, ...cachedSummary };
+              }
 
-              return {
-                ...movie,
-                averageRating,
-                reviewCount,
-                reviews: Array.isArray(reviews) ? reviews : [],
-              };
-            } catch (error) {
-              return {
-                ...movie,
-                averageRating: 0,
-                reviewCount: 0,
-                reviews: [],
-              };
-            }
-          }),
-        );
+              try {
+                const [averageRes, reviewsRes] = await Promise.allSettled([
+                  fetchJson(`/api/reviews/${movie.id}/average-rating`),
+                  fetchJson(`/api/reviews/${movie.id}/reviews`),
+                ]);
 
-        if (!mounted) return;
+                const averageRating =
+                  averageRes.status === "fulfilled"
+                    ? Number(averageRes.value?.data ?? averageRes.value ?? 0)
+                    : 0;
+                const reviewsRaw =
+                  reviewsRes.status === "fulfilled"
+                    ? reviewsRes.value?.data || reviewsRes.value || []
+                    : [];
+                const reviews = Array.isArray(reviewsRaw) ? reviewsRaw : [];
 
-        const topReviewed = reviewedCandidates
-          .filter((movie) => movie.averageRating > 0 || movie.reviewCount > 0)
-          .sort((a, b) => {
-            if (b.averageRating !== a.averageRating) {
-              return b.averageRating - a.averageRating;
-            }
-            return b.reviewCount - a.reviewCount;
-          })
-          .slice(0, 6);
+                const summary = {
+                  averageRating,
+                  reviewCount: reviews.length,
+                  reviews,
+                };
 
-        setTopReviewedMovies(topReviewed);
+                reviewSummaryCacheRef.current.set(cacheKey, summary);
 
-        const reviewFeed = reviewedCandidates
-          .flatMap((movie) =>
-            (movie.reviews || []).map((review) => ({
-              ...review,
-              movieId: movie.id,
-              movieTitle: movie.title,
-              movieThumb: movie.thumb_url,
-            })),
-          )
-          .filter((review) => review?.comment || review?.rating)
-          .sort((a, b) => {
-            if ((b?.rating || 0) !== (a?.rating || 0)) {
-              return (b?.rating || 0) - (a?.rating || 0);
-            }
-            return new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0);
-          })
-          .slice(0, 8);
+                return {
+                  ...movie,
+                  ...summary,
+                };
+              } catch (error) {
+                const fallback = {
+                  averageRating: 0,
+                  reviewCount: 0,
+                  reviews: [],
+                };
+                reviewSummaryCacheRef.current.set(cacheKey, fallback);
+                return {
+                  ...movie,
+                  ...fallback,
+                };
+              }
+            }),
+          );
 
-        setTopReviewEntries(reviewFeed);
+          if (!mounted) return;
+
+          const topReviewed = reviewedCandidates
+            .filter((movie) => movie.averageRating > 0 || movie.reviewCount > 0)
+            .sort((a, b) => {
+              if (b.averageRating !== a.averageRating) {
+                return b.averageRating - a.averageRating;
+              }
+              return b.reviewCount - a.reviewCount;
+            })
+            .slice(0, 6);
+
+          setTopReviewedMovies(topReviewed);
+
+          const reviewFeed = reviewedCandidates
+            .flatMap((movie) =>
+              (movie.reviews || []).map((review) => ({
+                ...review,
+                movieId: movie.id,
+                movieTitle: movie.title,
+                movieThumb: movie.thumb_url,
+              })),
+            )
+            .filter((review) => review?.comment || review?.rating)
+            .sort((a, b) => {
+              if ((b?.rating || 0) !== (a?.rating || 0)) {
+                return (b?.rating || 0) - (a?.rating || 0);
+              }
+              return new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0);
+            })
+            .slice(0, 8);
+
+          setTopReviewEntries(reviewFeed);
+        };
+
+        setTimeout(() => {
+          loadReviewHighlights();
+        }, 0);
       } catch (error) {
         if (!mounted) return;
         setHomeMovies([]);

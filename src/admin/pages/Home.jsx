@@ -264,12 +264,21 @@ const Home = () => {
                   <div className="w-12 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded flex items-center justify-center text-white font-bold text-sm">
                     {index + 1}
                   </div>
+                  <img
+                    src={
+                      movie.thumb_url ||
+                      movie.thumbnail ||
+                      "/placeholder-professional.svg"
+                    }
+                    alt={movie.title || movie.name}
+                    className="w-16 h-25 object-cover rounded-md"
+                  />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 truncate">
                       {movie.name || movie.title || `Phim ${index + 1}`}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {movie.year || movie.releaseDate || "Không xác định"}
+                      {movie.year || movie.release_year || "N/A"}
                     </p>
                   </div>
                   <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">

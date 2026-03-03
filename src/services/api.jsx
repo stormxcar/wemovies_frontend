@@ -157,17 +157,45 @@ export const fetchScheduleData = async (endpoint, defaultValue = null) => {
 };
 
 // Các hàm fetch khác giữ nguyên
-export const fetchMovies = async () => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-  try {
-    const data = await fetchJson("/api/movies");
-    return Array.isArray(data.data) ? data.data : [];
-  } catch (error) {
-    return [];
-  } finally {
-    clearTimeout(timeoutId);
+const MOVIES_CACHE_TTL_MS = 60 * 1000;
+let moviesCacheData = null;
+let moviesCacheTime = 0;
+let moviesCachePromise = null;
+
+export const fetchMovies = async (options = {}) => {
+  const { forceRefresh = false } = options;
+  const now = Date.now();
+
+  if (
+    !forceRefresh &&
+    Array.isArray(moviesCacheData) &&
+    now - moviesCacheTime < MOVIES_CACHE_TTL_MS
+  ) {
+    return moviesCacheData;
   }
+
+  if (!forceRefresh && moviesCachePromise) {
+    return moviesCachePromise;
+  }
+
+  moviesCachePromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const data = await fetchJson("/api/movies");
+      const movies = Array.isArray(data.data) ? data.data : [];
+      moviesCacheData = movies;
+      moviesCacheTime = Date.now();
+      return movies;
+    } catch (error) {
+      return [];
+    } finally {
+      clearTimeout(timeoutId);
+      moviesCachePromise = null;
+    }
+  })();
+
+  return moviesCachePromise;
 };
 
 export const fetchCategories = async () => {

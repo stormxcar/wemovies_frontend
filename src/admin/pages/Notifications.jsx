@@ -87,7 +87,36 @@ const Notifications = () => {
         params.metadata = formData.metadata.trim();
       }
 
-      await api.post("/api/notifications/broadcast", null, { params });
+      const endpointCandidates = [
+        "/api/notifications/broadcast",
+        "/notifications/broadcast",
+      ];
+
+      let sent = false;
+      let lastError = null;
+
+      for (const endpoint of endpointCandidates) {
+        try {
+          await api.post(endpoint, null, { params });
+          sent = true;
+          break;
+        } catch (errorWithQueryParams) {
+          lastError = errorWithQueryParams;
+
+          try {
+            await api.post(endpoint, params);
+            sent = true;
+            break;
+          } catch (errorWithJsonBody) {
+            lastError = errorWithJsonBody;
+          }
+        }
+      }
+
+      if (!sent) {
+        throw lastError || new Error("Broadcast endpoint is unavailable");
+      }
+
       toast.success("Gửi thông báo broadcast thành công");
       setFormData((prev) => ({
         ...prev,

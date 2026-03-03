@@ -337,7 +337,7 @@
   },
   "movie": {
     "watch_now": "Watch Now",
-    "view_detail" : "Detail",
+    "view_detail": "Detail",
     "add_to_favorites": "Add to Favorites",
     "remove_from_favorites": "Remove from Favorites",
     "watch_later": "Watch Later",
@@ -696,10 +696,27 @@
     "detail_content": "Detail content",
     "description": "Description",
     "duration_minutes": "{{value}} minutes",
+    "no_info": "No information",
     "scheduled": "Scheduled",
     "schedule_watch": "Schedule watch",
     "episode": "Episode {{number}}",
     "related_movies": "Related movies",
+    "episode_list_title": "Episodes",
+    "episodeDetail": {
+      "watch_title": "Watch {{title}}",
+      "no_episode": "Episode not found.",
+      "director": "Director:",
+      "cast": "Cast:",
+      "duration": "Duration:",
+      "description": "Description:",
+      "playing": "Playing",
+      "watch_now": "Watch now",
+      "related_movies": "Related movies"
+    },
+    "labels": {
+      "movie_types": "Movie types",
+      "movie_categories": "Categories"
+    },
     "schedule_modal": {
       "title": "Schedule movie watching",
       "watch_time": "Watch time:",
@@ -716,6 +733,28 @@
       "removed_watch_later": "Removed from watch later list!",
       "generic_error_retry": "An error occurred. Please try again!",
       "link_copied": "Link copied to clipboard"
+    }
+  },
+  "watchPage": {
+    "loading_movie": "Loading movie...",
+    "watch_title": "Watch {{title}}",
+    "video_unavailable": "Video unavailable",
+    "video_unavailable_desc": "This movie currently has no available streaming links. Please try again later.",
+    "movie_id": "Movie ID",
+    "movie_title": "Title",
+    "movie_information": "Movie Information",
+    "description": "Description",
+    "recommendations": "Recommendations",
+    "no_related_movies": "No related movies found",
+    "fields": {
+      "category": "Category",
+      "categories": "Categories",
+      "movie_type": "Movie type",
+      "director": "Director",
+      "cast": "Cast",
+      "year": "Year",
+      "duration": "Duration",
+      "views": "Views"
     }
   },
   "mobileMenu": {

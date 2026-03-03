@@ -696,10 +696,27 @@
     "detail_content": "Nội dung chi tiết",
     "description": "Mô tả",
     "duration_minutes": "{{value}} phút",
+    "no_info": "Không có thông tin",
     "scheduled": "Đã lên lịch",
     "schedule_watch": "Lên lịch xem",
     "episode": "Tập {{number}}",
     "related_movies": "Phim liên quan",
+    "episode_list_title": "Danh sách tập",
+    "episodeDetail": {
+      "watch_title": "Xem {{title}}",
+      "no_episode": "Không tìm thấy tập phim này.",
+      "director": "Đạo diễn:",
+      "cast": "Diễn viên:",
+      "duration": "Thời lượng:",
+      "description": "Mô tả:",
+      "playing": "Đang phát",
+      "watch_now": "Xem ngay",
+      "related_movies": "Phim liên quan"
+    },
+    "labels": {
+      "movie_types": "Loại phim",
+      "movie_categories": "Thể loại"
+    },
     "schedule_modal": {
       "title": "Lên lịch xem phim",
       "watch_time": "Thời gian xem:",
@@ -716,6 +733,28 @@
       "removed_watch_later": "Đã xóa khỏi danh sách xem sau!",
       "generic_error_retry": "Có lỗi xảy ra. Vui lòng thử lại!",
       "link_copied": "Link đã được sao chép vào clipboard"
+    }
+  },
+  "watchPage": {
+    "loading_movie": "Đang tải phim...",
+    "watch_title": "Xem {{title}}",
+    "video_unavailable": "Video hiện không khả dụng",
+    "video_unavailable_desc": "Phim này hiện chưa có link phát. Vui lòng thử lại sau.",
+    "movie_id": "Mã phim",
+    "movie_title": "Tiêu đề",
+    "movie_information": "Thông tin phim",
+    "description": "Mô tả",
+    "recommendations": "Đề xuất",
+    "no_related_movies": "Không tìm thấy phim liên quan",
+    "fields": {
+      "category": "Thể loại",
+      "categories": "Thể loại",
+      "movie_type": "Loại phim",
+      "director": "Đạo diễn",
+      "cast": "Diễn viên",
+      "year": "Năm",
+      "duration": "Thời lượng",
+      "views": "Lượt xem"
     }
   },
   "mobileMenu": {

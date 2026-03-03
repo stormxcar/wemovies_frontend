@@ -24,6 +24,33 @@ const UnifiedVideoPlayer = ({
 
   console.log("🎬 UnifiedVideoPlayer autoPlay prop:", autoPlay);
 
+  useEffect(() => {
+    setShouldAutoPlay(autoPlay);
+  }, [autoPlay]);
+
+  const buildIframeSrc = (url) => {
+    if (!url) return "";
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+
+      if (shouldAutoPlay) {
+        parsedUrl.searchParams.set("autoplay", "1");
+        parsedUrl.searchParams.set("autostart", "1");
+        parsedUrl.searchParams.set("mute", "1");
+        parsedUrl.searchParams.set("muted", "1");
+        parsedUrl.searchParams.set("playsinline", "1");
+      }
+
+      if (startTime > 0) {
+        parsedUrl.searchParams.set("t", String(Math.floor(startTime)));
+      }
+
+      return parsedUrl.toString();
+    } catch {
+      return url;
+    }
+  };
+
   // Determine best player mode based on URL
   useEffect(() => {
     const determinePlayerMode = () => {
@@ -110,7 +137,7 @@ const UnifiedVideoPlayer = ({
         if (onTimeUpdate) {
           onTimeUpdate({
             currentTime,
-            duration: 7200, // Default 2 hours, since we can't get real duration from iframe
+            duration: 0,
           });
         }
       }, 10000);
@@ -167,8 +194,8 @@ const UnifiedVideoPlayer = ({
           width="100%"
           height="400px"
           controls={true}
-          playing={autoPlay}
-          muted={shouldAutoPlay} // Muted required for autoplay in most browsers
+          playing={shouldAutoPlay}
+          muted={shouldAutoPlay}
           onProgress={handleReactPlayerTimeUpdate}
           onPlay={handleReactPlayerPlay}
           onPause={handleReactPlayerPause}
@@ -201,8 +228,6 @@ const UnifiedVideoPlayer = ({
             setError("ReactPlayer failed to load video");
           }}
         />
-
-        
       </div>
     );
   }
@@ -213,14 +238,13 @@ const UnifiedVideoPlayer = ({
       <div className="w-full bg-black rounded-lg overflow-hidden relative">
         <iframe
           ref={iframeRef}
-          src={src}
+          src={buildIframeSrc(src)}
           className="w-full h-96 border-0"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowFullScreen
           title="Video Player"
           onLoad={handleIframeLoad}
         />
-
-      
       </div>
     );
   }

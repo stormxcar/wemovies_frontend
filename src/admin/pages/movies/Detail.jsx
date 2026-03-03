@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { fetchJson } from "../../../services/api";
 import {
@@ -85,6 +85,16 @@ const MovieDetail = () => {
     };
     return colors[quality] || "bg-gray-100 text-gray-800";
   };
+
+  const sortedEpisodes = useMemo(() => {
+    const episodes = Array.isArray(movie?.episodes) ? movie.episodes : [];
+
+    return [...episodes].sort((firstEpisode, secondEpisode) => {
+      const firstNumber = Number(firstEpisode?.episodeNumber) || 0;
+      const secondNumber = Number(secondEpisode?.episodeNumber) || 0;
+      return firstNumber - secondNumber;
+    });
+  }, [movie]);
 
   if (loading) {
     return (
@@ -298,7 +308,7 @@ const MovieDetail = () => {
                     </label>
                     <span
                       className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        movie.status
+                        movie.status,
                       )}`}
                     >
                       <Tv className="h-4 w-4" />
@@ -352,7 +362,7 @@ const MovieDetail = () => {
                   <div className="mb-2">
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getQualityColor(
-                        movie.quality
+                        movie.quality,
                       )}`}
                     >
                       {movie.quality || "N/A"}
@@ -387,7 +397,7 @@ const MovieDetail = () => {
                     {movie.ageRating ? (
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getAgeRatingColor(
-                          movie.ageRating
+                          movie.ageRating,
                         )}`}
                       >
                         {movie.ageRating}
@@ -523,13 +533,13 @@ const MovieDetail = () => {
                   </a>
                 </div>
               )}
-              {movie.episodes && movie.episodes.length > 0 && (
+              {sortedEpisodes.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">
                     Các tập phim
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-48 overflow-y-auto">
-                    {movie.episodes.map((episode, index) => (
+                    {sortedEpisodes.map((episode, index) => (
                       <a
                         key={index}
                         href={episode.link}

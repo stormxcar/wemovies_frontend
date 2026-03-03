@@ -92,7 +92,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
               movieTitle:
                 item.movieTitle || t("watchingHistory.untitled_movie"),
               currentTime: Math.max(0, Math.floor(item.currentTime || 0)), // Ensure non-negative
-              totalDuration: Math.max(1, item.totalDuration || 7200), // Avoid division by zero
+              totalDuration: Math.max(0, Number(item.totalDuration) || 0),
               percentage: Math.min(
                 100,
                 Math.max(0, Math.round(item.percentage || 0)),
@@ -268,7 +268,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
           movieId: item.movieId,
           movieTitle: item.movieTitle,
           currentTime: Math.floor(item.currentTime || 0),
-          totalDuration: item.totalDuration || 7200,
+          totalDuration: Number(item.totalDuration) || 0,
           percentage: Math.round(item.percentage || 0),
           lastWatched: item.lastWatched,
           startedAt: item.startedAt,
@@ -581,7 +581,11 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                 {/* Movie Poster */}
                 <div className="flex-shrink-0">
                   <img
-                    src={movie.moviePoster || "/placeholder-professional.svg"}
+                    src={
+                      movie.moviePoster ||
+                      movie.thumb_url ||
+                      "/placeholder-professional.svg"
+                    }
                     alt={movie.movieTitle}
                     className="w-20 h-28 object-cover rounded-lg"
                   />
@@ -684,7 +688,10 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                           movieDetail: {
                             id: movie.movieId,
                             title: movie.movieTitle,
-                            thumb_url: movie.moviePoster,
+                            thumb_url:
+                              movie.moviePoster ||
+                              movie.thumb_url ||
+                              "/placeholder-professional.svg",
                           },
                           startTime: movie.currentTime || 0,
                         }}

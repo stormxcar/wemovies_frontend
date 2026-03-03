@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import HorizontalMovies from "./HorizontalMovies";
@@ -23,7 +29,17 @@ const DetailMovie = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const { setLoading, isLoading } = useLoading();
+  // loading context might not be present in some standalone usages (e.g. tests)
+  // wrap in try/catch so the component still renders without provider
+  let setLoading = () => {};
+  let isLoading = () => false;
+  try {
+    const loadingCtx = useLoading();
+    setLoading = loadingCtx.setLoading;
+    isLoading = loadingCtx.isLoading;
+  } catch (err) {
+    // provider missing, fall back to no-op
+  }
   const { t } = useTranslation();
   const [movieDetail, setMovieDetail] = useState(null);
   const toastTimeoutRef = useRef(null);
@@ -177,10 +193,9 @@ const DetailMovie = () => {
 
   const startWatchingSession = async () => {
     if (isAuthenticated && movieDetail?.data) {
-      // Estimate duration (in seconds) - default 2 hours if not provided
       const estimatedDuration = movieDetail.data.duration
         ? movieDetail.data.duration * 60
-        : 7200;
+        : null;
       await startWatching(estimatedDuration);
     }
   };
@@ -212,18 +227,50 @@ const DetailMovie = () => {
   }, [id, fetchRelatedMovies, checkScheduleStatus, setLoading]);
 
   const isLoadingMovieDetail = isLoading("movieDetail");
+  const movieData = movieDetail?.data;
 
-  if (isLoadingMovieDetail || !movieDetail) {
+  // when movie has episodes, navigate to first episode instead of generic watch page
+  const initialWatchPath =
+    Array.isArray(movieData?.episodes) && movieData.episodes.length > 0
+      ? `/movie/${id}/episode/0`
+      : `/movie/watch/${id}`;
+
+  const episodeLinks = useMemo(() => {
+    const episodes = Array.isArray(movieData?.episodes)
+      ? movieData.episodes
+      : [];
+
+    return [...episodes]
+      .sort((firstEpisode, secondEpisode) => {
+        const firstNumber = Number(firstEpisode?.episodeNumber) || 0;
+        const secondNumber = Number(secondEpisode?.episodeNumber) || 0;
+        return firstNumber - secondNumber;
+      })
+      .map((episode) => ({
+        link: episode.link,
+        episodeNumber: episode.episodeNumber,
+      }));
+  }, [movieData]);
+
+  const movieTypesText = useMemo(() => {
+    const types = Array.isArray(movieData?.movieTypes)
+      ? movieData.movieTypes.map((item) => item?.name).filter(Boolean)
+      : [];
+    return types.length > 0 ? types.join(", ") : t("movieDetail.no_info");
+  }, [movieData, t]);
+
+  const movieCategoriesText = useMemo(() => {
+    const categories = Array.isArray(movieData?.movieCategories)
+      ? movieData.movieCategories.map((item) => item?.name).filter(Boolean)
+      : [];
+    return categories.length > 0
+      ? categories.join(", ")
+      : t("movieDetail.no_info");
+  }, [movieData, t]);
+
+  if (isLoadingMovieDetail || !movieData) {
     return null; // LoadingContext sẽ handle loading display
   }
-
-  // const episodeLinks = movieDetail.data.episodeLinks?.split(",") || [];
-  const episodeLinks =
-    Array.isArray(movieDetail.data.episodes) &&
-    movieDetail.data.episodes?.map((episode) => ({
-      link: episode.link,
-      episodeNumber: episode.episodeNumber,
-    }));
 
   const convertToEmbedUrl = (url) => {
     const match = url.match(
@@ -232,7 +279,7 @@ const DetailMovie = () => {
     return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   };
 
-  const category = movieDetail.data.movieCategories?.[0];
+  const category = movieData.movieCategories?.[0];
 
   const handleMovieClick = (movieId) => {
     // navigate(`/movie/${movieId}`);
@@ -263,7 +310,7 @@ const DetailMovie = () => {
             {/* Left group - Watch and Trailer buttons */}
             <div className="flex items-center space-x-4">
               <Link
-                to={"/movie/watch/" + movieDetail.data.id}
+                to={initialWatchPath}
                 state={{ movieDetail: movieDetail.data }}
                 onClick={startWatchingSession}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
@@ -413,11 +460,27 @@ const DetailMovie = () => {
             <div>
               <div className="my-3">
                 <span className="text-white">{t("movie.director")}: </span>
-                <span className="text-white">{movieDetail.data.director}</span>
+                <span className="text-white">
+                  {movieDetail.data.director || t("movieDetail.no_info")}
+                </span>
               </div>
               <div className="my-3">
                 <span className="text-white">{t("movie.cast")}: </span>
-                <span className="text-white">{movieDetail.data.actors}</span>
+                <span className="text-white">
+                  {movieDetail.data.actors || t("movieDetail.no_info")}
+                </span>
+              </div>
+              <div className="my-3">
+                <span className="text-white">
+                  {t("movieDetail.labels.movie_types")}:
+                </span>
+                <span className="text-white">{movieTypesText}</span>
+              </div>
+              <div className="my-3">
+                <span className="text-white">
+                  {t("movieDetail.labels.movie_categories")}:
+                </span>
+                <span className="text-white">{movieCategoriesText}</span>
               </div>
               <div className="my-3">
                 <span className="text-white">{t("movie.duration")}: </span>
@@ -434,7 +497,8 @@ const DetailMovie = () => {
                 <span
                   className="text-white"
                   dangerouslySetInnerHTML={{
-                    __html: movieDetail.data.description,
+                    __html:
+                      movieDetail.data.description || t("movieDetail.no_info"),
                   }}
                 />
               </div>
@@ -510,22 +574,40 @@ const DetailMovie = () => {
 
               <ReviewSection movieId={id} />
 
-              <div className="flex flex-row flex-wrap mt-8 gap-3">
-                {episodeLinks.length > 0
-                  ? episodeLinks.map((link, idx) => (
-                      <div key={idx} className="">
+              <div className="mt-8">
+                <h3 className="text-white text-xl font-semibold mb-4">
+                  {t("movieDetail.episode_list_title", "Episodes")}
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {episodeLinks.length > 0
+                    ? episodeLinks.map((link, idx) => (
                         <Link
+                          key={idx}
                           to={`/movie/${id}/episode/${idx}`}
-                          className="inline-block text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-blue-600 hover:to-blue-700 py-3 px-6 rounded-lg text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                           state={{ movieDetail: movieDetail.data }}
+                          className="group bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-200"
                         >
-                          {t("movieDetail.episode", {
-                            number: link.episodeNumber,
-                          })}
+                          <div className="relative h-24">
+                            <img
+                              src={movieData?.thumb_url}
+                              alt={movieData?.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70" />
+                            <span className="absolute bottom-2 left-2 text-xs font-bold text-white bg-black/60 px-2 py-1 rounded">
+                              EP {link.episodeNumber}
+                            </span>
+                          </div>
+                          <div className="p-2 text-center text-white text-sm font-medium">
+                            {t("movieDetail.episode", {
+                              number: link.episodeNumber,
+                            })}
+                          </div>
                         </Link>
-                      </div>
-                    ))
-                  : null}
+                      ))
+                    : null}
+                </div>
               </div>
             </div>
           </div>

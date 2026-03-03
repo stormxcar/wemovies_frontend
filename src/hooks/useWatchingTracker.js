@@ -37,7 +37,10 @@ export const useWatchingTracker = (
             resumeTime: resumeResponse.resumeTime,
             totalDuration:
               resumeResponse.totalDuration ||
-              Math.round(Number(totalDuration) || 7200),
+              (Number.isFinite(Number(totalDuration)) &&
+              Number(totalDuration) > 0
+                ? Math.round(Number(totalDuration))
+                : null),
             percentage: resumeResponse.percentage || 0,
             lastWatched: resumeResponse.lastWatched,
             isFromResume: true,
@@ -56,7 +59,10 @@ export const useWatchingTracker = (
         userId,
         movieId,
         movieTitle,
-        totalDuration: Math.round(Number(totalDuration) || 7200),
+        totalDuration:
+          Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+            ? Math.round(Number(totalDuration))
+            : null,
       };
 
       const response = await fetchJson("/api/hybrid-watching/start", {
@@ -72,7 +78,10 @@ export const useWatchingTracker = (
           movieTitle,
           userId,
           resumeTime: 0, // New session starts at 0
-          totalDuration: Math.round(Number(totalDuration) || 7200),
+          totalDuration:
+            Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+              ? Math.round(Number(totalDuration))
+              : null,
           percentage: 0,
           startedAt: new Date().toISOString(),
           isFromResume: false,
@@ -112,13 +121,21 @@ export const useWatchingTracker = (
     lastUpdateTimeRef.current = now;
 
     try {
+      const normalizedDuration =
+        Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+          ? Math.round(Number(totalDuration))
+          : null;
+
       const payload = {
         userId,
         movieId,
         currentTime: Math.round(currentTime),
-        totalDuration: Math.round(totalDuration),
         ...episodeInfo,
       };
+
+      if (normalizedDuration !== null) {
+        payload.totalDuration = normalizedDuration;
+      }
 
       await fetchJson("/api/hybrid-watching/update-time", {
         method: "POST",

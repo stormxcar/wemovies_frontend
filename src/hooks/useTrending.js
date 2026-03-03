@@ -58,8 +58,9 @@ export const useTrending = () => {
       const result = await TrendingService.getTrendingStats();
 
       if (result.status === "SUCCESS") {
-        setTrendingStats(result.stats || null);
-        return result.stats || null;
+        const normalizedStats = result.stats || result || null;
+        setTrendingStats(normalizedStats);
+        return normalizedStats;
       } else {
         throw new Error(result.message || "Failed to fetch trending stats");
       }

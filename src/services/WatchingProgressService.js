@@ -7,7 +7,7 @@ class WatchingProgressService {
   }
 
   // Bắt đầu xem phim
-  async startWatching(userId, movieId, movieTitle, totalDuration = 7200) {
+  async startWatching(userId, movieId, movieTitle, totalDuration = null) {
     // Validate inputs
     if (!userId || typeof userId !== "string") {
       throw new Error("Invalid userId provided");
@@ -55,15 +55,24 @@ class WatchingProgressService {
     }
 
     // Calculate percentage on frontend
-    const calculatedPercentage =
-      totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
+    const hasValidDuration =
+      Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0;
+    const normalizedDuration = hasValidDuration
+      ? Math.round(Number(totalDuration))
+      : null;
+    const calculatedPercentage = hasValidDuration
+      ? (currentTime / normalizedDuration) * 100
+      : 0;
 
     const payload = {
       userId: userId.toString(),
       movieId: movieId.toString(),
       currentTime: Math.round(currentTime),
-      totalDuration: Math.round(totalDuration),
     };
+
+    if (normalizedDuration !== null) {
+      payload.totalDuration = normalizedDuration;
+    }
 
     try {
       const response = await fetch(`${this.baseURL}/update-time`, {
@@ -271,7 +280,7 @@ class WatchingProgressService {
       movieId: item.movieId?.toString() || "",
       movieTitle: item.movieTitle || "",
       currentTime: item.currentTime || 0,
-      totalDuration: item.totalDuration || 7200,
+      totalDuration: item.totalDuration || 0,
       percentage: item.percentage || 0,
       lastWatched: item.lastWatched || new Date().toISOString(),
       moviePoster: item.moviePoster || "",

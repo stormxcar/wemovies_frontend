@@ -52,7 +52,7 @@ const TrendingMovies = ({
                       movie.movieTypes?.[0]?.name ||
                       t("home.not_available"),
                     year: movie.release_year || movie.year,
-                    duration: movie.totalDuration || 7200,
+                    duration: movie.totalDuration || 0,
                     description: movie.description || "",
                   },
                 ]

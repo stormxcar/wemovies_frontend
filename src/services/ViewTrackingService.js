@@ -12,6 +12,18 @@ class ViewTrackingService {
       throw new Error("userId and movieId are required");
     }
 
+    const normalizedDuration =
+      Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+        ? Number(totalDuration)
+        : null;
+
+    if (!normalizedDuration) {
+      return {
+        status: "SKIPPED",
+        message: "Skipped view tracking because totalDuration is unknown",
+      };
+    }
+
     try {
       const response = await fetch(`${this.baseURL}/track`, {
         method: "POST",
@@ -23,7 +35,7 @@ class ViewTrackingService {
           userId: userId.toString(),
           movieId: movieId.toString(),
           currentTime: currentTime || 0,
-          totalDuration: totalDuration || 7200,
+          totalDuration: normalizedDuration,
         }),
       });
 

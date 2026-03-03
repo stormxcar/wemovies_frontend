@@ -73,7 +73,7 @@ const ContinueWatching = ({
         ...item,
         progressPercent: Math.round(item.currentProgress || 0),
         timeWatched: formatTime(item.currentTime || 0),
-        totalTime: formatTime(item.totalDuration || 7200),
+        totalTime: formatTime(item.totalDuration || 0),
         lastWatchedDate: formatRelativeTime(item.lastUpdateTime),
         source,
       }));

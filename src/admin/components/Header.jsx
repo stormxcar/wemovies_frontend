@@ -106,7 +106,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
               <div className="px-4 py-2">
                 {user && (
                   <>
-                    <p className="font-bold">{user.displayName}</p>
+                    <p className="font-bold">{user.fullName}</p>
                     <p className="text-sm">{user.role?.roleName || "User"}</p>
                   </>
                 )}
@@ -118,7 +118,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 onClick={handleLogout}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
-                Logout
+                Đăng xuất
               </button>
             </div>
           )}

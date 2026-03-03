@@ -31,6 +31,25 @@ export const useWatchingProgress = (userId) => {
     );
   }, []);
 
+  const decodeJWT = useCallback((token) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(
+            (character) =>
+              `%${("00" + character.charCodeAt(0).toString(16)).slice(-2)}`,
+          )
+          .join(""),
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }, []);
+
   // Helper function để get user ID
   const getUserId = useCallback(async (userObj) => {
     if (!userObj) return null;
@@ -55,15 +74,30 @@ export const useWatchingProgress = (userId) => {
     return extractedUserId;
   }, []);
 
+  const getCanonicalUserId = useCallback(async () => {
+    const token = getAuthToken();
+    const decoded = token ? decodeJWT(token) : null;
+    const tokenUserId =
+      decoded?.sub || decoded?.userId || decoded?.id || decoded?.email;
+
+    if (tokenUserId) {
+      return tokenUserId;
+    }
+
+    const resolvedFromUserObject =
+      (await getUserId(userId)) ||
+      (await getUserId(userId?.id)) ||
+      (await getUserId(userId?.user));
+
+    return resolvedFromUserObject;
+  }, [decodeJWT, getAuthToken, getUserId, userId]);
+
   const [currentUserId, setCurrentUserId] = useState(null);
 
   // Resolve userId asynchronously
   useEffect(() => {
     const resolveUserId = async () => {
-      const resolvedId =
-        (await getUserId(userId)) ||
-        (await getUserId(userId?.id)) ||
-        (await getUserId(userId?.user));
+      const resolvedId = await getCanonicalUserId();
       setCurrentUserId(resolvedId);
     };
 
@@ -72,7 +106,7 @@ export const useWatchingProgress = (userId) => {
     } else {
       setCurrentUserId(null);
     }
-  }, [userId, getUserId]);
+  }, [userId, getCanonicalUserId]);
 
   // Lấy danh sách đang xem
   const fetchWatchingList = useCallback(async () => {
@@ -125,7 +159,7 @@ export const useWatchingProgress = (userId) => {
 
   // Bắt đầu xem phim
   const startWatching = useCallback(
-    async (movieId, movieTitle, totalDuration = 7200) => {
+    async (movieId, movieTitle, totalDuration = null) => {
       const token = getAuthToken();
       if (!token) {
         throw new Error(t("watchingProgress.errors.login_required"));
@@ -146,11 +180,16 @@ export const useWatchingProgress = (userId) => {
       }
 
       try {
+        const normalizedDuration =
+          Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+            ? Math.round(Number(totalDuration))
+            : null;
+
         const payload = {
           userId: finalUserId,
           movieId: movieId.toString(),
           movieTitle,
-          totalDuration,
+          totalDuration: normalizedDuration,
         };
         const result = await WatchingProgressService.startWatching(
           payload.userId,
@@ -168,7 +207,7 @@ export const useWatchingProgress = (userId) => {
             userId: finalUserId,
             movieId: movieId.toString(),
             movieTitle,
-            totalDuration,
+            totalDuration: normalizedDuration,
             startedAt: Date.now(),
           };
 
@@ -202,11 +241,17 @@ export const useWatchingProgress = (userId) => {
       if (!currentUserId || !activeSessionRef.current) return;
 
       try {
+        const hasValidDuration =
+          Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0;
+        const normalizedDuration = hasValidDuration
+          ? Math.round(Number(totalDuration))
+          : null;
+
         const payload = {
           userId: currentUserId,
           movieId,
           currentTime,
-          totalDuration,
+          totalDuration: normalizedDuration,
         };
 
         // Update progress in hybrid system
@@ -225,9 +270,13 @@ export const useWatchingProgress = (userId) => {
                 ? {
                     ...item,
                     currentTime: Math.round(currentTime),
-                    totalDuration: Math.round(totalDuration),
+                    totalDuration:
+                      normalizedDuration ?? item.totalDuration ?? 0,
                     percentage:
-                      result.percentage || (currentTime / totalDuration) * 100,
+                      result.percentage ||
+                      (hasValidDuration
+                        ? (currentTime / normalizedDuration) * 100
+                        : item.percentage || 0),
                     lastWatched: new Date().toISOString(),
                   }
                 : item,
@@ -235,10 +284,10 @@ export const useWatchingProgress = (userId) => {
           );
 
           // Integrate View Tracking and Trending
-          if (viewTrackingEnabled) {
+          if (viewTrackingEnabled && hasValidDuration) {
             try {
               const now = Date.now();
-              const percentage = (currentTime / totalDuration) * 100;
+              const percentage = (currentTime / normalizedDuration) * 100;
 
               // Track view every 30 seconds and when reaching significant progress
               const shouldTrackView =
@@ -254,7 +303,7 @@ export const useWatchingProgress = (userId) => {
                   currentUserId,
                   movieId,
                   currentTime,
-                  totalDuration,
+                  normalizedDuration,
                 );
 
                 // Track for Trending calculation
@@ -328,7 +377,12 @@ export const useWatchingProgress = (userId) => {
   // Lấy vị trí tiếp tục
   const getResumePosition = useCallback(
     async (movieId) => {
-      if (!currentUserId || typeof currentUserId !== "string") {
+      let finalUserId = currentUserId;
+      if (!finalUserId) {
+        finalUserId = await getCanonicalUserId();
+      }
+
+      if (!finalUserId || typeof finalUserId !== "string") {
         return { success: false, resumeTime: 0 };
       }
 
@@ -338,7 +392,7 @@ export const useWatchingProgress = (userId) => {
 
       try {
         const result = await WatchingProgressService.getResumePosition(
-          currentUserId,
+          finalUserId,
           movieId.toString(),
         );
 
@@ -356,6 +410,30 @@ export const useWatchingProgress = (userId) => {
         console.error("Error getting resume position:", err);
         return { success: false, resumeTime: 0 };
       }
+    },
+    [currentUserId, getCanonicalUserId],
+  );
+
+  const attachWatchingSession = useCallback(
+    ({ movieId, movieTitle, totalDuration = null, resumeTime = 0 }) => {
+      if (!currentUserId || !movieId || !movieTitle) return false;
+
+      const normalizedDuration =
+        Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
+          ? Math.round(Number(totalDuration))
+          : null;
+
+      activeSessionRef.current = {
+        userId: currentUserId,
+        movieId: movieId.toString(),
+        movieTitle,
+        totalDuration: normalizedDuration,
+        resumeTime: Math.max(0, Math.round(Number(resumeTime) || 0)),
+        startedAt: Date.now(),
+        source: "attached-resume",
+      };
+
+      return true;
     },
     [currentUserId],
   );
@@ -538,6 +616,7 @@ export const useWatchingProgress = (userId) => {
     markCompleted,
     removeFromWatching,
     getResumePosition,
+    attachWatchingSession,
     startProgressTracking,
     stopProgressTracking,
     refreshList: fetchWatchingList,
