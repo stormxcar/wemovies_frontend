@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
+import { useTheme } from "../context/ThemeContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import { fetchJson } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
@@ -23,6 +24,7 @@ const Watch = React.memo(() => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { autoPlay } = useSettings();
+  const { themeClasses, isDarkMode } = useTheme();
   const { t } = useTranslation();
 
   // Set document title for watching page
@@ -417,9 +419,13 @@ const Watch = React.memo(() => {
 
   if (!currentMovieData) {
     return (
-      <div className="watch bg-gray-800 w-full h-screen flex items-center justify-center text-white">
+      <div
+        className={`watch ${themeClasses.secondary} w-full h-screen flex items-center justify-center ${themeClasses.textPrimary}`}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
+          <div
+            className={`animate-spin rounded-full h-32 w-32 border-b-2 mx-auto mb-4 ${isDarkMode ? "border-white" : "border-gray-900"}`}
+          ></div>
           <p>{t("watchPage.loading_movie")}</p>
         </div>
       </div>
@@ -427,11 +433,13 @@ const Watch = React.memo(() => {
   }
 
   return (
-    <div className="watch bg-gray-800 w-full h-auto flex flex-col text-white pt-28 px-4 pb-8 flex-1">
+    <div
+      className={`watch ${themeClasses.secondary} w-full h-auto flex flex-col ${themeClasses.textPrimary} pt-28 px-4 pb-8 flex-1`}
+    >
       <div>
         <div className="flex items-center px-5 mb-4">
           <div
-            className="rounded-full text-white flex items-center justify-center border-2 p-3 mr-3 cursor-pointer hover:bg-gray-700"
+            className={`rounded-full ${themeClasses.textPrimary} flex items-center justify-center border-2 ${themeClasses.border} p-3 mr-3 cursor-pointer ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"}`}
             onClick={() => navigate(-1)}
           >
             <FaChevronLeft className="text-xl" />
@@ -454,16 +462,20 @@ const Watch = React.memo(() => {
 
             if (!videoSrc || videoSrc.trim() === "") {
               return (
-                <div className="w-full h-64 bg-gray-900 flex items-center justify-center border-2 border-yellow-500 rounded-lg">
+                <div
+                  className={`w-full h-64 ${themeClasses.primary} flex items-center justify-center border-2 border-yellow-500 rounded-lg`}
+                >
                   <div className="text-center p-6">
                     <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
-                    <h3 className="text-white text-lg font-bold mb-2">
+                    <h3 className={`text-lg font-bold mb-2 ${themeClasses.textPrimary}`}>
                       {t("watchPage.video_unavailable")}
                     </h3>
-                    <p className="text-gray-300 text-sm mb-4">
+                    <p className={`text-sm mb-4 ${themeClasses.textSecondary}`}>
                       {t("watchPage.video_unavailable_desc")}
                     </p>
-                    <div className="text-xs text-gray-500 bg-gray-800 p-2 rounded">
+                    <div
+                      className={`text-xs ${themeClasses.textMuted} ${themeClasses.cardSecondary} p-2 rounded`}
+                    >
                       <p>
                         {t("watchPage.movie_id")}: {currentMovieData.id}
                       </p>
@@ -502,7 +514,13 @@ const Watch = React.memo(() => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8 px-5 w-full">
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-800 to-gray-900 border border-slate-700 rounded-2xl p-5 shadow-xl">
+        <div
+          className={`lg:col-span-5 rounded-2xl p-5 shadow-xl border ${themeClasses.borderLight} ${
+            isDarkMode
+              ? "bg-gradient-to-br from-slate-800 to-gray-900"
+              : "bg-gradient-to-br from-white to-gray-100"
+          }`}
+        >
           <div className="flex flex-col md:flex-row items-start gap-5">
             <div className="w-40 h-60 relative shrink-0">
               <img
@@ -513,63 +531,87 @@ const Watch = React.memo(() => {
             </div>
 
             <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-3 text-white">
+              <h2 className={`text-2xl font-bold mb-3 ${themeClasses.textPrimary}`}>
                 {t("watchPage.movie_information")}
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.categories")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {movieCategoriesText}
                   </p>
                 </div>
 
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.movie_type")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {movieTypesText}
                   </p>
                 </div>
 
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.director")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {currentMovieData.director || t("home.not_available")}
                   </p>
                 </div>
 
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2 sm:col-span-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 sm:col-span-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.cast")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {currentMovieData.actors || t("home.not_available")}
                   </p>
                 </div>
 
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.year")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {currentMovieData.year ||
                       currentMovieData.release_year ||
                       t("home.not_available")}
                   </p>
                 </div>
 
-                <div className="bg-slate-700/60 rounded-lg px-3 py-2">
-                  <p className="text-gray-300 text-xs uppercase tracking-wide">
+                <div
+                  className={`rounded-lg px-3 py-2 ${isDarkMode ? "bg-slate-700/60" : "bg-white/70"}`}
+                >
+                  <p
+                    className={`text-xs uppercase tracking-wide ${themeClasses.textSecondary}`}
+                  >
                     {t("watchPage.fields.duration")}
                   </p>
-                  <p className="text-white font-medium mt-1">
+                  <p className={`font-medium mt-1 ${themeClasses.textPrimary}`}>
                     {currentMovieData.totalDuration
                       ? formatTime(currentMovieData.totalDuration)
                       : t("home.not_available")}
@@ -587,13 +629,17 @@ const Watch = React.memo(() => {
           </div>
         </div>
 
-        <div className="lg:col-span-7 bg-gray-900/70 border border-gray-700 rounded-2xl p-5">
+        <div
+          className={`lg:col-span-7 rounded-2xl p-5 border ${themeClasses.borderLight} ${
+            isDarkMode ? "bg-gray-900/70" : "bg-white"
+          }`}
+        >
           <div>
             <h2 className="text-2xl font-bold mb-2">
               {t("watchPage.description")}
             </h2>
             <p
-              className="text-gray-300"
+              className={themeClasses.textSecondary}
               dangerouslySetInnerHTML={{
                 __html: currentMovieData.description || t("home.not_available"),
               }}
@@ -602,12 +648,12 @@ const Watch = React.memo(() => {
 
           <ReviewSection movieId={id} />
 
-          <div className="mt-8 border-t-[1px] border-gray-600 pt-8">
+          <div className={`mt-8 border-t-[1px] ${themeClasses.border} pt-8`}>
             <div className="flex items-center justify-between">
               <h2>{t("watchPage.recommendations")}</h2>
               <button
                 onClick={handleSeeAllMovies}
-                className="text-white hover:bg-blue-700 rounded px-4 py-2 flex items-center"
+                className={`rounded px-4 py-2 flex items-center transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "hover:bg-blue-700" : "hover:bg-blue-100"}`}
               >
                 {t("home.view_all")}
                 <FaChevronRight className="inline ml-2" />
@@ -620,7 +666,7 @@ const Watch = React.memo(() => {
                   <button
                     key={movie.id}
                     onClick={() => navigate(`/watch/${movie.id}`)}
-                    className="flex mb-4 items-center rounded-lg hover:bg-gray-700 p-2 w-full text-left"
+                    className={`flex mb-4 items-center rounded-lg p-2 w-full text-left ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}`}
                   >
                     <div className="flex-shrink-0 h-24">
                       <img

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import MovieList from "./MovieList";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { fetchMovies } from "../services/api";
+import { useTheme } from "../context/ThemeContext";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -17,6 +18,7 @@ function Search() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const { t } = useTranslation();
+  const { themeClasses, isDarkMode } = useTheme();
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -141,7 +143,9 @@ function Search() {
 
     return (
       <section className="mb-8">
-        <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
+        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-4`}>
+          {title}
+        </h3>
         <Swiper
           modules={[Navigation]}
           navigation
@@ -158,7 +162,11 @@ function Search() {
             <SwiperSlide key={`${rowKey}-${movie.id}`}>
               <Link
                 to={`/movie/${movie.id}`}
-                className="block bg-gray-800/70 rounded-lg overflow-hidden border border-gray-700 hover:border-blue-500 transition-colors"
+                className={`block rounded-lg overflow-hidden border transition-colors ${
+                  isDarkMode
+                    ? "bg-gray-800/70 border-gray-700 hover:border-blue-500"
+                    : "bg-white border-gray-200 hover:border-blue-500"
+                }`}
               >
                 <img
                   src={movie.thumb_url || movie.banner_url}
@@ -166,10 +174,10 @@ function Search() {
                   className="w-full h-44 object-cover"
                 />
                 <div className="p-2">
-                  <p className="text-sm text-white line-clamp-1">
+                  <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
                     {movie.title}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className={`text-xs ${themeClasses.textMuted}`}>
                     {(movie.release_year || movie.year || "N/A") + " • "}
                     {Number(movie.views || 0).toLocaleString()}{" "}
                     {t("home.views")}
@@ -184,9 +192,17 @@ function Search() {
   };
 
   return (
-    <div className="bg-gray-900 text-white px-4 md:px-10 w-full pt-20 min-h-screen">
+    <div
+      className={`${themeClasses.primary} ${themeClasses.textPrimary} px-4 md:px-10 w-full pt-20 min-h-screen`}
+    >
       <div className="max-w-7xl mx-auto">
-        <section className="mb-8 rounded-2xl border border-gray-700 bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-purple-900/20 p-5 mt-8 md:p-7">
+        <section
+          className={`mb-8 rounded-2xl border ${themeClasses.borderLight} ${
+            isDarkMode
+              ? "bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-purple-900/20"
+              : "bg-gradient-to-r from-blue-100/80 via-indigo-100/70 to-purple-100/80"
+          } p-5 mt-8 md:p-7`}
+        >
           <p className="text-sm text-blue-300 mb-2">
             {t("search.explore_title")}
           </p>
@@ -195,7 +211,7 @@ function Search() {
               ? t("search.result_for", { keyword })
               : t("search.suggestion_title")}
           </h2>
-          <p className="text-gray-300">
+          <p className={themeClasses.textSecondary}>
             {searchedMovies.length > 0
               ? t("search.found_count", { count: searchedMovies.length })
               : t("search.suggestion_subtitle")}
@@ -217,7 +233,7 @@ function Search() {
 
         <div>
           {loadingSuggestions && searchedMovies.length === 0 ? (
-            <p className="text-gray-400">{t("common.loading")}</p>
+            <p className={themeClasses.textMuted}>{t("common.loading")}</p>
           ) : displayMovies.length > 0 ? (
             <MovieList movies={displayMovies} title={t("common.search")} />
           ) : (

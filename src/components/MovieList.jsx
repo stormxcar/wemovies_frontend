@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import ReactPaginate from "react-paginate";
 // icon filter
 import { FaFilter } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
+import CardMovie from "./CardMovie";
 import {
   fetchJson,
   fetchCategories,
@@ -18,6 +20,7 @@ function MovieList({ movies = [], onMovieClick }) {
   const location = useLocation();
   const { categoryName } = useParams();
   const { t, i18n } = useTranslation();
+  const { themeClasses, isDarkMode } = useTheme();
   const [showFilter, setShowFilter] = useState(false);
   const {
     category,
@@ -302,84 +305,34 @@ function MovieList({ movies = [], onMovieClick }) {
   };
 
   const handleMovieClick = (movieId) => {
+    if (onMovieClick) {
+      onMovieClick(movieId);
+      return;
+    }
     navigate(`/movie/${movieId}`);
   };
 
-  // Internal CardMovie component
-  const CardMovie = ({ movie, onMovieClick }) => {
-    const [isHovered, setIsHovered] = useState(false);
-
-    return (
-      <div className="relative rounded-lg w-full h-64 sm:h-72 md:h-80 lg:h-64 cursor-pointer mx-auto mt-8 mb-10 sm:mt-12 lg:mt-20">
-        <div
-          className="relative w-full h-full overflow-visible"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onClick={() => onMovieClick && onMovieClick(movie.id)} // Kiểm tra onMovieClick trước khi gọi
-        >
-          <div
-            className="absolute w-full h-full transition-transform duration-300"
-            style={{ transform: isHovered ? "scale(1)" : "scale(1)" }}
-          >
-            <img
-              src={movie.thumb_url}
-              alt={movie.title}
-              className="rounded-lg w-full h-full object-cover"
-              style={{ objectPosition: "top" }}
-              loading="lazy"
-              onError={(e) => {
-                e.target.src = "/placeholder-professional.svg";
-              }}
-            />
-            <div className="w-full p-2 text-white text-center">
-              <h3 className="text-sm sm:text-base lg:text-lg truncate">
-                {movie.title}
-              </h3>
-              <p className="text-xs sm:text-sm">{movie.release_year}</p>
-            </div>
-          </div>
-          {isHovered && (
-            <div
-              className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[320px] lg:w-[350px] h-[350px] sm:h-[380px] lg:h-[400px] bg-black/90 text-white rounded-lg shadow-lg transition-opacity duration-300 z-[99999] flex-col gap-0 overflow-visible pointer-events-auto hidden sm:flex"
-              style={{ opacity: isHovered ? 1 : 0 }}
-            >
-              <img
-                src={movie.thumb_url}
-                alt={movie.title}
-                className="rounded-lg w-full h-[70%] object-cover"
-                style={{ objectPosition: "top" }}
-                loading="lazy"
-                onError={(e) => {
-                  e.target.src = "/placeholder-professional.svg";
-                }}
-              />
-              <div className="px-4 lg:px-6 py-2 flex justify-end flex-col">
-                <h3 className="text-base lg:text-lg font-bold truncate">
-                  {movie.title}
-                </h3>
-                <p className="text-sm">
-                  {t("movieList.labels.year")}: {movie.release_year}
-                </p>
-                <button className="mt-2 bg-blue-500 text-white p-2 rounded text-sm hover:bg-blue-600 transition-colors">
-                  {t("movie.watch_now")}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const selectedFilterPillClass =
+    "bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2";
+  const filterOptionClass = (isActive) =>
+    `cursor-pointer px-2 py-1 rounded transition-colors ${
+      isActive
+        ? "bg-blue-600 text-white"
+        : `${themeClasses.textSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"} hover:text-blue-500`
+    }`;
+  const neutralButtonClass = `${themeClasses.cardSecondary} ${themeClasses.textPrimary} px-4 py-2 rounded border ${themeClasses.borderLight} hover:opacity-80 transition-colors`;
 
   return (
-    <div className="w-full h-full bg-gray-900 text-white p-4 px-12 min-h-screen pt-32">
+    <div
+      className={`w-full h-full ${themeClasses.primary} ${themeClasses.textPrimary} p-4 px-12 min-h-screen pt-32`}
+    >
       {/* Title */}
       <h2 className="text-xl font-bold mb-4">{title || categoryName}</h2>
 
       {/* Selected Filters Display */}
       <div className="mb-4 flex flex-wrap gap-2">
         {selectedCountry !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movie.country")}: {selectedCountry}
             <button
               onClick={() => setSelectedCountry(allLabel)}
@@ -390,7 +343,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </span>
         )}
         {selectedYear !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movieList.labels.year")}: {selectedYear}
             <button
               onClick={() => setSelectedYear(allLabel)}
@@ -401,7 +354,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </span>
         )}
         {selectedGenre !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movie.genre")}: {selectedGenre}
             <button
               onClick={() => setSelectedGenre(allLabel)}
@@ -412,7 +365,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </span>
         )}
         {selectedMovieType !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movieList.labels.movie_type")}: {selectedMovieType}
             <button
               onClick={() => setSelectedMovieType(allLabel)}
@@ -423,7 +376,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </span>
         )}
         {selectedRating !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movie.rating")}: {selectedRating}
             <button
               onClick={() => setSelectedRating(allLabel)}
@@ -434,7 +387,7 @@ function MovieList({ movies = [], onMovieClick }) {
           </span>
         )}
         {selectedVersion !== allLabel && (
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className={selectedFilterPillClass}>
             {t("movieList.labels.version")}: {selectedVersion}
             <button
               onClick={() => setSelectedVersion(allLabel)}
@@ -451,16 +404,18 @@ function MovieList({ movies = [], onMovieClick }) {
           e.stopPropagation(); // Ngăn sự kiện lan ra ngoài để đóng modal
           setShowFilter((prev) => !prev);
         }}
-        className="flex items-center gap-1 cursor-pointer bg-gray-700 p-2 px-4 rounded w-fit mb-4"
+        className={`flex items-center gap-1 cursor-pointer ${themeClasses.cardSecondary} border ${themeClasses.borderLight} p-2 px-4 rounded w-fit mb-4`}
       >
         <h3>{t("movieList.filter_title")}</h3>
-        <span className="flex items-center gap-2 text-white">
+        <span className={`flex items-center gap-2 ${themeClasses.textPrimary}`}>
           <FaFilter />
         </span>
       </button>
 
       {showFilter && (
-        <div className="bg-gray-900 text-white p-4 rounded-lg shadow-lg border-[1px] border-gray-800">
+        <div
+          className={`${themeClasses.card} ${themeClasses.textPrimary} p-4 rounded-lg shadow-lg border`}
+        >
           <div className="flex flex-col gap-4 pr-10 pl-6">
             <div className="flex items-center">
               <h4 className="font-semibold min-w-[100px] text-right">
@@ -470,11 +425,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {countryOptions.map((item) => (
                   <li
                     key={item}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedCountry === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedCountry === item)}
                     onClick={() => setSelectedCountry(item)}
                   >
                     {item}
@@ -488,11 +439,7 @@ function MovieList({ movies = [], onMovieClick }) {
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
                 <li
-                  className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                    selectedMovieType === allLabel
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-gray-700"
-                  }`}
+                  className={filterOptionClass(selectedMovieType === allLabel)}
                   onClick={() => setSelectedMovieType(allLabel)}
                 >
                   {allLabel}
@@ -500,11 +447,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {movieTypes.map((item) => (
                   <li
                     key={item.id}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedMovieType === item.name
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedMovieType === item.name)}
                     onClick={() => setSelectedMovieType(item.name)}
                   >
                     {item.name}
@@ -520,11 +463,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {[allLabel, "P", "K", "T13", "T16", "T18"].map((item) => (
                   <li
                     key={item}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedRating === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedRating === item)}
                     onClick={() => setSelectedRating(item)}
                   >
                     {item}
@@ -538,11 +477,7 @@ function MovieList({ movies = [], onMovieClick }) {
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
                 <li
-                  className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                    selectedGenre === allLabel
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-gray-700"
-                  }`}
+                  className={filterOptionClass(selectedGenre === allLabel)}
                   onClick={() => setSelectedGenre(allLabel)}
                 >
                   {allLabel}
@@ -550,11 +485,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {types.map((item) => (
                   <li
                     key={item.id}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedGenre === item.name
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedGenre === item.name)}
                     onClick={() => setSelectedGenre(item.name)}
                   >
                     {item.name}
@@ -570,11 +501,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {versionOptions.map((item) => (
                   <li
                     key={item}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedVersion === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedVersion === item)}
                     onClick={() => setSelectedVersion(item)}
                   >
                     {item}
@@ -590,11 +517,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {yearOptions.map((item) => (
                   <li
                     key={item}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedYear === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedYear === item)}
                     onClick={() => setSelectedYear(item)}
                   >
                     {item}
@@ -610,11 +533,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {sortOptions.map((item) => (
                   <li
                     key={item}
-                    className={`cursor-pointer hover:text-blue-400 px-2 py-1 rounded transition-colors ${
-                      selectedSort === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-700"
-                    }`}
+                    className={filterOptionClass(selectedSort === item)}
                     onClick={() => setSelectedSort(item)}
                   >
                     {item}
@@ -624,7 +543,7 @@ function MovieList({ movies = [], onMovieClick }) {
             </div>
             <div className="mt-8 flex justify-start space-x-4">
               <button
-                className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition-colors"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-4 py-2 rounded transition-colors"
                 onClick={applyFilters}
               >
                 {t("movieList.actions.apply_filters")}
@@ -636,7 +555,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 {t("movieList.actions.reset_filters")}
               </button>
               <button
-                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                className={neutralButtonClass}
                 onClick={() => setShowFilter(false)}
               >
                 {t("common.close")}
@@ -647,7 +566,7 @@ function MovieList({ movies = [], onMovieClick }) {
       )}
 
       {/* Movie Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-6 xl:gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-4 lg:gap-6 xl:gap-8">
         {currentMovies.length > 0 ? (
           currentMovies.map((movie) => (
             <CardMovie
@@ -657,7 +576,9 @@ function MovieList({ movies = [], onMovieClick }) {
             />
           ))
         ) : (
-          <div className="col-span-full flex items-center justify-center h-80 text-white">
+          <div
+            className={`col-span-full flex items-center justify-center h-80 ${themeClasses.textPrimary}`}
+          >
             {t("movieList.no_movies_found")}
           </div>
         )}
@@ -668,7 +589,7 @@ function MovieList({ movies = [], onMovieClick }) {
           <h3 className="text-xl font-semibold mb-4">
             {t("search.suggestion_title")}
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-6 xl:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-4 lg:gap-6 xl:gap-8">
             {suggestedMovies.map((movie) => (
               <CardMovie
                 key={`suggested-${movie.id}`}
@@ -692,18 +613,18 @@ function MovieList({ movies = [], onMovieClick }) {
             pageRangeDisplayed={3}
             onPageChange={handlePageClick}
             containerClassName="flex items-center gap-2"
-            activeClassName="bg-gray-600"
-            pageClassName="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 cursor-pointer"
-            pageLinkClassName="text-white"
-            previousClassName="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 cursor-pointer"
-            previousLinkClassName="text-white"
-            nextClassName="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 cursor-pointer"
-            nextLinkClassName="text-white"
-            breakClassName="px-3 py-1 rounded bg-gray-700"
-            breakLinkClassName="text-white"
+            activeClassName="bg-orange-600"
+            pageClassName={`px-3 py-1 rounded ${themeClasses.cardSecondary} hover:opacity-80 cursor-pointer`}
+            pageLinkClassName={themeClasses.textPrimary}
+            previousClassName={`px-3 py-1 rounded ${themeClasses.cardSecondary} hover:opacity-80 cursor-pointer`}
+            previousLinkClassName={themeClasses.textPrimary}
+            nextClassName={`px-3 py-1 rounded ${themeClasses.cardSecondary} hover:opacity-80 cursor-pointer`}
+            nextLinkClassName={themeClasses.textPrimary}
+            breakClassName={`px-3 py-1 rounded ${themeClasses.cardSecondary}`}
+            breakLinkClassName={themeClasses.textPrimary}
             disabledClassName="opacity-50 cursor-not-allowed"
           />
-          <span className="ml-2 text-gray-300">
+          <span className={`ml-2 ${themeClasses.textSecondary}`}>
             {t("movieList.pagination.page")} {currentPage + 1} / {pageCount}
           </span>
         </div>

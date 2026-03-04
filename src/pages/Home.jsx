@@ -547,51 +547,55 @@ const Home = () => {
               {topReviewedMovies.map((movie) => (
                 <div
                   key={`review-${movie.id}`}
-                  className="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  className="flex flex-col justify-between bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                 >
-                  <img
-                    src={movie.thumb_url}
-                    alt={movie.title}
-                    className="w-full h-48 object-cover object-top"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold text-lg line-clamp-2 mb-2">
-                      {movie.title}
-                    </h3>
-                    <div className="flex items-center mb-3 gap-2">
-                      <span className="inline-flex items-center px-3 py-1 rounded bg-yellow-600/30 text-yellow-200 text-sm font-medium">
-                        ⭐ {movie.averageRating.toFixed(1)} / 5
-                      </span>
-                      <span className="text-sm text-gray-300">
-                        ({movie.reviewCount} {t("home.reviews")})
-                      </span>
-                    </div>
+                  <div className="flex">
+                    <img
+                      src={movie.thumb_url}
+                      alt={movie.title}
+                      className=" h-48 object-cover object-top"
+                    />
+                    <div className="p-4">
+                      <h3 className="text-white font-semibold text-lg line-clamp-2 mb-2">
+                        {movie.title}
+                      </h3>
+                      <div className="flex items-center mb-3 gap-2">
+                        <span className="inline-flex items-center px-3 py-1 rounded bg-yellow-600/30 text-yellow-200 text-sm font-medium">
+                          ⭐ {movie.averageRating.toFixed(1)} / 5
+                        </span>
+                        <span className="text-sm text-gray-300">
+                          ({movie.reviewCount} {t("home.reviews")})
+                        </span>
+                      </div>
 
-                    {/* Hiển thị 1-2 review mẫu liên quan nếu có (lọc từ topReviewEntries dựa trên movieId) */}
-                    <div className="space-y-3 mb-4">
-                      {topReviewEntries
-                        .filter((review) => review.movieId === movie.id)
-                        .slice(0, 2) // Chỉ lấy tối đa 2 review cho mỗi phim để tránh dài
-                        .map((review, idx) => (
-                          <div key={idx} className="bg-white/5 p-3 rounded-lg">
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-blue-600/30 text-blue-200 text-xs font-medium mb-1">
-                              {review.rating || 0}/5
-                            </span>
-                            <p className="text-gray-300 text-sm line-clamp-3">
-                              {review.comment ||
-                                t("home.defaults.positive_review")}
-                            </p>
-                          </div>
-                        ))}
+                      {/* Hiển thị 1-2 review mẫu liên quan nếu có (lọc từ topReviewEntries dựa trên movieId) */}
+                      <div className="space-y-3 mb-4">
+                        {topReviewEntries
+                          .filter((review) => review.movieId === movie.id)
+                          .slice(0, 3)
+                          .map((review, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-white/5 p-3 rounded-lg"
+                            >
+                              <span className="inline-flex items-center px-2 py-1 rounded bg-blue-600/30 text-blue-200 text-xs font-medium mb-1">
+                                {review.rating || 0}/5
+                              </span>
+                              <p className="text-gray-300 text-sm line-clamp-3">
+                                {review.comment ||
+                                  t("home.defaults.positive_review")}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-
-                    <button
-                      onClick={() => navigate(`/movie/${movie.id}`)}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-colors font-medium"
-                    >
-                      {t("home.buttons.view_top_rated_movie")}
-                    </button>
                   </div>
+                  <button
+                    onClick={() => navigate(`/movie/${movie.id}`)}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-bl-lg rounded-br-lg transition-colors font-medium"
+                  >
+                    {t("home.buttons.view_top_rated_movie")}
+                  </button>
                 </div>
               ))}
             </div>

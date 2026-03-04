@@ -6,7 +6,7 @@ import SkeletonWrapper from "./SkeletonWrapper";
 
 function GridMovies({ title, movies = [], moviesPerPage }) {
   const navigate = useNavigate();
-  const { themeClasses } = useTheme();
+  const { themeClasses, isDarkMode } = useTheme();
   const [currentPage, setCurrentPage] = useState(1);
   const validMovies = useMemo(
     () => (Array.isArray(movies) ? movies : []),
@@ -93,8 +93,12 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
   if (validMovies.length === 0) {
     return (
       <div className="">
-        <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
-        <div className="flex items-center justify-center h-80 text-white">
+        <h2 className={`text-2xl font-bold mb-4 ${themeClasses.textPrimary}`}>
+          {title}
+        </h2>
+        <div
+          className={`flex items-center justify-center h-80 ${themeClasses.textSecondary}`}
+        >
           Không có phim nào có sẵn
         </div>
       </div>
@@ -104,61 +108,61 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
   return (
     <div className="py-6 w-full">
       <div className="flex w-full flex-row items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${themeClasses.textPrimary}`}>
+          {title}
+        </h2>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {currentMovies.map((movie) => (
           <div
             key={movie.id}
-            className="w-full aspect-[2/3] group cursor-pointer overflow-hidden"
+            className={`group relative w-full aspect-[2/3] cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-orange-400/70 hover:shadow-[0_0_0_1px_rgba(251,146,60,0.35),0_18px_35px_rgba(0,0,0,0.45)] ${
+              isDarkMode
+                ? "border-white/10 bg-black/20"
+                : "border-gray-200 bg-white"
+            }`}
             onClick={() => handleClickToDetail(movie.id)}
           >
-            <div className="overflow-visible h-full group-hover:overflow-visible">
-              <SkeletonWrapper
-                loading={
-                  imageLoadedMap[movie.id] === undefined ||
-                  !imageLoadedMap[movie.id]
-                }
-                height="100%"
-                width="100%"
-              >
-                <img
-                  src={movie.thumb_url}
-                  alt={movie.title}
-                  className="rounded-lg w-full h-full object-cover transition-transform group-hover:scale-105"
-                  style={{ objectPosition: "top" }}
-                  onLoad={() => handleImageLoad(movie.id)}
-                  onError={() => handleImageLoad(movie.id)}
-                  loading="eager"
-                />
-              </SkeletonWrapper>
-            </div>
-            <div className="p-2 sm:p-3">
-              <SkeletonWrapper
-                loading={
-                  imageLoadedMap[movie.id] === undefined ||
-                  !imageLoadedMap[movie.id]
-                }
-                height={20}
-                width="80%"
-              >
-                <h4 className="text-sm sm:text-base font-semibold flex-1 text-white line-clamp-2">
-                  {movie.title}
-                </h4>
-              </SkeletonWrapper>
-              <SkeletonWrapper
-                loading={
-                  imageLoadedMap[movie.id] === undefined ||
-                  !imageLoadedMap[movie.id]
-                }
-                height={16}
-                width="60%"
-              >
-                <h5 className="text-xs sm:text-sm text-gray-400">
-                  ({movie.titleByLanguage || movie.release_year})
+            <SkeletonWrapper
+              loading={
+                imageLoadedMap[movie.id] === undefined ||
+                !imageLoadedMap[movie.id]
+              }
+              height="100%"
+              width="100%"
+            >
+              <img
+                src={movie.thumb_url}
+                alt={movie.title}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                style={{ objectPosition: "top" }}
+                onLoad={() => handleImageLoad(movie.id)}
+                onError={() => handleImageLoad(movie.id)}
+                loading="eager"
+              />
+            </SkeletonWrapper>
+
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+
+            {movie?.hot && (
+              <span className="absolute left-2 top-2 rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-2 py-1 text-[10px] font-bold tracking-wide text-white shadow-md">
+                HOT
+              </span>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 z-10 p-3">
+              <h4 className="line-clamp-2 text-sm font-semibold text-white drop-shadow sm:text-base">
+                {movie.title}
+              </h4>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <h5 className="text-xs text-gray-200/90 sm:text-sm">
+                  {movie.titleByLanguage || movie.release_year || "N/A"}
                 </h5>
-              </SkeletonWrapper>
+                <span className="rounded-full bg-white/15 px-2 py-1 text-[10px] font-medium text-white/95 backdrop-blur-sm sm:text-xs">
+                  {movie.release_year || "HD"}
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -173,7 +177,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
           >
             <FaChevronLeft className="inline" />
           </button>
-          <span className="text-white">
+          <span className={themeClasses.textPrimary}>
             {currentPage} / {totalPages}
           </span>
           <button

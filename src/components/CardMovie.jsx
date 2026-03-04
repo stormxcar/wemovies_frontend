@@ -3,11 +3,13 @@ import { useTranslation } from "react-i18next";
 import SkeletonWrapper from "./SkeletonWrapper";
 import WatchlistButton from "./WatchlistButton";
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
-function CardMovie({ movie }) {
+function CardMovie({ movie, onMovieClick }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const img = new Image();
@@ -18,9 +20,14 @@ function CardMovie({ movie }) {
 
   return (
     <div
-      className="group relative rounded-xl overflow-hidden cursor-pointer bg-black/40 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-black/60"
+      className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+        isDarkMode
+          ? "bg-black/40 backdrop-blur-sm border border-white/10 hover:shadow-2xl hover:shadow-black/60"
+          : "bg-white border border-gray-200 hover:shadow-[0_16px_34px_rgba(15,23,42,0.16)]"
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onMovieClick && onMovieClick(movie.id)}
     >
       {/* Poster chính */}
       <div className="relative aspect-[2/3] w-full">
@@ -91,10 +98,11 @@ function CardMovie({ movie }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className=" pt-1">
             <Link
               to={`/movie/${movie.id}`}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30 text-sm"
+              onClick={(event) => event.stopPropagation()}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30 text-sm mb-1"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
@@ -102,14 +110,10 @@ function CardMovie({ movie }) {
               {t("movie.watch_now")}
             </Link>
 
-            <Link
-              to={`/movie/${movie.id}`}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-medium py-2.5 px-3 rounded-lg transition-all text-sm text-center"
+            <div
+              className="col-span-2 [&_button]:!py-2.5 [&_button]:!rounded-lg [&_button]:!text-sm [&_button]:!font-medium"
+              onClick={(event) => event.stopPropagation()}
             >
-              {t("movie.view_detail")}
-            </Link>
-
-            <div className="col-span-2 [&_button]:!py-2.5 [&_button]:!rounded-lg [&_button]:!text-sm [&_button]:!font-medium">
               <WatchlistButton movieId={movie.id} />
             </div>
           </div>

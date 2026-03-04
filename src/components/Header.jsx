@@ -50,7 +50,7 @@ function Header() {
 
   const navigate = useNavigate();
   const { user, logout, isAuthenticated, loading } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme, themeClasses } = useTheme();
   const { t, i18n } = useTranslation();
   const { navigateWithLoading } = useLoading();
 
@@ -249,16 +249,20 @@ function Header() {
   }, []);
 
   const renderSearchDropdown = () => (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+    <div
+      className={`absolute top-full left-0 right-0 mt-2 ${themeClasses.card} border ${themeClasses.borderLight} rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto`}
+    >
       {query.trim() ? (
         <>
-          <div className="px-4 py-2 border-b border-gray-700 text-xs text-gray-400">
+          <div
+            className={`px-4 py-2 border-b ${themeClasses.borderLight} text-xs ${themeClasses.textMuted}`}
+          >
             {isSearchingSuggestions
               ? t("header.dropdown.searching")
               : t("header.dropdown.related_results")}
           </div>
           {isSearchingSuggestions ? (
-            <div className="px-4 py-6 text-sm text-gray-300">
+            <div className={`px-4 py-6 text-sm ${themeClasses.textSecondary}`}>
               {t("header.searching")}
             </div>
           ) : searchSuggestions.length > 0 ? (
@@ -266,17 +270,19 @@ function Header() {
               <button
                 key={movie.id}
                 onClick={() => openMovieFromSuggestion(movie)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-800 transition-colors border-b border-gray-800/70"
+                className={`w-full px-4 py-3 text-left ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors border-b ${themeClasses.borderLight}`}
               >
-                <p className="text-sm text-white line-clamp-1">{movie.title}</p>
-                <p className="text-xs text-gray-400">
+                <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
+                  {movie.title}
+                </p>
+                <p className={`text-xs ${themeClasses.textMuted}`}>
                   {(movie.release_year || "N/A") + " • "}
                   {Number(movie.views || 0).toLocaleString()} {t("home.views")}
                 </p>
               </button>
             ))
           ) : (
-            <div className="px-4 py-6 text-sm text-gray-300">
+            <div className={`px-4 py-6 text-sm ${themeClasses.textSecondary}`}>
               {t("search.no_results")}
             </div>
           )}
@@ -285,7 +291,9 @@ function Header() {
         <div className="p-4 space-y-4">
           {recentSearches.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+              <p
+                className={`text-xs uppercase tracking-wide ${themeClasses.textMuted} mb-2`}
+              >
                 {t("header.dropdown.recent_searches")}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -293,7 +301,7 @@ function Header() {
                   <button
                     key={item}
                     onClick={() => handleQuickSearch(item)}
-                    className="px-3 py-1.5 text-xs rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700"
+                    className={`px-3 py-1.5 text-xs rounded-full ${themeClasses.cardSecondary} ${themeClasses.textSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"}`}
                   >
                     {item}
                   </button>
@@ -304,7 +312,9 @@ function Header() {
 
           {hotSuggestions.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+              <p
+                className={`text-xs uppercase tracking-wide ${themeClasses.textMuted} mb-2`}
+              >
                 {t("header.dropdown.hot_movies")}
               </p>
               <div className="space-y-2">
@@ -312,9 +322,9 @@ function Header() {
                   <button
                     key={movie.id}
                     onClick={() => openMovieFromSuggestion(movie)}
-                    className="w-full px-3 py-2 text-left bg-gray-800/70 hover:bg-gray-700 rounded-lg"
+                    className={`w-full px-3 py-2 text-left rounded-lg ${themeClasses.cardSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"}`}
                   >
-                    <p className="text-sm text-white line-clamp-1">
+                    <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
                       {movie.title}
                     </p>
                   </button>
@@ -516,9 +526,13 @@ function Header() {
               onFocus={() => setShowSearchDropdown(true)}
               onKeyDown={handleKeyDownToSearch}
               placeholder={t("header.search_placeholder")}
-              className={`w-full px-4 py-2 rounded-lg text-white ${
-                isScrolled ? "bg-gray-800" : "bg-gray-900/50"
-              } border border-gray-600 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-400`}
+              className={`w-full px-4 py-2 rounded-lg ${themeClasses.textPrimary} ${
+                isScrolled
+                  ? themeClasses.cardSecondary
+                  : isDarkMode
+                    ? "bg-gray-900/50"
+                    : "bg-white/90"
+              } border ${themeClasses.border} focus:outline-none focus:border-blue-500 transition-colors ${isDarkMode ? "placeholder-gray-400" : "placeholder-gray-500"}`}
             />
             {showSearchDropdown && renderSearchDropdown()}
           </div>
@@ -538,13 +552,13 @@ function Header() {
               </button>
               {activeModal === "types" && (
                 <ul
-                  className="absolute top-10 left-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content"
+                  className={`absolute top-10 left-0 ${themeClasses.card} ${themeClasses.textPrimary} px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content border ${themeClasses.borderLight}`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {types.map((item) => (
                     <li
                       key={item.name}
-                      className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
+                      className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/type/id/${item.id}`,
@@ -564,7 +578,7 @@ function Header() {
                 {categories.map((item) => (
                   <button
                     key={item.name}
-                    className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
+                    className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                     onClick={() =>
                       navigateToMovies(
                         `/api/movies/category/${item.name}`,
@@ -594,13 +608,13 @@ function Header() {
               </button>
               {activeModal === "countries" && (
                 <ul
-                  className="absolute top-10 left-0 bg-black/90 text-white px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content"
+                  className={`absolute top-10 left-0 ${themeClasses.card} ${themeClasses.textPrimary} px-4 py-3 rounded-lg shadow-xl w-96 grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 max-h-screen overflow-y-auto modal-content border ${themeClasses.borderLight}`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {countries.map((item) => (
                     <li
                       key={item.name}
-                      className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
+                      className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/country/${item.id}`,
@@ -626,7 +640,7 @@ function Header() {
                   e.stopPropagation();
                   toggleTheme();
                 }}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
+                className={`p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   isDarkMode
                     ? t("header.theme_to_light")
@@ -646,7 +660,7 @@ function Header() {
                   e.stopPropagation();
                   toggleLanguage();
                 }}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
+                className={`p-2 rounded-lg transition-colors flex items-center space-x-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   i18n.language === "vi"
                     ? t("header.switch_to_english")
@@ -738,7 +752,7 @@ function Header() {
                   e.stopPropagation();
                   toggleTheme();
                 }}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors"
+                className={`p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   isDarkMode
                     ? t("header.theme_to_light")
@@ -758,7 +772,7 @@ function Header() {
                   e.stopPropagation();
                   toggleLanguage();
                 }}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-white transition-colors flex items-center space-x-1"
+                className={`p-2 rounded-lg transition-colors flex items-center space-x-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   i18n.language === "vi"
                     ? t("header.switch_to_english")

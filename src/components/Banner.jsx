@@ -335,11 +335,11 @@ function Banner({ onDataLoaded }) {
                   <div className="mt-8 flex flex-wrap items-center gap-3">
                     <SkeletonWrapper loading={loading} height={60}>
                       <Link
-                        className="bg-yellow-700/50 hover:bg-yellow-600 px-4 py-2 rounded-full text-lg flex items-center gap-2 cursor-pointer"
+                        className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-4 py-2 rounded-full text-lg flex items-center gap-2 cursor-pointer"
                         to={`/movie/${movie.id}`}
                         style={{ display: "inline-flex", width: "auto" }}
                       >
-                        <span className="bg-yellow-500 rounded-full flex items-center justify-center w-[60px] h-[60px]">
+                        <span className="bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center w-[60px] h-[60px]">
                           <FaPlay size={30} className="text-black" />
                         </span>
                         <span className="font-semibold text-xl">
@@ -355,9 +355,9 @@ function Banner({ onDataLoaded }) {
                         addingMovieId === movie.id ||
                         watchLaterIds.has(movie.id)
                       }
-                      className="py-2 px-3 rounded-full text-base font-semibold bg-white/10 hover:bg-white/20 border border-white/30 disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                      className="py-2 px-3 rounded-full text-base font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2"
                     >
-                      <span className="bg-yellow-500 rounded-full flex items-center justify-center w-[60px] h-[60px]">
+                      <span className="bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center w-[60px] h-[60px]">
                         <FaPlus size={30} className="text-black" />
                       </span>
 

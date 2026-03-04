@@ -2,103 +2,78 @@ import React from "react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
-// import { Link } from "react-router-dom";
 
 const Footer = memo(() => {
-  const { themeClasses } = useTheme();
+  const { themeClasses, isDarkMode } = useTheme();
   const { t } = useTranslation();
 
   return (
     <footer
-      className={`${themeClasses.secondary} ${themeClasses.textPrimary} py-6 w-full pt-20`}
+      className={`${themeClasses.secondary} ${themeClasses.textPrimary} relative w-full overflow-hidden border-t ${themeClasses.borderLight} pt-20`}
     >
-      <div className="container flex flex-col space-y-4 pl-[2.5rem] pt-4">
-        {/* Logo and Social Media */}
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <svg
-              className="w-8 h-8 text-yellow-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-            </svg>
-            <span className="text-xl font-semibold">Wemovies</span>
-            <span className="text-sm text-gray-400">{t("footer.slogan")}</span>
-          </div>
-          <div className="flex space-x-3">
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v4.8c4.56-.93 8-4.96 8-9.8z" />
-              </svg>
-            </button>
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-              </svg>
-            </button>
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-              </svg>
-            </button>
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-              </svg>
-            </button>
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-              </svg>
-            </button>
-            <button type="button" className="text-gray-400 hover:text-white">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-orange-500/20 via-red-500/10 to-transparent" />
 
-        {/* Navigation Links */}
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-sm">
-          <button type="button" className="hover:text-gray-300">
-            {t("footer.links.faq")}
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            {t("footer.links.privacy")}
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            {t("footer.links.terms")}
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            {t("footer.links.about")}
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            {t("footer.links.contact")}
-          </button>
-        </div>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-sm">
-          <button type="button" className="hover:text-gray-300">
-            Dongphim
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            Ghienphim
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            Motphim
-          </button>
-          <button type="button" className="hover:text-gray-300">
-            Subnhanh
-          </button>
-        </div>
+      <div className="container mx-auto px-6 pb-8">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-black/15 via-transparent to-black/10 p-6 md:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-orange-600 to-red-600 shadow-lg shadow-red-900/40">
+                  <svg
+                    className="h-5 w-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold tracking-wide">
+                    Wemovies
+                  </span>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    {t("footer.slogan")}
+                  </span>
+                </div>
+              </div>
 
-        {/* Description and Copyright */}
-        <div className="text-xs text-gray-400 max-w-2xl">
-          {t("footer.description")}
-          <br />
-          <br />
-          {t("footer.copyright")}
+              <p
+                className={`max-w-2xl text-sm leading-relaxed ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                {t("footer.description")}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {["faq", "privacy", "terms", "about", "contact"].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    isDarkMode
+                      ? "border-gray-700 text-gray-300 hover:border-orange-500 hover:text-white"
+                      : "border-gray-300 text-gray-700 hover:border-orange-500 hover:text-gray-900"
+                  }`}
+                >
+                  {t(`footer.links.${item}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className={`mt-6 border-t pt-4 text-xs ${themeClasses.borderLight}`}
+          >
+            <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+              {t("footer.copyright")}
+            </p>
+          </div>
         </div>
       </div>
     </footer>
