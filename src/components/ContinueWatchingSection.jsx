@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import PageLoader from "./loading/PageLoader";
 
 const ContinueWatchingSection = () => {
   const { user, isAuthenticated } = useAuth();
@@ -52,13 +53,7 @@ const ContinueWatchingSection = () => {
   }
 
   if (loading) {
-    return (
-      <div className="my-8">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
+    return <PageLoader isVisible={true} message={t("common.loading")} />;
   }
 
   if (watchingMovies.length === 0) {
@@ -150,7 +145,9 @@ const ContinueWatchingSection = () => {
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                 >
                   <Play className="mr-1 h-4 w-4" />
-                  {t("continueSection.continue")}
+                  {Number(movie.percentage || 0) <= 0
+                    ? t("watchingHistory.start_watching")
+                    : t("continueSection.continue")}
                 </Link>
               </div>
             </div>

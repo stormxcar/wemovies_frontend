@@ -64,6 +64,7 @@ import {
   useDeleteType,
   useDeleteUser,
 } from "./hooks/useAdminQueries";
+import { createAdminUser, setAdminUserLockStatus } from "./services/api";
 
 import ProtectedRoute, { AuthRoute } from "./ProtectRoute";
 import { UserLayout, AdminLayout } from "./layout";
@@ -335,6 +336,18 @@ const AppContent = () => {
     refetchUsers();
   };
 
+  const handleCreateUserByAdmin = async (userPayload) => {
+    const createdUser = await createAdminUser(userPayload);
+    await refetchUsers();
+    return createdUser;
+  };
+
+  const handleToggleUserLock = async (userId, locked) => {
+    const updatedUser = await setAdminUserLockStatus(userId, locked);
+    await refetchUsers();
+    return updatedUser;
+  };
+
   const handleUpdateUser = (data) => {
     // This will be handled by the mutation in Update component
     refetchUsers();
@@ -342,18 +355,74 @@ const AppContent = () => {
 
   const movieDisplayFields = [
     { key: "id", label: "ID" },
+    {
+      key: "thumb_url",
+      label: "Thumbnail",
+      render: (thumbUrl) => (
+        <img
+          src={thumbUrl || "/placeholder-professional.svg"}
+          alt="thumb"
+          className="w-12 h-16 object-cover rounded"
+        />
+      ),
+    },
     { key: "title", label: "Tên phim" },
     { key: "release_year", label: "Năm phát hành" },
-    { key: "country.name", label: "Quốc gia" },
+    {
+      key: "views",
+      label: "Lượt xem",
+      render: (value) => Number(value || 0).toLocaleString(),
+    },
+    {
+      key: "country.name",
+      label: "Quốc gia",
+      filterType: "select",
+      filterOptions: countries.map((country) => ({
+        value: country.name,
+        label: country.name,
+      })),
+      filterFn: (item, value) =>
+        String(item?.country?.name || "")
+          .toLowerCase()
+          .includes(String(value || "").toLowerCase()),
+    },
     {
       key: "movieTypes",
       label: "Loại phim",
-      render: (item) => item.map((type) => type.name).join(", "),
+      render: (item) =>
+        Array.isArray(item) ? item.map((type) => type.name).join(", ") : "N/A",
+      filterType: "select",
+      filterOptions: types.map((type) => ({
+        value: type.name,
+        label: type.name,
+      })),
+      filterFn: (item, value) =>
+        Array.isArray(item?.movieTypes)
+          ? item.movieTypes.some(
+              (type) =>
+                String(type?.name || "").toLowerCase() ===
+                String(value || "").toLowerCase(),
+            )
+          : false,
     },
     {
       key: "movieCategories",
       label: "Danh mục",
-      render: (item) => item.map((cat) => cat.name).join(", "),
+      render: (item) =>
+        Array.isArray(item) ? item.map((cat) => cat.name).join(", ") : "N/A",
+      filterType: "select",
+      filterOptions: categories.map((category) => ({
+        value: category.name,
+        label: category.name,
+      })),
+      filterFn: (item, value) =>
+        Array.isArray(item?.movieCategories)
+          ? item.movieCategories.some(
+              (category) =>
+                String(category?.name || "").toLowerCase() ===
+                String(value || "").toLowerCase(),
+            )
+          : false,
     },
   ];
 
@@ -418,6 +487,44 @@ const AppContent = () => {
     { key: "id", label: "ID" },
     { key: "userName", label: "Tên người dùng" },
     { key: "email", label: "Email" },
+    {
+      key: "role",
+      label: "Vai trò",
+      render: (role) => role?.roleName || "USER",
+      filterType: "select",
+      filterOptions: [
+        { value: "ADMIN", label: "ADMIN" },
+        { value: "USER", label: "USER" },
+      ],
+      filterFn: (item, value) =>
+        String(item?.role?.roleName || "USER")
+          .toLowerCase()
+          .includes(String(value || "").toLowerCase()),
+    },
+    {
+      key: "isActive",
+      label: "Trạng thái",
+      render: (isActive) =>
+        isActive === false ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium">
+            Đã khóa
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">
+            Hoạt động
+          </span>
+        ),
+      filterType: "select",
+      filterOptions: [
+        { value: "active", label: "Hoạt động" },
+        { value: "locked", label: "Đã khóa" },
+      ],
+      filterFn: (item, value) => {
+        if (value === "active") return item?.isActive !== false;
+        if (value === "locked") return item?.isActive === false;
+        return true;
+      },
+    },
   ];
 
   // Handle page loading on route changes
@@ -499,7 +606,12 @@ const AppContent = () => {
                   onDelete={handleDeleteMovie}
                   onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
                   onRefresh={refetchMovies}
-                  searchFields={["title", "category", "country"]}
+                  searchFields={[
+                    "title",
+                    "country.name",
+                    "movieTypes",
+                    "movieCategories",
+                  ]}
                   displayFields={movieDisplayFields}
                   keyField="id"
                   isLoading={moviesLoading}
@@ -592,10 +704,12 @@ const AppContent = () => {
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}
                   onRefresh={refetchUsers}
-                  searchFields={["username", "email"]}
+                  searchFields={["userName", "email"]}
                   displayFields={userDisplayFields}
                   keyField="id"
                   isLoading={usersLoading}
+                  onCreateUser={handleCreateUserByAdmin}
+                  onToggleUserLock={handleToggleUserLock}
                 />
               }
             />

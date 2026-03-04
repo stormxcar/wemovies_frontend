@@ -9,10 +9,15 @@ import {
   SortDesc,
   CheckSquare,
   Square,
+  Lock,
+  Unlock,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { useCrudOperations } from "../hooks/useCrudOperations";
 import SkeletonTable from "./SkeletonTable";
 import Pagination from "./Pagination";
+import { toast } from "react-toastify";
 
 const List = ({
   title,
@@ -25,6 +30,8 @@ const List = ({
   keyField,
   onRefresh,
   isLoading = false,
+  onCreateUser,
+  onToggleUserLock,
 }) => {
   const [search, setSearch] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
@@ -34,6 +41,15 @@ const List = ({
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showCreateUserForm, setShowCreateUserForm] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [createUserData, setCreateUserData] = useState({
+    userName: "",
+    email: "",
+    passWord: "",
+    role: "USER",
+    fullName: "",
+  });
 
   const { handleRefresh } = useCrudOperations(title, onRefresh);
 
@@ -42,7 +58,7 @@ const List = ({
     setSelectedItems((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
+        : [...prev, itemId],
     );
   };
 
@@ -50,7 +66,7 @@ const List = ({
     setSelectedItems((prev) =>
       prev.length === paginatedItems.length
         ? []
-        : paginatedItems.map((item) => item[keyField])
+        : paginatedItems.map((item) => item[keyField]),
     );
   };
 
@@ -60,14 +76,13 @@ const List = ({
 
     if (
       window.confirm(
-        `Bạn có chắc muốn xóa ${selectedItems.length} mục đã chọn?`
+        `Bạn có chắc muốn xóa ${selectedItems.length} mục đã chọn?`,
       )
     ) {
       try {
         await Promise.all(selectedItems.map((id) => onDelete(id)));
         setSelectedItems([]);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   };
 
@@ -99,6 +114,65 @@ const List = ({
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
+  const handleCreateUserInputChange = (event) => {
+    const { name, value } = event.target;
+    setCreateUserData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateUser = async (event) => {
+    event.preventDefault();
+
+    if (!onCreateUser) return;
+
+    const userName = createUserData.userName.trim();
+    const email = createUserData.email.trim();
+    const passWord = createUserData.passWord;
+
+    if (!userName || !email || !passWord) {
+      toast.error("Vui lòng nhập userName, email và mật khẩu");
+      return;
+    }
+
+    try {
+      setIsCreatingUser(true);
+      await onCreateUser(createUserData);
+      toast.success("Tạo tài khoản thành công");
+      setCreateUserData({
+        userName: "",
+        email: "",
+        passWord: "",
+        role: "USER",
+        fullName: "",
+      });
+      setShowCreateUserForm(false);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tạo tài khoản";
+      toast.error(message);
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const handleToggleLock = async (item) => {
+    if (!onToggleUserLock) return;
+
+    const nextLocked = Boolean(item?.isActive);
+
+    try {
+      await onToggleUserLock(item[keyField], nextLocked);
+      toast.success(nextLocked ? "Đã khóa tài khoản" : "Đã mở khóa tài khoản");
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể cập nhật trạng thái tài khoản";
+      toast.error(message);
+    }
+  };
+
   // Reset to first page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -111,28 +185,37 @@ const List = ({
 
   // Process items with search, filters, and sorting
   const { filteredItems, paginatedItems, totalPages } = useMemo(() => {
+    const getNestedValue = (object, path) => {
+      if (!path?.includes(".")) return object?.[path];
+      return path
+        .split(".")
+        .reduce((accumulator, key) => accumulator?.[key], object);
+    };
+
+    const normalizeSearchValue = (value) => {
+      if (Array.isArray(value)) {
+        return value
+          .map((entry) => entry?.name || entry?.type_name || "")
+          .join(", ");
+      }
+
+      if (typeof value === "object" && value !== null) {
+        return value?.name || value?.title || "";
+      }
+
+      return value ?? "";
+    };
+
     let result = items.filter((item) => {
       // Search filter
       const matchesSearch = searchFields.some((field) => {
         try {
-          if (field.includes(".")) {
-            const [parent, child] = field.split(".");
-            return item[parent]?.[child]
-              ?.toString()
-              .toLowerCase()
-              .includes(search.toLowerCase());
-          } else if (Array.isArray(item[field])) {
-            return item[field]
-              .map((subItem) => subItem.name || subItem.type_name)
-              .join(", ")
-              .toLowerCase()
-              .includes(search.toLowerCase());
-          } else {
-            return item[field]
-              ?.toString()
-              .toLowerCase()
-              .includes(search.toLowerCase());
-          }
+          const rawValue = getNestedValue(item, field);
+          const textValue = normalizeSearchValue(rawValue)
+            ?.toString()
+            .toLowerCase();
+
+          return textValue.includes(search.toLowerCase());
         } catch (error) {
           return false;
         }
@@ -141,10 +224,32 @@ const List = ({
       // Additional filters
       const matchesFilters = Object.entries(filters).every(([field, value]) => {
         if (!value) return true;
-        return item[field]
-          ?.toString()
+
+        const fieldConfig = displayFields.find(
+          (displayField) => displayField.key === field,
+        );
+
+        if (fieldConfig?.filterFn) {
+          try {
+            return fieldConfig.filterFn(item, value);
+          } catch {
+            return false;
+          }
+        }
+
+        const rawValue = getNestedValue(item, field);
+
+        if (Array.isArray(rawValue)) {
+          return rawValue
+            .map((entry) => entry?.name || entry?.type_name || "")
+            .join(", ")
+            .toLowerCase()
+            .includes(String(value).toLowerCase());
+        }
+
+        return String(rawValue ?? "")
           .toLowerCase()
-          .includes(value.toLowerCase());
+          .includes(String(value).toLowerCase());
       });
 
       return matchesSearch && matchesFilters;
@@ -190,11 +295,35 @@ const List = ({
     itemsPerPage,
   ]);
 
+  const filterFields = useMemo(() => {
+    const configuredFields = displayFields.filter(
+      (field) => field.filterable || field.filterType === "select",
+    );
+
+    return configuredFields.length > 0 ? configuredFields : displayFields;
+  }, [displayFields]);
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Danh sách {title}</h1>
         <div className="flex gap-2">
+          {title === "Người dùng" && onCreateUser && (
+            <button
+              onClick={() => setShowCreateUserForm((prev) => !prev)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            >
+              {showCreateUserForm ? (
+                <>
+                  <X className="h-4 w-4" /> Đóng
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" /> Tạo tài khoản
+                </>
+              )}
+            </button>
+          )}
           {selectedItems.length > 0 && (
             <button
               onClick={handleBulkDelete}
@@ -225,6 +354,75 @@ const List = ({
         </div>
       </div>
 
+      {title === "Người dùng" && showCreateUserForm && (
+        <form
+          onSubmit={handleCreateUser}
+          className="mb-4 p-4 border rounded bg-white grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
+          <input
+            type="text"
+            name="userName"
+            value={createUserData.userName}
+            onChange={handleCreateUserInputChange}
+            placeholder="User name"
+            className="p-2 border rounded"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            value={createUserData.email}
+            onChange={handleCreateUserInputChange}
+            placeholder="Email"
+            className="p-2 border rounded"
+            required
+          />
+          <input
+            type="password"
+            name="passWord"
+            value={createUserData.passWord}
+            onChange={handleCreateUserInputChange}
+            placeholder="Mật khẩu"
+            className="p-2 border rounded"
+            required
+          />
+          <select
+            name="role"
+            value={createUserData.role}
+            onChange={handleCreateUserInputChange}
+            className="p-2 border rounded"
+          >
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+          <input
+            type="text"
+            name="fullName"
+            value={createUserData.fullName}
+            onChange={handleCreateUserInputChange}
+            placeholder="Họ tên (tuỳ chọn)"
+            className="p-2 border rounded md:col-span-2"
+          />
+
+          <div className="md:col-span-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCreateUserForm(false)}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={isCreatingUser}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isCreatingUser ? "Đang tạo..." : "Tạo tài khoản"}
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Search */}
       <input
         type="text"
@@ -239,20 +437,38 @@ const List = ({
         <div className="mb-4 p-4 bg-gray-50 rounded border">
           <h3 className="font-semibold mb-2">Bộ lọc nâng cao</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {displayFields.map((field) => (
+            {filterFields.map((field) => (
               <div key={field.key}>
                 <label className="block text-sm font-medium mb-1">
                   {field.label}
                 </label>
-                <input
-                  type="text"
-                  placeholder={`Lọc ${field.label.toLowerCase()}...`}
-                  value={filters[field.key] || ""}
-                  onChange={(e) =>
-                    handleFilterChange(field.key, e.target.value)
-                  }
-                  className="w-full p-2 border rounded"
-                />
+                {field.filterType === "select" &&
+                Array.isArray(field.filterOptions) ? (
+                  <select
+                    value={filters[field.key] || ""}
+                    onChange={(e) =>
+                      handleFilterChange(field.key, e.target.value)
+                    }
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="">Tất cả</option>
+                    {field.filterOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder={`Lọc ${field.label.toLowerCase()}...`}
+                    value={filters[field.key] || ""}
+                    onChange={(e) =>
+                      handleFilterChange(field.key, e.target.value)
+                    }
+                    className="w-full p-2 border rounded"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -331,7 +547,7 @@ const List = ({
                       </div>
                     </td>
                   </tr>
-                )
+                ),
               )
             : paginatedItems.map((item) => (
                 <tr
@@ -357,13 +573,34 @@ const List = ({
                       {field.render
                         ? field.render(item[field.key])
                         : field.key.includes(".")
-                        ? item[field.key.split(".")[0]]?.[
-                            field.key.split(".")[1]
-                          ] ?? "N/A"
-                        : item[field.key] ?? "N/A"}
+                          ? (item[field.key.split(".")[0]]?.[
+                              field.key.split(".")[1]
+                            ] ?? "N/A")
+                          : (item[field.key] ?? "N/A")}
                     </td>
                   ))}
                   <td className="border p-2 flex space-x-2">
+                    {title === "Người dùng" && onToggleUserLock && (
+                      <button
+                        onClick={() => handleToggleLock(item)}
+                        className={`px-2 py-1 text-white rounded flex items-center gap-1 ${
+                          item?.isActive === false
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-orange-500 hover:bg-orange-600"
+                        }`}
+                        title={
+                          item?.isActive === false
+                            ? "Mở khóa tài khoản"
+                            : "Khóa tài khoản"
+                        }
+                      >
+                        {item?.isActive === false ? (
+                          <Unlock className="h-3 w-3" />
+                        ) : (
+                          <Lock className="h-3 w-3" />
+                        )}
+                      </button>
+                    )}
                     {onViewDetails && (
                       <button
                         onClick={() => onViewDetails(item[keyField])}

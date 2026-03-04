@@ -7,6 +7,7 @@ import { useWatchingProgress } from "../../hooks/useWatchingProgress";
 import ViewCountDisplay from "../ViewCountDisplay";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import PageLoader from "../loading/PageLoader";
 
 const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
   const { t, i18n } = useTranslation();
@@ -444,12 +445,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-gray-400">
-          {t("watchingHistory.loading")}
-        </span>
-      </div>
+      <PageLoader isVisible={true} message={t("watchingHistory.loading")} />
     );
   }
 
@@ -606,19 +602,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                         <h4 className="text-white font-semibold text-lg line-clamp-1">
                           {movie.movieTitle}
                         </h4>
-                        {movie.source && (
-                          <span
-                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
-                              movie.source === "hybrid"
-                                ? "bg-green-600 text-white"
-                                : "bg-gray-600 text-white"
-                            }`}
-                          >
-                            {movie.source === "hybrid"
-                              ? "⚡ Hybrid"
-                              : `📊 ${movie.source}`}
-                          </span>
-                        )}
                       </div>
 
                       {/* Episode info for series */}
@@ -698,7 +681,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                       >
                         <Play className="mr-1 h-4 w-4" />
-                        {movie.percentage < 10
+                        {Number(movie.percentage || 0) <= 0
                           ? t("watchingHistory.start_watching")
                           : t("watchingHistory.continue")}
                       </Link>

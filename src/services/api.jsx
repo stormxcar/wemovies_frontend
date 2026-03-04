@@ -418,12 +418,33 @@ export const deleteUser = async (id) => {
   }
 };
 
+export const createAdminUser = async (payload) => {
+  const normalizedPayload = {
+    userName: payload?.userName?.trim(),
+    email: payload?.email?.trim(),
+    passWord: payload?.passWord,
+    role: payload?.role || "USER",
+    roleName: payload?.role || "USER",
+    fullName: payload?.fullName?.trim() || undefined,
+    phoneNumber: payload?.phoneNumber?.trim() || undefined,
+    address: payload?.address?.trim() || undefined,
+  };
+
+  const response = await api.post("/api/user/admin/create", normalizedPayload);
+  return response.data;
+};
+
+export const setAdminUserLockStatus = async (id, locked) => {
+  const response = await api.patch(`/api/user/admin/${id}/lock`, null, {
+    params: { locked: Boolean(locked) },
+  });
+  return response.data;
+};
+
 export const fetchAdminReportDashboard = async () => {
   const reportEndpoints = [
-    "/api/reports/dashboard",
-    "/api/reports/overview",
-    "/api/report/dashboard",
-    "/api/admin/reports/dashboard",
+    "/api/reports/users?period=MONTH",
+    "/api/reports/movies?period=MONTH",
   ];
 
   for (const endpoint of reportEndpoints) {

@@ -547,7 +547,7 @@ function Header() {
                       className="cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded hover:bg-gray-800/50 flex"
                       onClick={() =>
                         navigateToMovies(
-                          `/api/movies/types/id/${item.id}`,
+                          `/api/movies/type/id/${item.id}`,
                           item.name,
                         )
                       }

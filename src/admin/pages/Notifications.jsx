@@ -2,13 +2,28 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { RefreshCw, Send } from "lucide-react";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
-import api, { fetchJson } from "../../services/api";
+import { fetchJson } from "../../services/api";
 
 const notificationTypes = [
-  "NEW_MOVIE",
-  "SYSTEM_ALERT",
-  "ANNOUNCEMENT",
-  "MAINTENANCE",
+  { value: "NEW_EPISODE", label: "Tập mới" },
+  { value: "NEW_MOVIE", label: "Phim mới" },
+  { value: "MOVIE_REMINDER", label: "Nhắc xem phim" },
+  { value: "CONTINUE_WATCHING", label: "Tiếp tục xem" },
+  { value: "WEEKLY_DIGEST", label: "Tổng hợp tuần" },
+  { value: "WATCH_PROGRESS", label: "Tiến trình xem" },
+  { value: "WATCHLIST_REMINDER", label: "Nhắc danh sách xem sau" },
+  { value: "FRIEND_ACTIVITY", label: "Hoạt động bạn bè" },
+  { value: "FRIEND_REVIEW", label: "Review từ bạn bè" },
+  { value: "RECOMMENDATION", label: "Đề xuất" },
+  { value: "SYSTEM", label: "Thông báo hệ thống" },
+  { value: "MAINTENANCE", label: "Bảo trì" },
+  { value: "UPDATE", label: "Cập nhật" },
+  { value: "LIKE_RECEIVED", label: "Nhận lượt thích" },
+  { value: "COMMENT_RECEIVED", label: "Nhận bình luận" },
+  { value: "REVIEW_REPLY", label: "Phản hồi review" },
+  { value: "PROMOTION", label: "Khuyến mãi" },
+  { value: "DISCOUNT", label: "Giảm giá" },
+  { value: "PREMIUM_REMINDER", label: "Nhắc Premium" },
 ];
 
 const Notifications = () => {
@@ -19,7 +34,8 @@ const Notifications = () => {
   const [sending, setSending] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
+  const [typeFilter, setTypeFilter] = useState("ALL");
+  const [showAdminBroadcastOnly, setShowAdminBroadcastOnly] = useState(true);
 
   const [formData, setFormData] = useState({
     type: "MAINTENANCE",
@@ -41,7 +57,6 @@ const Notifications = () => {
       setNotifications(content);
       setCurrentPage(Number(pageData?.number ?? page));
       setTotalPages(Math.max(1, Number(pageData?.totalPages ?? 1)));
-      setTotalElements(Number(pageData?.totalElements ?? content.length));
     } catch (error) {
       const message =
         error?.response?.data?.message ||
@@ -61,6 +76,50 @@ const Notifications = () => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const parseMetadata = (metadata) => {
+    if (!metadata) return null;
+    if (typeof metadata === "object") return metadata;
+
+    if (typeof metadata === "string") {
+      try {
+        return JSON.parse(metadata);
+      } catch {
+        return { raw: metadata };
+      }
+    }
+
+    return null;
+  };
+
+  const isAdminBroadcastNotification = (notification) => {
+    const metadata = parseMetadata(notification?.metadata);
+    const sender = String(metadata?.sender || "").toLowerCase();
+    const scope = String(metadata?.scope || "").toLowerCase();
+    const target = String(notification?.target || "").toUpperCase();
+
+    return (
+      sender === "admin" ||
+      scope === "broadcast" ||
+      target === "ALL_USERS" ||
+      String(metadata?.raw || "")
+        .toLowerCase()
+        .includes("sender")
+    );
+  };
+
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((notification) => {
+      const matchesAdminScope = showAdminBroadcastOnly
+        ? isAdminBroadcastNotification(notification)
+        : true;
+
+      const matchesType =
+        typeFilter === "ALL" ? true : notification?.type === typeFilter;
+
+      return matchesAdminScope && matchesType;
+    });
+  }, [notifications, showAdminBroadcastOnly, typeFilter]);
 
   const handleBroadcast = async (event) => {
     event.preventDefault();
@@ -85,37 +144,17 @@ const Notifications = () => {
 
       if (formData.metadata.trim()) {
         params.metadata = formData.metadata.trim();
+      } else {
+        params.metadata = JSON.stringify({
+          sender: "admin",
+          scope: "broadcast",
+        });
       }
 
-      const endpointCandidates = [
-        "/api/notifications/broadcast",
-        "/notifications/broadcast",
-      ];
-
-      let sent = false;
-      let lastError = null;
-
-      for (const endpoint of endpointCandidates) {
-        try {
-          await api.post(endpoint, null, { params });
-          sent = true;
-          break;
-        } catch (errorWithQueryParams) {
-          lastError = errorWithQueryParams;
-
-          try {
-            await api.post(endpoint, params);
-            sent = true;
-            break;
-          } catch (errorWithJsonBody) {
-            lastError = errorWithJsonBody;
-          }
-        }
-      }
-
-      if (!sent) {
-        throw lastError || new Error("Broadcast endpoint is unavailable");
-      }
+      await fetchJson("/api/notifications/broadcast", {
+        method: "POST",
+        params,
+      });
 
       toast.success("Gửi thông báo broadcast thành công");
       setFormData((prev) => ({
@@ -127,12 +166,6 @@ const Notifications = () => {
       }));
       fetchNotifications(0);
     } catch (error) {
-      console.error("[ADMIN BROADCAST] failed", {
-        status: error?.response?.status,
-        url: error?.config?.url,
-        response: error?.response?.data,
-      });
-
       const message =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
@@ -177,8 +210,8 @@ const Notifications = () => {
               className="w-full p-2 border rounded"
             >
               {notificationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+                <option key={type.value} value={type.value}>
+                  {type.label} ({type.value})
                 </option>
               ))}
             </select>
@@ -258,8 +291,34 @@ const Notifications = () => {
           </button>
         </div>
 
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={showAdminBroadcastOnly}
+              onChange={(event) =>
+                setShowAdminBroadcastOnly(event.target.checked)
+              }
+            />
+            Chỉ hiển thị thông báo broadcast từ admin
+          </label>
+
+          <select
+            value={typeFilter}
+            onChange={(event) => setTypeFilter(event.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="ALL">Tất cả type</option>
+            {notificationTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label} ({type.value})
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="text-sm text-gray-600 mb-3">
-          Tổng: {totalElements} thông báo • {pageLabel}
+          Tổng: {filteredNotifications.length} thông báo (đã lọc) • {pageLabel}
         </div>
 
         <div className="overflow-x-auto">
@@ -280,14 +339,14 @@ const Notifications = () => {
                     Đang tải...
                   </td>
                 </tr>
-              ) : notifications.length === 0 ? (
+              ) : filteredNotifications.length === 0 ? (
                 <tr>
                   <td className="border p-3" colSpan={5}>
                     Chưa có thông báo
                   </td>
                 </tr>
               ) : (
-                notifications.map((notification) => (
+                filteredNotifications.map((notification) => (
                   <tr key={notification.id}>
                     <td className="border p-2 whitespace-nowrap">
                       {notification.sentAt || "-"}
