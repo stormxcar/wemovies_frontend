@@ -135,7 +135,7 @@ const EpisodeDetail = () => {
                   <span className="text-white mx-2">{<FaChevronRight />}</span>
                 </>
               )}
-              <span className="text-blue-500 text-xl font-semibold">
+              <span className="text-orange-500 text-xl font-semibold">
                 {movieDetail.data?.title}
               </span>
             </nav>
@@ -214,8 +214,8 @@ const EpisodeDetail = () => {
                           to={`/movie/${id}/episode/${idx}`}
                           className={`group rounded-xl border p-3 transition-all duration-300 ${
                             isActive
-                              ? "border-blue-400 bg-blue-500/20 shadow-lg shadow-blue-500/20"
-                              : "border-gray-600 bg-gray-700/40 hover:border-blue-400 hover:bg-gray-700"
+                              ? "border-orange-400 bg-orange-500/20 shadow-lg shadow-blue-500/20"
+                              : "border-gray-600 bg-gray-700/40 hover:border-orange-400 hover:bg-gray-700"
                           }`}
                           state={{ movieDetail: movieData }}
                         >
@@ -238,7 +238,7 @@ const EpisodeDetail = () => {
                           </p>
                           <p
                             className={`text-xs mt-1 ${
-                              isActive ? "text-blue-300" : "text-gray-300"
+                              isActive ? "text-orange-300" : "text-gray-300"
                             }`}
                           >
                             {isActive

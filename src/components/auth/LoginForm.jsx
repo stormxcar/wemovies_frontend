@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { GoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
@@ -280,7 +280,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       onClick={onClose}
     >
       <div
-        className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+        className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -300,7 +300,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
               e.preventDefault();
               onSwitchToRegister();
             }}
-            className="text-blue-300"
+            className="text-orange-300"
           >
             {t("auth.register_now")}
           </button>
@@ -355,7 +355,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className="text-blue-300 hover:text-blue-200 text-sm underline"
+              className="text-orange-400 hover:text-orange-300 text-sm underline"
               disabled={isSubmitting || isBlocked}
             >
               {t("auth.forgot_password")}
@@ -376,7 +376,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         {/* Modal Quên mật khẩu */}
         {showForgotPassword && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-            <div className="bg-blue-950/90 p-8 rounded-lg shadow-xl w-full max-w-sm relative">
+            <div className="bg-orange-950/90 p-8 rounded-lg shadow-xl w-full max-w-sm relative">
               <button
                 className="absolute top-2 right-2 text-white hover:text-gray-300"
                 onClick={() => {

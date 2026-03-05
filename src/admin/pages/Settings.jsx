@@ -18,7 +18,7 @@ const Settings = () => (
           <option>English</option>
         </select>
       </div>
-      <button className="px-4 py-2 bg-blue-500 text-white rounded">
+      <button className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors">
         Lưu cài đặt
       </button>
     </div>

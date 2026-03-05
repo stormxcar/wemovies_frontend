@@ -5,7 +5,7 @@ import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useLoading } from "../../context/UnifiedLoadingContext";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 
 const NotificationCenter = () => {
@@ -333,7 +333,7 @@ const NotificationCenter = () => {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-blue-400 text-sm hover:text-blue-300 transition-colors flex items-center"
+                  className="text-orange-400 text-sm hover:text-orange-300 transition-colors flex items-center"
                 >
                   <FaCheck className="mr-1" />
                   {t("notifications.center.read_all")}
@@ -369,7 +369,7 @@ const NotificationCenter = () => {
                     key={notification.id}
                     className={`notification-item flex items-start p-4 border-b border-gray-700 cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
                       isUnread
-                        ? "bg-blue-900/30 border-l-4 border-l-blue-500"
+                        ? "bg-orange-900/30 border-l-4 border-l-blue-500"
                         : "hover:bg-gray-800/50"
                     } ${isNew ? "animate-pulse bg-yellow-900/20" : ""}`}
                     onClick={() => handleNotificationClick(notification)}
@@ -398,7 +398,7 @@ const NotificationCenter = () => {
                           )}
                         </div>
                         {isUnread && (
-                          <div className="unread-indicator w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                          <div className="unread-indicator w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
                         )}
                       </div>
                       <div
@@ -423,7 +423,7 @@ const NotificationCenter = () => {
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${
                               isUnread
-                                ? "text-blue-300 bg-blue-900/50"
+                                ? "text-orange-300 bg-orange-900/50"
                                 : "text-gray-400 bg-gray-800"
                             }`}
                           >
@@ -442,7 +442,7 @@ const NotificationCenter = () => {
           <div className="notification-footer p-4 border-t border-gray-700 bg-gray-800">
             <Link
               to="/profile?tab=notifications"
-              className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="block w-full text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium"
               onClick={() => setIsOpen(false)}
             >
               {t("notifications.center.view_all")}

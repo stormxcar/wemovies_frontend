@@ -5,7 +5,7 @@ import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useWatchingProgress } from "../../hooks/useWatchingProgress";
 import ViewCountDisplay from "../ViewCountDisplay";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import PageLoader from "../loading/PageLoader";
 
@@ -60,8 +60,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
       setIsLoading(true);
       setError(null);
 
-      console.log("🎬 Fetching watching data for user:", userId);
-
       // Try to get fresh data first by calling refreshList
       await refreshList();
 
@@ -70,13 +68,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
 
       // Use the most current watchingList data
       const hybridWatchingData = watchingList.length > 0 ? watchingList : [];
-
-      console.log(
-        "📋 Current watching list data:",
-        hybridWatchingData.length,
-        "items",
-        hybridWatchingData,
-      );
 
       // Enhanced data validation and transformation
       const transformedData = Array.isArray(hybridWatchingData)
@@ -106,23 +97,11 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
             }))
         : [];
 
-      console.log(
-        "📊 Transformed watching data:",
-        transformedData.length,
-        "items",
-        transformedData,
-      );
       setWatchingMovies(transformedData);
 
       // Show success message only if we have data
       if (transformedData.length > 0) {
-        console.log(
-          "✅ Successfully loaded",
-          transformedData.length,
-          "movies for user",
-        );
       } else {
-        console.log("⚠️ No movies found in watching list");
       }
     } catch (error) {
       console.error("❌ Error fetching watching data:", error);
@@ -146,8 +125,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
     if (!userId) return;
 
     try {
-      console.log("📊 Fetching watching stats for user:", userId);
-
       // Use refreshStats from hook to get updated stats
       await refreshStats();
 
@@ -174,7 +151,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
         lastUpdated: new Date().toISOString(),
       };
 
-      console.log("📊✅ Calculated watching stats:", stats);
       setWatchingStats(stats);
     } catch (error) {
       console.error("❌ Error fetching watching stats:", error);
@@ -197,8 +173,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
     setIsLoading(true);
 
     try {
-      console.log("🔄 Manually refreshing watching data...");
-
       // Force refresh from hook first
       await refreshList();
 
@@ -235,7 +209,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
       // Let the auto-sync handle data from hook
       const userId = getUserId(user);
       if (userId && watchingList.length === 0 && !hookLoading) {
-        console.log("🎬 Initial load: fetching data for user:", userId);
         fetchWatchingData();
         fetchWatchingStats();
       } else if (!userId) {
@@ -249,14 +222,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
 
   // Auto-refresh when watchingList from hook updates
   useEffect(() => {
-    console.log("🔄 Auto-sync useEffect triggered");
-    console.log("📊 watchingList length:", watchingList.length);
-    console.log("📊 hookLoading:", hookLoading);
-    console.log("📊 Raw watchingList:", watchingList);
-
     if (watchingList.length > 0) {
-      console.log("🔄 Hook watchingList updated, syncing local state");
-
       const transformedData = watchingList
         .filter((item) => {
           const isValid = item && item.movieId && item.movieTitle;
@@ -278,7 +244,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
           source: item.source || "hybrid",
         }));
 
-      console.log("📋 Auto-synced transformed data:", transformedData);
       setWatchingMovies(transformedData);
       setIsLoading(false); // Ensure isLoading is false when we have data
 
@@ -300,13 +265,9 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
           ).length,
           lastUpdated: new Date().toISOString(),
         };
-        console.log("📊 Auto-updated stats:", autoStats);
         setWatchingStats(autoStats);
       }
     } else if (!hookLoading) {
-      console.log(
-        "⚠️ watchingList is empty and not loading, clearing local state",
-      );
       setWatchingMovies([]);
     }
   }, [watchingList, hookLoading, isAPIAvailable]);
@@ -326,8 +287,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
     }
 
     try {
-      console.log("🗑️ Removing movie from watching list:", { userId, movieId });
-
       // Use the hybrid system removeFromWatching method
       const result = await removeFromWatching(movieId); // Hook handles userId internally
 
@@ -365,8 +324,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
     }
 
     try {
-      console.log("✅ Marking movie as completed:", { userId, movieId });
-
       // Use the hybrid system markCompleted method
       const result = await markCompleted(movieId); // Hook handles userId internally
 
@@ -410,7 +367,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
 
   const getProgressColor = (percentage) => {
     if (percentage >= 95) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
+    if (percentage >= 75) return "bg-orange-500";
     if (percentage >= 50) return "bg-yellow-500";
     if (percentage >= 25) return "bg-orange-500";
     return "bg-gray-400";
@@ -449,14 +406,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
     );
   }
 
-  console.log(
-    "🎬 RENDER DEBUG: watchingMovies.length =",
-    watchingMovies.length,
-    ", isLoading =",
-    isLoading,
-  );
-  console.log("🎬 RENDER DEBUG: watchingMovies =", watchingMovies);
-
   return (
     <div>
       {/* Error Display */}
@@ -483,7 +432,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center"
             >
               {refreshing && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -492,16 +441,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
             </button>
             <button
               onClick={() => {
-                console.log("🐛 DEBUG INFO:");
-                console.log("watchingList from hook:", watchingList);
-                console.log("local watchingMovies:", watchingMovies);
-                console.log("hookLoading:", hookLoading);
-                console.log("isAPIAvailable:", isAPIAvailable);
-                console.log("user:", user);
-                console.log("getUserId(user):", getUserId(user));
-                console.log("isLoading:", isLoading);
-                console.log("refreshing:", refreshing);
-                console.log("error:", error);
                 toast.success(t("watchingHistory.toasts.debug_logged"));
               }}
               className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
@@ -521,7 +460,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-500">
+              <div className="text-2xl font-bold text-orange-500">
                 {watchingStats.totalMovies || 0}
               </div>
               <div className="text-gray-400 text-sm">
@@ -559,7 +498,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
           </p>
           <Link
             to="/"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
           >
             <Eye className="mr-2 h-4 w-4" />
             {t("watchingHistory.discover_movies")}
@@ -567,11 +506,11 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          {console.log("🎬 RENDERING MOVIES LIST:", watchingMovies)}
+          
           {watchingMovies.map((movie) => (
             <div
               key={movie.movieId}
-              className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-all duration-200"
+              className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-orange-500 transition-all duration-200"
             >
               <div className="flex items-start space-x-4">
                 {/* Movie Poster */}
@@ -606,7 +545,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
 
                       {/* Episode info for series */}
                       {movie.episodeNumber && movie.totalEpisodes && (
-                        <p className="text-blue-400 text-sm mb-2">
+                        <p className="text-orange-400 text-sm mb-2">
                           {t("watchingHistory.episode", {
                             current: movie.episodeNumber,
                             total: movie.totalEpisodes,
@@ -678,7 +617,7 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                           },
                           startTime: movie.currentTime || 0,
                         }}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
                       >
                         <Play className="mr-1 h-4 w-4" />
                         {Number(movie.percentage || 0) <= 0

@@ -12,7 +12,7 @@ import {
   Sun,
   Languages,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import RegisterForm from "../components/auth/RegisterForm";
 import LoginForm from "../components/auth/LoginForm";
@@ -272,7 +272,9 @@ function Header() {
                 onClick={() => openMovieFromSuggestion(movie)}
                 className={`w-full px-4 py-3 text-left ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors border-b ${themeClasses.borderLight}`}
               >
-                <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
+                <p
+                  className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}
+                >
                   {movie.title}
                 </p>
                 <p className={`text-xs ${themeClasses.textMuted}`}>
@@ -324,7 +326,9 @@ function Header() {
                     onClick={() => openMovieFromSuggestion(movie)}
                     className={`w-full px-3 py-2 text-left rounded-lg ${themeClasses.cardSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"}`}
                   >
-                    <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
+                    <p
+                      className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}
+                    >
                       {movie.title}
                     </p>
                   </button>
@@ -456,7 +460,7 @@ function Header() {
                 loadingMessage: t("header.loading_home"),
               });
             }}
-            className="text-2xl font-bold hover:text-blue-300 transition-colors"
+            className="text-2xl font-bold hover:text-orange-300 transition-colors"
           >
             Wemovies
           </button>
@@ -473,7 +477,7 @@ function Header() {
               e.stopPropagation();
               setIsSearchOpen(true);
             }}
-            className="md:hidden p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            className="md:hidden p-2 rounded-full bg-orange-600 hover:bg-orange-700 text-white transition-colors"
             aria-label={t("header.open_search")}
           >
             <Search className="h-5 w-5" />
@@ -498,13 +502,13 @@ function Header() {
                   onFocus={() => setShowSearchDropdown(true)}
                   onKeyDown={handleKeyDownToSearch}
                   placeholder={t("header.search_placeholder")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black"
                   autoFocus
                 />
                 {showSearchDropdown && renderSearchDropdown()}
                 <button
                   onClick={handleSearch}
-                  className="w-full mt-3 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="w-full mt-3 bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
                   disabled={isLoading}
                 >
                   {isLoading
@@ -532,7 +536,7 @@ function Header() {
                   : isDarkMode
                     ? "bg-gray-900/50"
                     : "bg-white/90"
-              } border ${themeClasses.border} focus:outline-none focus:border-blue-500 transition-colors ${isDarkMode ? "placeholder-gray-400" : "placeholder-gray-500"}`}
+              } border ${themeClasses.border} focus:outline-none focus:border-orange-500 transition-colors ${isDarkMode ? "placeholder-gray-400" : "placeholder-gray-500"}`}
             />
             {showSearchDropdown && renderSearchDropdown()}
           </div>
@@ -544,7 +548,7 @@ function Header() {
                   e.stopPropagation();
                   setActiveModal((prev) => (prev === "types" ? null : "types"));
                 }}
-                className="flex items-center hover:text-blue-300 transition-colors"
+                className="flex items-center hover:text-orange-300 transition-colors"
                 aria-label={t("header.categories")}
               >
                 {t("header.categories")}
@@ -558,7 +562,7 @@ function Header() {
                   {types.map((item) => (
                     <li
                       key={item.name}
-                      className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
+                      className={`cursor-pointer hover:text-orange-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/type/id/${item.id}`,
@@ -578,7 +582,7 @@ function Header() {
                 {categories.map((item) => (
                   <button
                     key={item.name}
-                    className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
+                    className={`cursor-pointer hover:text-orange-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                     onClick={() =>
                       navigateToMovies(
                         `/api/movies/category/${item.name}`,
@@ -600,7 +604,7 @@ function Header() {
                     prev === "countries" ? null : "countries",
                   );
                 }}
-                className="flex items-center hover:text-blue-300 transition-colors"
+                className="flex items-center hover:text-orange-300 transition-colors"
                 aria-label={t("header.countries")}
               >
                 {t("header.countries")}
@@ -614,7 +618,7 @@ function Header() {
                   {countries.map((item) => (
                     <li
                       key={item.name}
-                      className={`cursor-pointer hover:text-blue-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
+                      className={`cursor-pointer hover:text-orange-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
                       onClick={() =>
                         navigateToMovies(
                           `/api/movies/country/${item.id}`,
@@ -650,7 +654,7 @@ function Header() {
                 {isDarkMode ? (
                   <Sun className="h-5 w-5 text-yellow-400" />
                 ) : (
-                  <Moon className="h-5 w-5 text-blue-300" />
+                  <Moon className="h-5 w-5 text-orange-300" />
                 )}
               </button>
 
@@ -684,7 +688,7 @@ function Header() {
                   <img
                     src={user.avatarUrl}
                     alt="Avatar"
-                    className="w-10 h-10 rounded-full border-2 border-blue-300"
+                    className="w-10 h-10 rounded-full border-2 border-orange-300"
                   />
                   <span className="text-white">{user?.fullName}</span>
                 </button>
@@ -697,7 +701,6 @@ function Header() {
                       <h3 className="font-semibold text-gray-900">
                         {user?.fullName}
                       </h3>
-                     
                     </div>
                     <div className="py-2">
                       <button
@@ -762,7 +765,7 @@ function Header() {
                 {isDarkMode ? (
                   <Sun className="h-5 w-5 text-yellow-400" />
                 ) : (
-                  <Moon className="h-5 w-5 text-blue-300" />
+                  <Moon className="h-5 w-5 text-orange-300" />
                 )}
               </button>
 
@@ -791,7 +794,7 @@ function Header() {
                   e.stopPropagation();
                   setShowLogin(true);
                 }}
-                className="hover:text-blue-300 transition-colors py-2 px-4 rounded-full bg-blue-900 text-center w-[50%]"
+                className="hover:text-orange-300 transition-colors py-2 px-4 rounded-full bg-orange-900 text-center w-[50%]"
                 aria-label={t("header.login")}
               >
                 {t("header.login")}

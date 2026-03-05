@@ -73,7 +73,7 @@ const CategoryMovies = () => {
           {t("navigation.movies")}
         </span>
         <span className="text-white">{" > "}</span>
-        <span className="text-blue-500">{categoryName}</span>
+        <span className="text-orange-500">{categoryName}</span>
       </nav>
 
       {isLoading("categoryMovies") ? null : (
@@ -84,7 +84,7 @@ const CategoryMovies = () => {
               <select
                 onChange={(e) => setSelectedCountry(e.target.value)}
                 value={selectedCountry}
-                className="bg-gray-50 outline-none border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block py-2 px-4"
+                className="bg-gray-50 outline-none border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block py-2 px-4"
               >
                 <option className="font-medium" value="">
                   {t("common.all")}
@@ -96,7 +96,7 @@ const CategoryMovies = () => {
                 ))}
               </select>
               <button
-                className="bg-blue-400 ml-2 px-4 py-2 rounded text-white"
+                className="bg-orange-400 ml-2 px-4 py-2 rounded text-white"
                 onClick={fetchMovies}
               >
                 {t("filter.apply")}

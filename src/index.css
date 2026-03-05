@@ -60,3 +60,110 @@ code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+
+.app-toast-lg,
+[data-sonner-toast].app-toast-lg,
+[data-sonner-toast] {
+  min-width: 460px !important;
+  max-width: 560px !important;
+  /* keep the same overall size but make vertical padding equal */
+  padding: 20px 22px !important;
+  border-radius: 14px !important;
+  font-size: 18px !important;
+}
+
+/* make all content wrappers use the same vertical padding */
+.gooey-content,
+.gooey-contentCompact,
+.gooey-contentExpanded {
+  /* padding-top: 20px !important;
+  padding-bottom: 20px !important; */
+}
+
+.gooey-contentCompact {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.gooey-contentExpanded {
+  /* equal top/bottom padding while preserving current width */
+  padding: 20px 16px !important;
+  min-width: 460px !important;
+  max-width: 620px !important;
+}
+
+.gooey-iconWrapper {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.gooey-title {
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+}
+
+.gooey-description {
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  /* remove top margin and shift spacing below to avoid visual unbalance */
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+}
+
+.gooey-actionButton {
+  font-size: 15px !important;
+  padding: 12px 20px !important;
+}
+
+.gooey-progressWrapper {
+  height: 5px !important;
+}
+
+.app-toast-lg [data-title],
+[data-sonner-toast].app-toast-lg [data-title],
+[data-sonner-toast] [data-title] {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+}
+
+.app-toast-lg [data-description],
+[data-sonner-toast].app-toast-lg [data-description],
+[data-sonner-toast] [data-description] {
+  font-size: 16px !important;
+  line-height: 1.45 !important;
+}
+
+@media (max-width: 640px) {
+  .app-toast-lg,
+  [data-sonner-toast].app-toast-lg,
+  [data-sonner-toast] {
+    min-width: 300px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .gooey-contentExpanded {
+    min-width: 300px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .gooey-title {
+    font-size: 15px !important;
+  }
+
+  .gooey-description {
+    font-size: 13px !important;
+  }
+
+  .app-toast-lg [data-title],
+  [data-sonner-toast].app-toast-lg [data-title],
+  [data-sonner-toast] [data-title] {
+    font-size: 15px;
+  }
+
+  .app-toast-lg [data-description],
+  [data-sonner-toast].app-toast-lg [data-description],
+  [data-sonner-toast] [data-description] {
+    font-size: 13px;
+  }
+}

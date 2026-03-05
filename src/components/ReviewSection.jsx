@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { fetchJson } from "../services/api";
 import { FaStar } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 
 const ReviewSection = ({ movieId }) => {

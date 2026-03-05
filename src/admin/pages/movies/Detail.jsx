@@ -59,7 +59,7 @@ const MovieDetail = () => {
   const getAgeRatingColor = (rating) => {
     const colors = {
       P: "bg-green-100 text-green-800",
-      T7: "bg-blue-100 text-blue-800",
+      T7: "bg-orange-100 text-orange-800",
       T13: "bg-yellow-100 text-yellow-800",
       T16: "bg-orange-100 text-orange-800",
       T18: "bg-red-100 text-red-800",
@@ -70,7 +70,7 @@ const MovieDetail = () => {
   const getStatusColor = (status) => {
     const colors = {
       full: "bg-green-100 text-green-800",
-      ongoing: "bg-blue-100 text-blue-800",
+      ongoing: "bg-orange-100 text-orange-800",
       upcoming: "bg-yellow-100 text-yellow-800",
     };
     return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
@@ -79,7 +79,7 @@ const MovieDetail = () => {
   const getQualityColor = (quality) => {
     const colors = {
       "4K": "bg-purple-100 text-purple-800",
-      FULL_HD: "bg-blue-100 text-blue-800",
+      FULL_HD: "bg-orange-100 text-orange-800",
       HD: "bg-green-100 text-green-800",
       SD: "bg-gray-100 text-gray-800",
     };
@@ -386,7 +386,7 @@ const MovieDetail = () => {
                 </div>
                 <div className="text-center">
                   <div className="mb-2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
                       {movie.totalEpisodes || "N/A"}
                     </span>
                   </div>
@@ -431,7 +431,7 @@ const MovieDetail = () => {
                   {movie.movieTypes?.map((type, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                      className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm"
                     >
                       {type.name}
                     </span>
@@ -510,7 +510,7 @@ const MovieDetail = () => {
                     href={movie.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                   >
                     <Play className="h-4 w-4" />
                     Xem phim

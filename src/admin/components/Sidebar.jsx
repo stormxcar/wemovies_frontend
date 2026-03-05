@@ -35,8 +35,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
   const getButtonClasses = (path, isParent = false) => {
     const baseClasses =
       "w-full text-left p-2 rounded transition-colors duration-200";
-    const activeClasses = "bg-blue-600 text-white";
-    const parentActiveClasses = "bg-blue-500 text-white";
+    const activeClasses = "bg-orange-600 text-white";
+    const parentActiveClasses = "bg-orange-500 text-white";
     const inactiveClasses = `hover:${themeClasses.tertiary}`;
 
     if (isParent) {

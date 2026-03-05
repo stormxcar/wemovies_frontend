@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaTimes } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { fetchJson } from "../../services/api";
 import { ClipLoader } from "react-spinners";
 import { useTranslation } from "react-i18next";
@@ -158,7 +158,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
         onClick={onClose}
       >
         <div
-          className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+          className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -221,7 +221,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
       onClick={onClose}
     >
       <div
-        className="bg-blue-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+        className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -241,7 +241,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
               e.preventDefault();
               onSwitchToLogin();
             }}
-            className="text-blue-300"
+            className="text-orange-300"
           >
             {t("register.login_link")}
           </button>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import {
   RefreshCw,
   Trash2,
@@ -265,7 +265,7 @@ const TypeList = () => {
           <button
             onClick={refetch}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             title="Làm mới dữ liệu"
           >
             <RefreshCw
@@ -442,7 +442,7 @@ const TypeList = () => {
                 <tr
                   key={type.id}
                   className={`border ${
-                    selectedItems.includes(type.id) ? "bg-blue-50" : ""
+                    selectedItems.includes(type.id) ? "bg-orange-50" : ""
                   }`}
                 >
                   <td className="border p-2">
@@ -451,7 +451,7 @@ const TypeList = () => {
                       className="flex items-center justify-center w-full"
                     >
                       {selectedItems.includes(type.id) ? (
-                        <CheckSquare className="h-4 w-4 text-blue-600" />
+                        <CheckSquare className="h-4 w-4 text-orange-600" />
                       ) : (
                         <Square className="h-4 w-4" />
                       )}
@@ -519,7 +519,7 @@ const TypeList = () => {
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
               >
                 Lưu
               </button>

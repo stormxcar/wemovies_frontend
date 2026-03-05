@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { fetchJson } from "../services/api";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 
 export const useWatchingTracker = (
   movieId,

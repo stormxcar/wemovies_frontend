@@ -61,7 +61,9 @@ const CookieConsentBanner = () => {
               </p>
 
               {showDetails && (
-                <div className={`text-xs ${themeClasses.textMuted} mb-3 space-y-2`}>
+                <div
+                  className={`text-xs ${themeClasses.textMuted} mb-3 space-y-2`}
+                >
                   <p>
                     <strong className="text-green-400">
                       Cookie cần thiết:
@@ -69,7 +71,7 @@ const CookieConsentBanner = () => {
                     Bắt buộc cho chức năng cơ bản của trang web
                   </p>
                   <p>
-                    <strong className="text-blue-400">Cookie phân tích:</strong>{" "}
+                    <strong className="text-orange-400">Cookie phân tích:</strong>{" "}
                     Giúp chúng tôi cải thiện website
                   </p>
                   <p>
@@ -83,7 +85,7 @@ const CookieConsentBanner = () => {
 
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
+                className="text-orange-400 hover:text-orange-300 text-sm underline transition-colors"
               >
                 {showDetails ? "Ẩn chi tiết" : "Xem chi tiết"}
               </button>
@@ -104,7 +106,7 @@ const CookieConsentBanner = () => {
               </button>
               <button
                 onClick={handleAcceptAll}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors font-medium"
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors text-sm transition-colors font-medium"
               >
                 Chấp nhận tất cả
               </button>

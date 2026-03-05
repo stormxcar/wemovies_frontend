@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { fetchJson } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import NotificationService from "../../services/NotificationService";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import Pagination from "../ui/pagination";
@@ -482,7 +482,7 @@ const NotificationTab = () => {
       <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-2xl font-bold text-white flex items-center">
-            <FaBell className="mr-3 text-blue-500" />
+            <FaBell className="mr-3 text-orange-500" />
             {t("notifications.tab.all_notifications")}
           </h3>
         </div>
@@ -490,7 +490,7 @@ const NotificationTab = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-gray-700 rounded-lg p-4 text-center border border-gray-600 hover:border-gray-500 transition-colors">
-            <div className="text-3xl font-bold text-blue-400 mb-1">
+            <div className="text-3xl font-bold text-orange-400 mb-1">
               {stats.total}
             </div>
             <div className="text-gray-300 text-sm font-medium">
@@ -539,7 +539,7 @@ const NotificationTab = () => {
                 setFilter(e.target.value);
                 setCurrentPage(0);
               }}
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-orange-500 focus:outline-none"
             >
               <option value="all">
                 {t("notifications.tab.filter_values.all", {
@@ -570,7 +570,7 @@ const NotificationTab = () => {
                 setTypeFilter(e.target.value);
                 setCurrentPage(0);
               }}
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-orange-500 focus:outline-none"
             >
               {notificationTypes.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -595,7 +595,7 @@ const NotificationTab = () => {
                   setCurrentPage(0);
                 }}
                 placeholder={t("notifications.tab.search_placeholder")}
-                className="w-full bg-gray-700 text-white px-10 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                className="w-full bg-gray-700 text-white px-10 py-2 rounded border border-gray-600 focus:border-orange-500 focus:outline-none"
               />
             </div>
           </div>
@@ -624,9 +624,9 @@ const NotificationTab = () => {
 
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
-        <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-4 mb-6">
+        <div className="bg-orange-900/20 border border-orange-500/50 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
-            <span className="text-blue-400">
+            <span className="text-orange-400">
               {t("notifications.tab.selected_count", {
                 count: selectedIds.length,
               })}
@@ -663,7 +663,7 @@ const NotificationTab = () => {
                 selectedIds.length === notifications.length
               }
               onChange={handleSelectAll}
-              className="mr-4 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              className="mr-4 w-4 h-4 text-orange-600 bg-gray-700 border-gray-600 rounded focus:ring-orange-500"
             />
             <span className="text-gray-300 font-medium">
               {t("notifications.tab.list_title", {
@@ -700,7 +700,7 @@ const NotificationTab = () => {
                   key={notification.id}
                   className={`flex items-start p-4 border-b border-gray-700 hover:bg-gray-750 transition-all duration-200 ${
                     isUnread
-                      ? "bg-blue-900/20 border-l-4 border-l-blue-500"
+                      ? "bg-orange-900/20 border-l-4 border-l-blue-500"
                       : "hover:bg-gray-800/50"
                   } ${isNew ? "animate-pulse bg-yellow-900/10" : ""}`}
                 >
@@ -717,7 +717,7 @@ const NotificationTab = () => {
                         );
                       }
                     }}
-                    className="mr-4 mt-1 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    className="mr-4 mt-1 w-4 h-4 text-orange-600 bg-gray-700 border-gray-600 rounded focus:ring-orange-500"
                   />
                   {/* Icon */}
                   <div className="text-2xl mr-3 mt-1 flex-shrink-0 relative">
@@ -746,7 +746,7 @@ const NotificationTab = () => {
                             </span>
                           )}
                           {isUnread && !isNew && (
-                            <span className="inline-block w-2 h-2 bg-blue-500 rounded-full ml-2"></span>
+                            <span className="inline-block w-2 h-2 bg-orange-500 rounded-full ml-2"></span>
                           )}
                         </h4>
 
@@ -764,7 +764,7 @@ const NotificationTab = () => {
                             <span
                               className={`px-2 py-1 rounded-full ${
                                 isUnread
-                                  ? "bg-blue-900/50 text-blue-300"
+                                  ? "bg-orange-900/50 text-orange-300"
                                   : "bg-gray-700 text-gray-400"
                               }`}
                             >
@@ -783,7 +783,7 @@ const NotificationTab = () => {
                       {/* Action Button */}
                       <div className="ml-4 flex items-center space-x-2">
                         {isUnread && (
-                          <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
+                          <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0"></div>
                         )}
                         {isUnread && (
                           <button
@@ -791,7 +791,7 @@ const NotificationTab = () => {
                               e.stopPropagation();
                               markAsRead(notification.id);
                             }}
-                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-gray-700 rounded transition-colors"
+                            className="p-2 text-gray-400 hover:text-orange-300 hover:bg-gray-700 rounded transition-colors"
                             title={t("notifications.mark_as_read")}
                           >
                             <FaEye />

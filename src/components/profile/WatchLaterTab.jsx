@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Play, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../../services/api";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useAuth } from "../../context/AuthContext";
 
 const WatchLaterTab = ({ movies, loading, onRefresh }) => {
@@ -89,13 +89,13 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-opacity flex items-center justify-center">
             <Link
               to={`/movie/watch/${movie.id}`}
-              className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors"
+              className="bg-orange-600 text-white p-3 rounded-full hover:bg-orange-700 transition-colors"
             >
               <Play className="h-6 w-6" />
             </Link>
           </div>
           {showScheduleTime && item.scheduledDateTime && (
-            <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-xs">
+            <div className="absolute top-2 right-2 bg-orange-600 text-white px-2 py-1 rounded text-xs">
               {formatDateTime(item.scheduledDateTime)}
             </div>
           )}
@@ -116,7 +116,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           <div className="flex items-center justify-between">
             <Link
               to={`/movie/${movie.id}`}
-              className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+              className="text-orange-400 hover:text-orange-300 text-sm font-medium"
             >
               {t("watchLater.view_detail")}
             </Link>
@@ -147,7 +147,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
         <button
           onClick={loadSchedules}
           disabled={tabLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
         >
           <RefreshCw
             className={`h-4 w-4 ${tabLoading ? "animate-spin" : ""}`}
@@ -162,7 +162,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           onClick={() => setActiveTab("watch-later")}
           className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === "watch-later"
-              ? "bg-blue-600 text-white"
+              ? "bg-orange-600 text-white"
               : "text-gray-300 hover:text-white hover:bg-gray-700"
           }`}
         >
@@ -172,7 +172,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           onClick={() => setActiveTab("scheduled")}
           className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === "scheduled"
-              ? "bg-blue-600 text-white"
+              ? "bg-orange-600 text-white"
               : "text-gray-300 hover:text-white hover:bg-gray-700"
           }`}
         >
@@ -183,7 +183,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
       {/* Tab Content */}
       {tabLoading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
         </div>
       ) : activeTab === "watch-later" ? (
         // Watch Later Tab

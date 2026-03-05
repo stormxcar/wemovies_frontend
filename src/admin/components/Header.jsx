@@ -59,7 +59,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
           {isDarkMode ? (
             <Sun className="h-5 w-5 text-yellow-400" />
           ) : (
-            <Moon className="h-5 w-5 text-blue-500" />
+            <Moon className="h-5 w-5 text-orange-500" />
           )}
         </button>
         <div className="relative">

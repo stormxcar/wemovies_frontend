@@ -11,18 +11,11 @@ const UnifiedVideoPlayer = ({
   onEnded,
 }) => {
   // Debug logging for startTime
-  console.log("🎯 UnifiedVideoPlayer props:", {
-    startTime,
-    autoPlay,
-    src: src?.substring(0, 50) + "...",
-  });
   const [playerMode, setPlayerMode] = useState("determining");
   const [error, setError] = useState(null);
   const [shouldAutoPlay, setShouldAutoPlay] = useState(autoPlay);
   const reactPlayerRef = useRef(null);
   const iframeRef = useRef(null);
-
-  console.log("🎬 UnifiedVideoPlayer autoPlay prop:", autoPlay);
 
   useEffect(() => {
     setShouldAutoPlay(autoPlay);
@@ -93,12 +86,6 @@ const UnifiedVideoPlayer = ({
         0;
 
       if (duration > 0) {
-        console.log("📊 Video Progress:", {
-          currentTime: Math.round(state.playedSeconds),
-          duration: Math.round(duration),
-          percentage: Math.round((state.playedSeconds / duration) * 100),
-        });
-
         onTimeUpdate({
           currentTime: state.playedSeconds,
           duration: duration,
@@ -176,7 +163,7 @@ const UnifiedVideoPlayer = ({
     return (
       <div className="w-full h-96 bg-gray-900 flex items-center justify-center rounded-lg">
         <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400 mx-auto mb-4"></div>
           <p>Determining best player...</p>
         </div>
       </div>
@@ -201,15 +188,12 @@ const UnifiedVideoPlayer = ({
           onPause={handleReactPlayerPause}
           onEnded={handleReactPlayerEnded}
           onReady={() => {
-            console.log("🎬 Video ready, autoPlay was:", autoPlay);
             // Seek to start time when player is ready
             if (startTime > 0 && reactPlayerRef.current) {
-              console.log("🎯 Seeking to start time:", startTime, "seconds");
               reactPlayerRef.current.seekTo(startTime, "seconds");
             }
             // Try to enable autoplay after ready
             if (autoPlay && reactPlayerRef.current) {
-              console.log("🎬 Attempting autoplay...");
               setShouldAutoPlay(true);
             }
           }}

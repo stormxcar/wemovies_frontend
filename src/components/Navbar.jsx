@@ -20,7 +20,7 @@
 //         categories.map((item) => (
 //             <li
 //                 key={item.name}
-//                 className="cursor-pointer hover:text-blue-400 transition"
+//                 className="cursor-pointer hover:text-orange-400 transition"
 //                 onClick={onClick}
 //             >
 //                 <Link to={`/category/${item.name}`}>{item.name}</Link>

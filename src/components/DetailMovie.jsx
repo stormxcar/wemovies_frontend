@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import WatchlistButton from "./WatchlistButton";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useLoading } from "../context/UnifiedLoadingContext";
 import { trackMovieView, trackUserAction } from "../services/analytics";
 import { useWatchingTracker } from "../hooks/useWatchingTracker";
@@ -432,7 +432,7 @@ const DetailMovie = () => {
               <span className="text-white mx-2">{<FaChevronRight />}</span>
             </>
           )}
-          <span className="text-blue-500 text-xl font-semibold">
+          <span className="text-orange-500 text-xl font-semibold">
             {movieDetail.data.title}
           </span>
         </nav>
@@ -654,7 +654,7 @@ const DetailMovie = () => {
                   type="datetime-local"
                   value={scheduleDateTime}
                   onChange={(e) => setScheduleDateTime(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -665,7 +665,7 @@ const DetailMovie = () => {
                 <textarea
                   value={scheduleNotes}
                   onChange={(e) => setScheduleNotes(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
                   rows="3"
                   placeholder={t(
                     "movieDetail.schedule_modal.notes_placeholder",
@@ -678,7 +678,7 @@ const DetailMovie = () => {
                     type="checkbox"
                     checked={scheduleReminder}
                     onChange={(e) => setScheduleReminder(e.target.checked)}
-                    className="mr-3 w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                    className="mr-3 w-4 h-4 text-orange-600 bg-slate-700 border-slate-600 rounded focus:ring-orange-500 focus:ring-2"
                   />
                   <span className="font-medium">
                     {t("movieDetail.schedule_modal.remind_30m")}

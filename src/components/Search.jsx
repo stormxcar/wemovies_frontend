@@ -143,7 +143,9 @@ function Search() {
 
     return (
       <section className="mb-8">
-        <h3 className={`text-xl font-semibold ${themeClasses.textPrimary} mb-4`}>
+        <h3
+          className={`text-xl font-semibold ${themeClasses.textPrimary} mb-4`}
+        >
           {title}
         </h3>
         <Swiper
@@ -164,8 +166,8 @@ function Search() {
                 to={`/movie/${movie.id}`}
                 className={`block rounded-lg overflow-hidden border transition-colors ${
                   isDarkMode
-                    ? "bg-gray-800/70 border-gray-700 hover:border-blue-500"
-                    : "bg-white border-gray-200 hover:border-blue-500"
+                    ? "bg-gray-800/70 border-gray-700 hover:border-orange-500"
+                    : "bg-white border-gray-200 hover:border-orange-500"
                 }`}
               >
                 <img
@@ -174,7 +176,9 @@ function Search() {
                   className="w-full h-44 object-cover"
                 />
                 <div className="p-2">
-                  <p className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}>
+                  <p
+                    className={`text-sm ${themeClasses.textPrimary} line-clamp-1`}
+                  >
                     {movie.title}
                   </p>
                   <p className={`text-xs ${themeClasses.textMuted}`}>
@@ -203,7 +207,7 @@ function Search() {
               : "bg-gradient-to-r from-blue-100/80 via-indigo-100/70 to-purple-100/80"
           } p-5 mt-8 md:p-7`}
         >
-          <p className="text-sm text-blue-300 mb-2">
+          <p className="text-sm text-orange-300 mb-2">
             {t("search.explore_title")}
           </p>
           <h2 className="text-2xl md:text-3xl font-bold mb-2">

@@ -61,7 +61,7 @@ const WatchingList = ({
   // Get progress color
   const getProgressColor = (percentage) => {
     if (percentage >= 95) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
+    if (percentage >= 75) return "bg-orange-500";
     if (percentage >= 50) return "bg-yellow-500";
     if (percentage >= 25) return "bg-orange-500";
     return "bg-gray-400";
@@ -115,7 +115,7 @@ const WatchingList = ({
           </h2>
         )}
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
           <span className="ml-3 text-gray-400">
             {t("watchingList.loading")}
           </span>
@@ -199,7 +199,7 @@ const WatchingList = ({
             {maxItems && watchingList.length > maxItems && (
               <Link
                 to="/profile?tab=watching"
-                className="text-blue-400 hover:text-blue-300 transition-colors text-sm"
+                className="text-orange-400 hover:text-orange-300 transition-colors text-sm"
               >
                 {t("continue.view_all")} →
               </Link>
@@ -212,7 +212,7 @@ const WatchingList = ({
         {displayList.map((movie) => (
           <div
             key={movie.movieId}
-            className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-blue-500 transition-all duration-200 group"
+            className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-orange-500 transition-all duration-200 group"
           >
             {/* Movie Poster */}
             <div className="relative aspect-[2/3]">
@@ -245,7 +245,7 @@ const WatchingList = ({
                   className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
                     movie.source === "hybrid"
                       ? "bg-green-600 text-white"
-                      : "bg-blue-600 text-white"
+                      : "bg-orange-600 text-white"
                   }`}
                 >
                   {movie.source === "hybrid" ? "⚡" : "💾"}{" "}
@@ -280,7 +280,7 @@ const WatchingList = ({
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button
                   onClick={() => handleContinueWatching(movie)}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
                 >
                   <FaPlay className="mr-1 h-4 w-4" />
                   {t("watchingList.continue")}
@@ -303,7 +303,7 @@ const WatchingList = ({
               </div>
 
               {movie.episodeNumber && movie.totalEpisodes && (
-                <p className="text-blue-400 text-xs">
+                <p className="text-orange-400 text-xs">
                   {t("watchingList.episode", {
                     current: movie.episodeNumber,
                     total: movie.totalEpisodes,
@@ -315,7 +315,7 @@ const WatchingList = ({
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => handleContinueWatching(movie)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-2 rounded flex items-center justify-center gap-1 transition-colors"
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-1.5 px-2 rounded flex items-center justify-center gap-1 transition-colors"
                   >
                     <FaPlay className="text-xs" />
                     {t("watchingList.continue")}

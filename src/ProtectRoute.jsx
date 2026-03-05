@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { ClipLoader } from "react-spinners";
 import { useAuth } from "./context/AuthContext";
 

@@ -16,7 +16,6 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
 
   // Khởi tạo imageLoadedMap với giá trị mặc định khi movies thay đổi
   useEffect(() => {
-    console.log("🎞️ GridMovies: Movies data received:", validMovies.length);
     const initialMap = validMovies.reduce((map, movie) => {
       map[movie.id] = false;
       return map;
@@ -25,9 +24,7 @@ function GridMovies({ title, movies = [], moviesPerPage }) {
 
     // Nếu có movies data, auto-hide skeleton sau delay ngắn
     if (validMovies.length > 0) {
-      console.log("⏱️ GridMovies: Setting auto-hide timer...");
       const quickTimer = setTimeout(() => {
-        console.log("🚀 GridMovies: Auto-hiding skeletons...");
         const quickMap = validMovies.reduce((map, movie) => {
           map[movie.id] = true;
           return map;

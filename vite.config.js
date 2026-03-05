@@ -1,9 +1,17 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath, URL } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({ include: /\.(jsx|js)$/ })],
+  resolve: {
+    alias: {
+      "@toast": fileURLToPath(
+        new URL("./src/lib/toastCompat.jsx", import.meta.url),
+      ),
+    },
+  },
   server: {
     port: 3000,
     proxy: {

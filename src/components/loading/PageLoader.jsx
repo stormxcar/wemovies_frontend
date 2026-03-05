@@ -121,7 +121,7 @@ const PageLoader = ({
         {/* Floating cinematic elements */}
         <div className="absolute inset-0 pointer-events-none">
           <FaFilm className="absolute top-8 -left-12 text-yellow-300 text-5xl animate-float opacity-70" />
-          <FaFilm className="absolute top-28 -right-16 text-blue-300 text-4xl animate-float-delayed opacity-60" />
+          <FaFilm className="absolute top-28 -right-16 text-orange-300 text-4xl animate-float-delayed opacity-60" />
           <FaFilm className="absolute bottom-20 -left-20 text-red-300 text-3xl animate-float-delayed-2 opacity-50" />
           <FaFilm className="absolute bottom-12 -right-8 text-emerald-300 text-4xl animate-float opacity-55" />
         </div>
@@ -131,7 +131,7 @@ const PageLoader = ({
           <span className="absolute top-4 left-1/3 text-yellow-200/80 animate-float">
             ACTION
           </span>
-          <span className="absolute top-20 right-1/4 text-blue-200/70 animate-float-delayed">
+          <span className="absolute top-20 right-1/4 text-orange-200/70 animate-float-delayed">
             DRAMA
           </span>
           <span className="absolute bottom-28 left-1/4 text-red-200/70 animate-float-delayed-2">

@@ -117,25 +117,6 @@ function MovieList({ movies = [], onMovieClick }) {
           fetchMovieByHot(),
         ]);
 
-        console.log("Categories response:", categoriesResponse); // Debug log
-        console.log("Movie types response:", movieTypesResponse); // Debug log
-
-        const categoriesArray = Array.isArray(categoriesResponse)
-          ? categoriesResponse
-          : [];
-        const movieTypesArray = Array.isArray(movieTypesResponse)
-          ? movieTypesResponse
-          : [];
-        const countriesArray = Array.isArray(countriesResponse)
-          ? countriesResponse
-          : [];
-        const hotMoviesArray = Array.isArray(hotMoviesResponse)
-          ? hotMoviesResponse
-          : [];
-
-        setTypes(categoriesArray); // Thể loại cho filter "Thể loại"
-        setMovieTypes(movieTypesArray); // Loại phim (nếu cần dùng)
-        setCountries(countriesArray);
         setSuggestedMovies(hotMoviesArray.slice(0, 14));
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -153,13 +134,6 @@ function MovieList({ movies = [], onMovieClick }) {
       const movies = await fetchJson(`/api/movies/category/${categoryName}`);
       const movieData = Array.isArray(movies.data) ? movies.data : [];
 
-      console.log("Movie data:", movieData); // Debug log
-      if (movieData.length > 0) {
-        console.log("Sample movie:", movieData[0]); // Debug log
-        console.log("Movie categories:", movieData[0]?.movieCategories); // Debug log
-      }
-
-      setAllMovies(movieData);
       setFilteredMovies(movieData);
     } catch (error) {
       console.error("Error fetching movies:", error);
@@ -267,9 +241,6 @@ function MovieList({ movies = [], onMovieClick }) {
       filtered.sort((a, b) => (b.release_year || 0) - (a.release_year || 0));
     }
 
-    console.log("Final filtered count:", filtered.length);
-    console.log("=== END FILTER DEBUG ===");
-
     setFilteredMovies(filtered);
     setCurrentPage(0); // Reset to first page
   };
@@ -313,12 +284,12 @@ function MovieList({ movies = [], onMovieClick }) {
   };
 
   const selectedFilterPillClass =
-    "bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2";
+    "bg-orange-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2";
   const filterOptionClass = (isActive) =>
     `cursor-pointer px-2 py-1 rounded transition-colors ${
       isActive
-        ? "bg-blue-600 text-white"
-        : `${themeClasses.textSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"} hover:text-blue-500`
+        ? "bg-orange-600 text-white"
+        : `${themeClasses.textSecondary} ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"} hover:text-orange-300`
     }`;
   const neutralButtonClass = `${themeClasses.cardSecondary} ${themeClasses.textPrimary} px-4 py-2 rounded border ${themeClasses.borderLight} hover:opacity-80 transition-colors`;
 
@@ -447,7 +418,9 @@ function MovieList({ movies = [], onMovieClick }) {
                 {movieTypes.map((item) => (
                   <li
                     key={item.id}
-                    className={filterOptionClass(selectedMovieType === item.name)}
+                    className={filterOptionClass(
+                      selectedMovieType === item.name,
+                    )}
                     onClick={() => setSelectedMovieType(item.name)}
                   >
                     {item.name}

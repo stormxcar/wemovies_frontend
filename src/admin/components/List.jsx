@@ -17,7 +17,7 @@ import {
 import { useCrudOperations } from "../hooks/useCrudOperations";
 import SkeletonTable from "./SkeletonTable";
 import Pagination from "./Pagination";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 
 const List = ({
   title,
@@ -343,7 +343,7 @@ const List = ({
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             title="Làm mới dữ liệu"
           >
             <RefreshCw
@@ -415,7 +415,7 @@ const List = ({
             <button
               type="submit"
               disabled={isCreatingUser}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
             >
               {isCreatingUser ? "Đang tạo..." : "Tạo tài khoản"}
             </button>
@@ -553,7 +553,7 @@ const List = ({
                 <tr
                   key={item[keyField]}
                   className={`border ${
-                    selectedItems.includes(item[keyField]) ? "bg-blue-50" : ""
+                    selectedItems.includes(item[keyField]) ? "bg-orange-50" : ""
                   }`}
                 >
                   <td className="border p-2">
@@ -562,7 +562,7 @@ const List = ({
                       className="flex items-center justify-center w-full"
                     >
                       {selectedItems.includes(item[keyField]) ? (
-                        <CheckSquare className="h-4 w-4 text-blue-600" />
+                        <CheckSquare className="h-4 w-4 text-orange-600" />
                       ) : (
                         <Square className="h-4 w-4" />
                       )}
@@ -586,7 +586,7 @@ const List = ({
                         className={`px-2 py-1 text-white rounded flex items-center gap-1 ${
                           item?.isActive === false
                             ? "bg-green-600 hover:bg-green-700"
-                            : "bg-orange-500 hover:bg-orange-600"
+                            : "bg-orange-600 hover:bg-orange-700"
                         }`}
                         title={
                           item?.isActive === false
@@ -604,7 +604,7 @@ const List = ({
                     {onViewDetails && (
                       <button
                         onClick={() => onViewDetails(item[keyField])}
-                        className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-1"
+                        className="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-1"
                         title="Chi tiết"
                       >
                         <Eye className="h-3 w-3" />

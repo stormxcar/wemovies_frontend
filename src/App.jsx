@@ -8,9 +8,9 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "@toast";
+import { toast } from "@toast";
+import "goey-toast/styles.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -29,7 +29,7 @@ const Search = lazy(() => import("./components/Search.jsx"));
 const EpisodeDetail = lazy(() => import("./components/EpisodeDetail.jsx"));
 const MovieList = lazy(() => import("./components/MovieList.jsx"));
 const Watch = lazy(() => import("./components/Watch.jsx"));
-const MoviePage = lazy(() => import("./components/MoviePage.jsx"));
+const MoviePage = lazy(() => import("./components/ShowMovies.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
@@ -741,7 +741,7 @@ const AppContent = () => {
 
       {/* Toast notifications */}
       <ToastContainer
-        position="top-right"
+        position="bottom-right"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop
@@ -753,11 +753,6 @@ const AppContent = () => {
         theme="dark"
         limit={3}
         closeButton={true}
-        toastStyle={{
-          backgroundColor: "#1e293b",
-          color: "#fff",
-          border: "1px solid #475569",
-        }}
       />
 
       {/* Cookie Consent Banner */}

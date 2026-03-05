@@ -13,7 +13,7 @@ import {
   EyeOff,
   Lock,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../../services/api";
 import api from "../../services/api";
@@ -386,7 +386,7 @@ const ProfileTab = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -419,7 +419,7 @@ const ProfileTab = () => {
             </div>
             <button
               onClick={() => setShowAvatarUpload(true)}
-              className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+              className="absolute bottom-0 right-0 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white hover:bg-orange-700 transition-colors"
               title={t("profileTab.change_avatar")}
             >
               <Edit2 className="h-4 w-4" />
@@ -439,7 +439,7 @@ const ProfileTab = () => {
           <div className="space-y-2">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
               {isEditing ? (
                 <>
@@ -488,7 +488,7 @@ const ProfileTab = () => {
                     validateProfileField("name", e.target.value);
                   }}
                   disabled={isSubmitting || !isEditing}
-                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.name ? "border-red-500" : "border-gray-600"
                   }`}
                   placeholder={t("profileTab.placeholders.full_name")}
@@ -512,7 +512,7 @@ const ProfileTab = () => {
                   type="email"
                   value={profileData.email}
                   disabled={true}
-                  className="pl-10 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="pl-10 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
@@ -535,7 +535,7 @@ const ProfileTab = () => {
                     validateProfileField("phone", e.target.value);
                   }}
                   disabled={isSubmitting || !isEditing}
-                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.phone ? "border-red-500" : "border-gray-600"
                   }`}
                   placeholder={t("profileTab.placeholders.phone")}
@@ -561,7 +561,7 @@ const ProfileTab = () => {
                     setProfileData({ ...profileData, gender: e.target.value })
                   }
                   disabled={isSubmitting || !isEditing}
-                  className="pl-10 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="pl-10 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">{t("profileTab.gender_select")}</option>
                   <option value="MALE">
@@ -596,7 +596,7 @@ const ProfileTab = () => {
                   }}
                   disabled={isSubmitting || !isEditing}
                   placeholder={t("profileTab.placeholders.birth_date")}
-                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.birthDate
                       ? "border-red-500"
                       : "border-gray-600"
@@ -625,7 +625,7 @@ const ProfileTab = () => {
                     validateProfileField("address", e.target.value);
                   }}
                   disabled={isSubmitting || !isEditing}
-                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`pl-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed ${
                     profileErrors.address ? "border-red-500" : "border-gray-600"
                   }`}
                   placeholder={t("profileTab.placeholders.address")}
@@ -652,7 +652,7 @@ const ProfileTab = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -699,7 +699,7 @@ const ProfileTab = () => {
                       validatePasswordField("currentPassword", e.target.value);
                     }}
                     disabled={isSubmitting}
-                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 ${
+                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 ${
                       passwordErrors.currentPassword
                         ? "border-red-500"
                         : "border-gray-600"
@@ -751,7 +751,7 @@ const ProfileTab = () => {
                       }
                     }}
                     disabled={isSubmitting}
-                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 ${
+                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 ${
                       passwordErrors.newPassword
                         ? "border-red-500"
                         : "border-gray-600"
@@ -797,7 +797,7 @@ const ProfileTab = () => {
                     }}
                     onPaste={(e) => e.preventDefault()}
                     disabled={isSubmitting}
-                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 ${
+                    className={`pl-10 pr-10 w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 ${
                       passwordErrors.confirmPassword
                         ? "border-red-500"
                         : "border-gray-600"
@@ -844,7 +844,7 @@ const ProfileTab = () => {
                 disabled={
                   isSubmitting || Object.keys(passwordErrors).length > 0
                 }
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -894,7 +894,7 @@ const ProfileTab = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarFileChange}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-700"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t("profileTab.avatar_note")}
@@ -928,7 +928,7 @@ const ProfileTab = () => {
                 <button
                   onClick={handleUploadAvatar}
                   disabled={!selectedAvatarFile || uploadingAvatar}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploadingAvatar ? (
                     <>

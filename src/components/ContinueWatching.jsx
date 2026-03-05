@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import ViewCountDisplay from "./ViewCountDisplay";
 import { FaPlay, FaTrash, FaClock, FaSync } from "react-icons/fa";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 
 const ContinueWatching = ({
@@ -265,7 +265,7 @@ const ContinueWatching = ({
             <div className="relative">
               <div className="w-full bg-gray-600 h-2">
                 <div
-                  className="bg-blue-500 h-full transition-all"
+                  className="bg-orange-500 h-full transition-all"
                   style={{ width: `${item.progressPercent}%` }}
                 ></div>
               </div>
@@ -311,7 +311,7 @@ const ContinueWatching = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => handleContinueWatching(item)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors"
                 >
                   <FaPlay className="text-xs" />
                   {t("movie.continue_watching")}

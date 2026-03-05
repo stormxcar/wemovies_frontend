@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useReducer } from "react";
 import Select from "react-select";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useNavigate } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -944,7 +944,7 @@ const UpdateMovie = ({ title, items, updateEndpoint }) => {
                       e.preventDefault();
                     }
                   }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={isLoading("submitMovie")}
                 >
                   {isLoading("submitMovie") ? "Đang cập nhật..." : "Cập nhật"}

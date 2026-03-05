@@ -1,5 +1,5 @@
 import api from "../../services/api";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 
 const getEndpointName = (title) => {
   const endpointMap = {

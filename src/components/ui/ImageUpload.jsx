@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 
 const ImageUpload = ({
@@ -119,7 +119,7 @@ const ImageUpload = ({
           value={urlInput}
           onChange={handleUrlChange}
           placeholder={t("imageUpload.enter_url")}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         />
       )}
 

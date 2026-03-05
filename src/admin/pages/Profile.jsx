@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLoading } from "../../context/UnifiedLoadingContext";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import api from "../../services/api";
 
 const Profile = () => {
@@ -194,7 +194,7 @@ const Profile = () => {
                 </div>
                 <label
                   htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600 transition-colors"
+                  className="absolute bottom-0 right-0 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors-full p-2 cursor-pointer hover:bg-orange-600 transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -229,7 +229,7 @@ const Profile = () => {
                   {user?.fullName || user?.userName}
                 </h2>
                 <p className="text-gray-600">{user?.email}</p>
-                <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mt-2">
+                <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium mt-2">
                   {user?.role?.roleName || "ADMIN"}
                 </span>
               </div>
@@ -244,7 +244,7 @@ const Profile = () => {
                   onClick={() => setActiveTab("info")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "info"
-                      ? "border-blue-500 text-blue-600"
+                      ? "border-orange-500 text-orange-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -254,7 +254,7 @@ const Profile = () => {
                   onClick={() => setActiveTab("password")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "password"
-                      ? "border-blue-500 text-blue-600"
+                      ? "border-orange-500 text-orange-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -277,7 +277,7 @@ const Profile = () => {
                         name="fullName"
                         value={profileData.fullName}
                         onChange={handleProfileChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         placeholder="Nhập họ và tên"
                       />
                     </div>
@@ -304,7 +304,7 @@ const Profile = () => {
                         name="phoneNumber"
                         value={profileData.phoneNumber}
                         onChange={handleProfileChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         placeholder="Nhập số điện thoại"
                       />
                     </div>
@@ -317,7 +317,7 @@ const Profile = () => {
                         name="gender"
                         value={profileData.gender}
                         onChange={handleProfileChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       >
                         <option value="">Chọn giới tính</option>
                         <option value="MALE">Nam</option>
@@ -335,7 +335,7 @@ const Profile = () => {
                         name="dateOfBirth"
                         value={profileData.dateOfBirth}
                         onChange={handleProfileChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
 
@@ -348,7 +348,7 @@ const Profile = () => {
                         value={profileData.address}
                         onChange={handleProfileChange}
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         placeholder="Nhập địa chỉ"
                       />
                     </div>
@@ -364,7 +364,7 @@ const Profile = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                     >
                       Cập Nhật
                     </button>
@@ -386,7 +386,7 @@ const Profile = () => {
                       name="currentPassword"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Nhập mật khẩu hiện tại"
                       required
                     />
@@ -401,7 +401,7 @@ const Profile = () => {
                       name="newPassword"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Nhập mật khẩu mới"
                       required
                     />
@@ -416,7 +416,7 @@ const Profile = () => {
                       name="confirmPassword"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Nhập lại mật khẩu mới"
                       required
                     />
@@ -438,7 +438,7 @@ const Profile = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                     >
                       Đổi Mật Khẩu
                     </button>

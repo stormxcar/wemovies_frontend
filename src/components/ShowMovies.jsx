@@ -21,18 +21,10 @@ const ShowMovies = ({ onDataLoaded }) => {
   const [movieHot, setMovieHot] = useState([]);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
 
-  console.log(
-    "📽️ ShowMovies component mounted with onDataLoaded:",
-    !!onDataLoaded,
-  );
-
   useEffect(() => {
     let isMounted = true;
-    console.log("📽️ ShowMovies: useEffect triggered");
-
     const fetchAll = async () => {
       try {
-        console.log("📽️ ShowMovies: Starting data fetch...");
         setComponentLoading("showMovies", true, t("common.loading"));
         setAllDataLoaded(false);
 
@@ -40,24 +32,14 @@ const ShowMovies = ({ onDataLoaded }) => {
         updateProgress(80, t("common.loading"));
 
         // Load movies data
-        console.log("🔍 Fetching movies and hot movies...");
         const [movies, hot] = await Promise.all([
           fetchMovies(),
           fetchMovieByHot(),
         ]);
 
-        console.log("📊 Data received:", {
-          movies: movies?.length || 0,
-          hot: hot?.length || 0,
-          moviesArray: Array.isArray(movies),
-          hotArray: Array.isArray(hot),
-        });
-
         if (isMounted) {
           setMovieList(Array.isArray(movies) ? movies : []);
           setMovieHot(Array.isArray(hot) ? hot : []);
-
-          console.log("📝 State updated with movies data");
 
           // Mark movies as loaded in global state
           setComponentsLoaded((prev) => ({ ...prev, movies: true }));
@@ -67,11 +49,6 @@ const ShowMovies = ({ onDataLoaded }) => {
             if (isMounted) {
               setAllDataLoaded(true);
               setComponentLoading("showMovies", false);
-
-              console.log(
-                "✅ ShowMovies: All data loaded, notifying parent...",
-              );
-              console.log("🔗 onDataLoaded exists:", !!onDataLoaded);
 
               // Notify parent that movies data is ready
               if (onDataLoaded) {
@@ -123,7 +100,7 @@ const ShowMovies = ({ onDataLoaded }) => {
           className={`min-h-screen ${themeClasses.primary} flex items-center justify-center`}
         >
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-white">{t("home.preparing_content")}</p>
           </div>
         </div>
@@ -141,7 +118,7 @@ const ShowMovies = ({ onDataLoaded }) => {
           {t("navigation.movies")}
         </Link>
         <span className="text-white">{<FaChevronRight />}</span>
-        <span className="text-blue-500 text-lg sm:text-xl font-semibold">
+        <span className="text-orange-500 text-lg sm:text-xl font-semibold">
           {t("navigation.trending")}
         </span>
       </nav>

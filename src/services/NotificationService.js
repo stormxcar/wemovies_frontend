@@ -1,6 +1,6 @@
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import i18n from "../i18n";
 
 class NotificationService {

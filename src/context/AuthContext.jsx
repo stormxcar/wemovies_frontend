@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { fetchJson } from "../services/api";
 import api from "../services/api";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import NotificationService from "../services/NotificationService";
 import { useTranslation } from "react-i18next";
 

@@ -1,6 +1,6 @@
 // hooks/useWatchingProgress.js
 import { useState, useEffect, useCallback, useRef } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import WatchingProgressService from "../services/WatchingProgressService";
 import ViewTrackingService from "../services/ViewTrackingService";

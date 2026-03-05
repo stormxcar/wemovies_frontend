@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 
 // Add Component (Generic)
 // Add Component
@@ -151,7 +151,7 @@ const Add = ({ title, onAdd }) => {
         )}
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
+          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
         >
           Thêm
         </button>

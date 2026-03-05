@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../services/api";
 
@@ -95,7 +95,7 @@ const RegisterForm = ({ setStep, setEmail }) => {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="w-full p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
       >
         {t("auth.forgot.send_otp")}
       </button>
@@ -150,7 +150,7 @@ const VerifyOtpForm = ({ email, setStep }) => {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="w-full p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
       >
         {t("authPage.verify_button")}
       </button>
@@ -247,7 +247,7 @@ const LoginForm = () => {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="w-full p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
       >
         {t("auth.login_title")}
       </button>
@@ -272,7 +272,7 @@ const AuthPage = () => {
           {step !== "login" && (
             <button
               onClick={() => setStep("login")}
-              className="text-blue-500 hover:underline"
+              className="text-orange-400 hover:text-orange-300 hover:underline"
             >
               {t("auth.have_account")} {t("auth.login_now")}
             </button>
@@ -280,7 +280,7 @@ const AuthPage = () => {
           {step === "login" && (
             <button
               onClick={() => setStep("register")}
-              className="text-blue-500 hover:underline"
+              className="text-orange-400 hover:text-orange-300 hover:underline"
             >
               {t("auth.no_account")} {t("auth.register_now")}
             </button>

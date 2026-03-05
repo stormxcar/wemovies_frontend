@@ -449,7 +449,7 @@ const Watch = React.memo(() => {
               {t("watchPage.watch_title", { title: currentMovieData.title })}
             </p>
             {/* {startTime > 0 && (
-              <span className="text-blue-400 text-sm">
+              <span className="text-orange-400 text-sm">
                 (Resume from {formatTime(startTime)})
               </span>
             )} */}
@@ -467,7 +467,9 @@ const Watch = React.memo(() => {
                 >
                   <div className="text-center p-6">
                     <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
-                    <h3 className={`text-lg font-bold mb-2 ${themeClasses.textPrimary}`}>
+                    <h3
+                      className={`text-lg font-bold mb-2 ${themeClasses.textPrimary}`}
+                    >
                       {t("watchPage.video_unavailable")}
                     </h3>
                     <p className={`text-sm mb-4 ${themeClasses.textSecondary}`}>
@@ -531,7 +533,9 @@ const Watch = React.memo(() => {
             </div>
 
             <div className="flex-1">
-              <h2 className={`text-2xl font-bold mb-3 ${themeClasses.textPrimary}`}>
+              <h2
+                className={`text-2xl font-bold mb-3 ${themeClasses.textPrimary}`}
+              >
                 {t("watchPage.movie_information")}
               </h2>
 
@@ -619,8 +623,8 @@ const Watch = React.memo(() => {
                 </div>
               </div>
 
-              <div className="mt-4 inline-flex items-center bg-blue-600/20 border border-blue-500/40 rounded-full px-4 py-2">
-                <span className="text-blue-300 text-sm font-semibold">
+              <div className="mt-4 inline-flex items-center bg-orange-600/20 border border-orange-500/40 rounded-full px-4 py-2">
+                <span className="text-orange-300 text-sm font-semibold">
                   {t("watchPage.fields.views")}:{" "}
                   {currentViewCount.toLocaleString()}
                 </span>
@@ -653,7 +657,7 @@ const Watch = React.memo(() => {
               <h2>{t("watchPage.recommendations")}</h2>
               <button
                 onClick={handleSeeAllMovies}
-                className={`rounded px-4 py-2 flex items-center transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "hover:bg-blue-700" : "hover:bg-blue-100"}`}
+                className={`rounded px-4 py-2 flex items-center transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "hover:bg-orange-700" : "hover:bg-orange-100"}`}
               >
                 {t("home.view_all")}
                 <FaChevronRight className="inline ml-2" />

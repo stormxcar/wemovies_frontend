@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Clock, Play, Trash2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import PageLoader from "./loading/PageLoader";
 
@@ -42,7 +42,7 @@ const ContinueWatchingSection = () => {
 
   const getProgressColor = (percentage) => {
     if (percentage >= 95) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
+    if (percentage >= 75) return "bg-orange-500";
     if (percentage >= 50) return "bg-yellow-500";
     if (percentage >= 25) return "bg-orange-500";
     return "bg-gray-400";
@@ -64,7 +64,7 @@ const ContinueWatchingSection = () => {
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
-          <Clock className="mr-2 h-6 w-6 text-blue-500" />
+          <Clock className="mr-2 h-6 w-6 text-orange-500" />
           {t("continue.title")}
           {!isAPIAvailable && (
             <span className="ml-2 px-2 py-1 bg-yellow-600 bg-opacity-30 border border-yellow-500 rounded text-xs text-yellow-300">
@@ -74,7 +74,7 @@ const ContinueWatchingSection = () => {
         </h2>
         <Link
           to="/profile?tab=watching"
-          className="text-blue-400 hover:text-blue-300 transition-colors"
+          className="text-orange-400 hover:text-orange-300 transition-colors"
         >
           {t("continue.view_all")} →
         </Link>
@@ -84,7 +84,7 @@ const ContinueWatchingSection = () => {
         {watchingMovies.map((movie) => (
           <div
             key={movie.movieId}
-            className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-blue-500 transition-all duration-200 group"
+            className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-orange-500 transition-all duration-200 group"
           >
             {/* Movie Poster */}
             <div className="relative aspect-[2/3]">
@@ -142,7 +142,7 @@ const ContinueWatchingSection = () => {
                     },
                     startTime: movie.currentTime || 0,
                   }}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
                 >
                   <Play className="mr-1 h-4 w-4" />
                   {Number(movie.percentage || 0) <= 0
@@ -158,7 +158,7 @@ const ContinueWatchingSection = () => {
                 {movie.movieTitle}
               </h3>
               {movie.episodeNumber && movie.totalEpisodes && (
-                <p className="text-blue-400 text-xs">
+                <p className="text-orange-400 text-xs">
                   {t("continueSection.episode", {
                     current: movie.episodeNumber,
                     total: movie.totalEpisodes,

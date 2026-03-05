@@ -79,7 +79,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                       placeholder={t("mobileMenu.search_types")}
                       value={typeSearch}
                       onChange={(e) => setTypeSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 text-sm"
                     />
                   </div>
                 )}
@@ -173,7 +173,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                       placeholder={t("mobileMenu.search_countries")}
                       value={countrySearch}
                       onChange={(e) => setCountrySearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 text-sm"
                     />
                   </div>
                 )}

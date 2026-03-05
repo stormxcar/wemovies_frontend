@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { useGlobalLoading } from "../context/UnifiedLoadingContext";
 import { fetchJson } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { FaPlus } from "react-icons/fa";
 
 // Import Swiper styles
@@ -33,10 +33,7 @@ function Banner({ onDataLoaded }) {
   const { themeClasses } = useTheme();
   const { t } = useTranslation();
 
-  console.log("🎬 Banner component mounted with onDataLoaded:", !!onDataLoaded);
-
   useEffect(() => {
-    console.log("🎬 Banner: Starting fetch...");
     setLoading(true);
 
     // Update global progress for banner loading
@@ -44,14 +41,11 @@ function Banner({ onDataLoaded }) {
 
     fetchMovies()
       .then((movies) => {
-        console.log("🎬 Banner: Movies fetched:", movies?.length || 0);
         const shuffled = movies.sort(() => 0.5 - Math.random());
         setMovies(shuffled.slice(0, 5));
 
         // Mark banner as loaded
         setComponentsLoaded((prev) => ({ ...prev, banner: true }));
-
-        console.log("✅ Banner: Data loaded, notifying parent...");
 
         // Notify parent that banner data is ready
         if (onDataLoaded) {
@@ -66,7 +60,6 @@ function Banner({ onDataLoaded }) {
         }
       })
       .finally(() => {
-        console.log("🎬 Banner: Loading finished");
         setLoading(false);
       });
   }, []); // FIXED: Empty dependency array to prevent infinite re-renders
@@ -305,7 +298,7 @@ function Banner({ onDataLoaded }) {
                   <span className="px-2 py-1 bg-white/20 text-xs rounded-full">
                     {getReleaseYear(movie)}
                   </span>
-                  <span className="px-2 py-1 bg-blue-500/30 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-orange-500/30 text-xs rounded-full">
                     {getGenreLabel(movie)}
                   </span>
                   <span className="px-2 py-1 bg-purple-500/30 text-xs rounded-full">

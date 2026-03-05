@@ -9,7 +9,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -24,7 +24,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
         <p className="text-gray-400 mb-6">{t("watchlist.empty_subtitle")}</p>
         <Link
           to="/"
-          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
         >
           <Heart className="mr-2 h-4 w-4" />
           {t("watchlist.discover_movies")}
@@ -52,7 +52,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
         {watchlist.map((item) => (
           <div
             key={item.movie.id}
-            className="bg-gray-700 rounded-lg overflow-hidden border border-gray-600 hover:border-blue-500 transition-all duration-200 group"
+            className="bg-gray-700 rounded-lg overflow-hidden border border-gray-600 hover:border-orange-500 transition-all duration-200 group"
           >
             <div className="relative">
               <img
@@ -63,7 +63,7 @@ const WatchlistTab = ({ watchlist, loading, onRefresh }) => {
               <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Link
                   to={`/movie/${item.movie.id}`}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
                 >
                   <Play className="mr-2 h-4 w-4" />
                   {t("movie.watch_now")}

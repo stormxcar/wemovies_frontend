@@ -26,20 +26,14 @@ const Home = () => {
   // Set document title for homepage
   useDocumentTitle(t("home.title"));
 
-  console.log("🏠 Home component mounted");
-
   // Check if both components are ready
   useEffect(() => {
-    console.log("🏠 Home state check:", { bannerLoaded, moviesLoaded });
     if (bannerLoaded && moviesLoaded) {
       updateProgress(95, t("home.loading.finishing_ui"));
-      console.log("✅ All content ready, finalizing...");
-
       // Small delay to ensure smooth transition
       setTimeout(() => {
         updateProgress(100, t("home.loading.completed"));
         setTimeout(() => {
-          console.log("🚀 Home page fully loaded!");
           setAllContentReady(true);
         }, 200);
       }, 300);
@@ -47,12 +41,10 @@ const Home = () => {
   }, [bannerLoaded, moviesLoaded, updateProgress, t]);
 
   const handleBannerLoaded = (success) => {
-    console.log("🎬 Banner loaded:", success);
     setBannerLoaded(true);
   };
 
   const handleMoviesLoaded = (success) => {
-    console.log("🎭 Movies loaded:", success);
     setMoviesLoaded(true);
   };
 
@@ -118,7 +110,7 @@ const Home = () => {
 
         const topCountries = Array.from(countryMap.values())
           .sort((a, b) => b.movies.length - a.movies.length)
-          .slice(0, 2)
+          .slice(0, 3)
           .map((section) => ({
             ...section,
             movies: section.movies.slice(0, 18),
@@ -288,7 +280,6 @@ const Home = () => {
 
   // Show loading until both components are ready
   if (!allContentReady) {
-    console.log("🏠 Home showing PageLoader");
     return (
       <>
         <PageLoader
@@ -311,8 +302,6 @@ const Home = () => {
       </>
     );
   }
-
-  console.log("🏠 Home rendering main content");
 
   return (
     <div
@@ -472,7 +461,7 @@ const Home = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-5">
             {t("home.sections.by_country")}
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {topCountrySections.map((section) => (
               <div
                 key={`country-section-${section.id}`}
@@ -578,7 +567,7 @@ const Home = () => {
                               key={idx}
                               className="bg-white/5 p-3 rounded-lg"
                             >
-                              <span className="inline-flex items-center px-2 py-1 rounded bg-blue-600/30 text-blue-200 text-xs font-medium mb-1">
+                              <span className="inline-flex items-center px-2 py-1 rounded bg-orange-600/30 text-orange-200 text-xs font-medium mb-1">
                                 {review.rating || 0}/5
                               </span>
                               <p className="text-gray-300 text-sm line-clamp-3">
@@ -625,7 +614,7 @@ const Home = () => {
                       className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="mb-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-blue-600/30 text-blue-200 text-sm font-medium">
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-orange-600/30 text-orange-200 text-sm font-medium">
                           {t("home.rating")}: {review.rating || 0}/5
                         </span>
                       </div>

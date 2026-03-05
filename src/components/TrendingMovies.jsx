@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFire, FaEye, FaPlay, FaChevronRight, FaSync } from "react-icons/fa";
-import { toast } from "react-hot-toast";
+import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import useTrending from "../hooks/useTrending";
 import useViewTracking from "../hooks/useViewTracking";
@@ -282,7 +282,7 @@ const TrendingMovies = ({
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                   <button
                     onClick={() => handleWatchMovie(movieId)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all"
+                    className="bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all"
                   >
                     <FaPlay className="text-lg" />
                   </button>

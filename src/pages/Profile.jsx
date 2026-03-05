@@ -180,7 +180,7 @@ const Profile = () => {
                 <img
                   src={user?.avatarUrl || "/placeholder-professional.svg"}
                   alt="Avatar"
-                  className="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg"
+                  className="w-20 h-20 rounded-full border-4 border-orange-500 shadow-lg"
                 />
                 <div
                   className={`absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 ${themeClasses.secondary} rounded-full`}
@@ -191,7 +191,7 @@ const Profile = () => {
                   {user?.fullName || t("profilePage.default_user")}
                 </h1>
                 <div className="flex items-center space-x-4 text-gray-300">
-                  <span className="px-2 py-1 bg-blue-600 text-xs font-semibold rounded-full">
+                  <span className="px-2 py-1 bg-orange-600 text-xs font-semibold rounded-full">
                     {user?.role?.roleName || "User"}
                   </span>
                   <span className="text-sm">
@@ -235,13 +235,13 @@ const Profile = () => {
                       onClick={() => handleTabChange(tab.id)}
                       className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
                         activeTab === tab.id
-                          ? "bg-blue-600 text-white shadow-lg border-l-4 border-blue-400"
+                          ? "bg-orange-600 text-white shadow-lg border-l-4 border-orange-400"
                           : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary}`
                       }`}
                     >
                       <span className="font-medium text-left">{tab.name}</span>
                       {activeTab === tab.id && (
-                        <span className="ml-auto text-blue-200 text-xs font-semibold uppercase">
+                        <span className="ml-auto text-orange-200 text-xs font-semibold uppercase">
                           {t("profilePage.active")}
                         </span>
                       )}
