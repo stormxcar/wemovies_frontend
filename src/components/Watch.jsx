@@ -434,18 +434,18 @@ const Watch = React.memo(() => {
 
   return (
     <div
-      className={`watch ${themeClasses.secondary} w-full h-auto flex flex-col ${themeClasses.textPrimary} pt-28 px-4 pb-8 flex-1`}
+      className={`watch ${themeClasses.secondary} w-full h-auto flex flex-col ${themeClasses.textPrimary} pt-20 sm:pt-24 lg:pt-28 px-3 sm:px-4 pb-8 flex-1`}
     >
       <div>
-        <div className="flex items-center px-5 mb-4">
+        <div className="flex items-center px-0 sm:px-3 mb-4">
           <div
             className={`rounded-full ${themeClasses.textPrimary} flex items-center justify-center border-2 ${themeClasses.border} p-3 mr-3 cursor-pointer ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"}`}
             onClick={() => navigate(-1)}
           >
-            <FaChevronLeft className="text-xl" />
+            <FaChevronLeft className="text-lg sm:text-xl" />
           </div>
           <div>
-            <p className="text-xl">
+            <p className="text-base sm:text-xl line-clamp-2">
               {t("watchPage.watch_title", { title: currentMovieData.title })}
             </p>
             {/* {startTime > 0 && (
@@ -515,7 +515,7 @@ const Watch = React.memo(() => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8 px-5 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-6 sm:mt-8 px-0 sm:px-3 w-full">
         <div
           className={`lg:col-span-5 rounded-2xl p-5 shadow-xl border ${themeClasses.borderLight} ${
             isDarkMode
@@ -523,8 +523,8 @@ const Watch = React.memo(() => {
               : "bg-gradient-to-br from-white to-gray-100"
           }`}
         >
-          <div className="flex flex-col md:flex-row items-start gap-5">
-            <div className="w-40 h-60 relative shrink-0">
+          <div className="flex flex-col md:flex-row items-start gap-4 sm:gap-5">
+            <div className="w-28 h-40 sm:w-40 sm:h-60 relative shrink-0">
               <img
                 src={currentMovieData.thumb_url}
                 alt={currentMovieData.title}
@@ -534,7 +534,7 @@ const Watch = React.memo(() => {
 
             <div className="flex-1">
               <h2
-                className={`text-2xl font-bold mb-3 ${themeClasses.textPrimary}`}
+                className={`text-xl sm:text-2xl font-bold mb-3 ${themeClasses.textPrimary}`}
               >
                 {t("watchPage.movie_information")}
               </h2>
@@ -639,7 +639,7 @@ const Watch = React.memo(() => {
           }`}
         >
           <div>
-            <h2 className="text-2xl font-bold mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">
               {t("watchPage.description")}
             </h2>
             <p
@@ -653,7 +653,7 @@ const Watch = React.memo(() => {
           <ReviewSection movieId={id} />
 
           <div className={`mt-8 border-t-[1px] ${themeClasses.border} pt-8`}>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2>{t("watchPage.recommendations")}</h2>
               <button
                 onClick={handleSeeAllMovies}
@@ -665,22 +665,45 @@ const Watch = React.memo(() => {
             </div>
 
             {relatedMovies.length > 0 ? (
-              <div className="mt-4">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {relatedMovies.slice(0, 5).map((movie) => (
                   <button
                     key={movie.id}
                     onClick={() => navigate(`/watch/${movie.id}`)}
-                    className={`flex mb-4 items-center rounded-lg p-2 w-full text-left ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}`}
+                    className={`group flex items-start rounded-xl border p-2.5 w-full text-left transition-all ${
+                      isDarkMode
+                        ? "border-gray-700 hover:bg-gray-700/70 hover:border-orange-500/60"
+                        : "border-gray-200 hover:bg-gray-100 hover:border-orange-300"
+                    }`}
                   >
-                    <div className="flex-shrink-0 h-24">
+                    <div className="flex-shrink-0 h-24 w-16 sm:w-20 overflow-hidden rounded-lg">
                       <img
                         src={movie.thumb_url}
                         alt={movie.title}
-                        className="h-full object-contain rounded-lg mr-4"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
-                    <div>
-                      <h3 className="text-sm font-normal">{movie.title}</h3>
+                    <div className="ml-3 min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-semibold line-clamp-2 mb-1">
+                        {movie.title}
+                      </h3>
+                      <div
+                        className={`text-xs ${themeClasses.textSecondary} flex flex-wrap gap-2`}
+                      >
+                        <span>
+                          {movie.release_year || t("home.not_available")}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {Number(movie.views || 0).toLocaleString()}{" "}
+                          {t("home.views")}
+                        </span>
+                      </div>
+                      <div className="mt-2 inline-flex items-center rounded-full bg-orange-500/20 border border-orange-400/40 px-2 py-0.5 text-[11px] text-orange-200">
+                        {movie.hot
+                          ? t("home.featured")
+                          : t("watchPage.recommendations")}
+                      </div>
                     </div>
                   </button>
                 ))}

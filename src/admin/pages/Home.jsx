@@ -142,20 +142,22 @@ const Home = () => {
   };
 
   return (
-    <div className={`min-h-screen ${themeClasses.primary}`}>
+    <div className={`min-h-[calc(100vh-4rem)] ${themeClasses.primary}`}>
       {/* Header */}
       <div className={`${themeClasses.card} shadow-sm border-b`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className={`text-3xl font-bold ${themeClasses.textPrimary}`}>
+              <h1
+                className={`text-2xl sm:text-3xl font-bold ${themeClasses.textPrimary}`}
+              >
                 Dashboard Quản Trị
               </h1>
               <p className={`${themeClasses.textSecondary} mt-1`}>
                 Chào mừng đến với hệ thống quản lý WeMovies
               </p>
             </div>
-            <div className={`text-sm ${themeClasses.textMuted}`}>
+            <div className={`text-xs sm:text-sm ${themeClasses.textMuted}`}>
               {new Date().toLocaleDateString("vi-VN", {
                 weekday: "long",
                 year: "numeric",
@@ -167,7 +169,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
@@ -271,7 +273,7 @@ const Home = () => {
                       "/placeholder-professional.svg"
                     }
                     alt={movie.title || movie.name}
-                    className="w-16 h-25 object-cover rounded-md"
+                    className="w-16 h-24 object-cover rounded-md"
                   />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 truncate">

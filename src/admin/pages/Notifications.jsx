@@ -183,7 +183,7 @@ const Notifications = () => {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Quản lý thông báo</h1>
         <p className="text-sm text-gray-600">
@@ -279,7 +279,7 @@ const Notifications = () => {
       </form>
 
       <div className="bg-white border rounded-lg p-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
           <h2 className="text-lg font-semibold">Danh sách thông báo</h2>
           <button
             onClick={() => fetchNotifications(currentPage)}
@@ -321,8 +321,8 @@ const Notifications = () => {
           Tổng: {filteredNotifications.length} thông báo (đã lọc) • {pageLabel}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full min-w-[760px] border-collapse">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Thời gian</th>
@@ -366,7 +366,7 @@ const Notifications = () => {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             onClick={() => fetchNotifications(Math.max(0, currentPage - 1))}
             disabled={loading || currentPage <= 0}

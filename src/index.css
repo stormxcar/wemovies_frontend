@@ -34,6 +34,15 @@ img {
   contain: layout style;
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Search bar responsive optimization */
 @media (min-width: 768px) and (max-width: 1024px) {
   .search-container {

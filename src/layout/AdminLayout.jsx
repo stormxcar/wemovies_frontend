@@ -25,10 +25,10 @@ const AdminLayout = () => {
       {/* Main Content Area */}
       <main
         className={`transition-all duration-300 pt-16 ${
-          isSidebarOpen ? "ml-64" : "ml-0"
+          isSidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           <Outlet />
         </div>
       </main>

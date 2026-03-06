@@ -288,7 +288,7 @@ const DetailMovie = () => {
 
   return (
     <div className="bg-gray-800 w-full flex-1">
-      <div className="relative w-full h-[80vh]">
+      <div className="relative w-full h-[72vh] sm:h-[80vh]">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
         <img
           src={movieDetail.data.banner_url}
@@ -296,7 +296,7 @@ const DetailMovie = () => {
           className="w-full h-full object-cover"
           style={{ objectPosition: "center" }}
         />
-        <div className="absolute bottom-0 w-full p-12 bg-gradient-to-t from-black to-transparent font-bold text-white rounded-b-lg uppercase">
+        <div className="absolute bottom-0 w-full p-4 sm:p-8 lg:p-12 bg-gradient-to-t from-black to-transparent font-bold text-white rounded-b-lg uppercase">
           <span>{movieDetail.data.title}</span>
           <span className="mr-4"> ({movieDetail.data.release_year}) </span>
           {movieDetail.data.vietSub && (
@@ -306,14 +306,14 @@ const DetailMovie = () => {
               </span>
             </div>
           )}
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mt-4 gap-4">
             {/* Left group - Watch and Trailer buttons */}
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <Link
                 to={initialWatchPath}
                 state={{ movieDetail: movieDetail.data }}
                 onClick={startWatchingSession}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -331,7 +331,7 @@ const DetailMovie = () => {
               {movieDetail.data.trailer && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
+                  className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center space-x-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -346,7 +346,7 @@ const DetailMovie = () => {
             </div>
 
             {/* Right group - Like, Watch Later, Share buttons */}
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="min-w-[120px]">
                 <WatchlistButton movieId={movieDetail.data.id} size="large" />
               </div>
@@ -395,7 +395,7 @@ const DetailMovie = () => {
           </div>
           {showModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-black/50 border-2 border-white rounded-lg shadow-lg p-2 w-3/4 max-w-2xl">
+              <div className="bg-black/50 border-2 border-white rounded-lg shadow-lg p-2 w-[95vw] sm:w-3/4 max-w-2xl">
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-white float-right mb-8"
@@ -406,7 +406,7 @@ const DetailMovie = () => {
                   src={convertToEmbedUrl(movieDetail.data.trailer)}
                   title="Trailer"
                   width="100%"
-                  height="400px"
+                  height="320px"
                   allowFullScreen
                 ></iframe>
               </div>
@@ -415,9 +415,12 @@ const DetailMovie = () => {
         </div>
       </div>
 
-      <div className="my-12 mx-4 sm:mx-8 md:mx:12 lg:mx-16 mb-8">
+      <div className="my-10 mx-3 sm:mx-8 lg:mx-16 mb-8">
         <nav className="mb-8 flex items-center space-x-2">
-          <Link to="/" className="text-white text-xl font-semibold">
+          <Link
+            to="/"
+            className="text-white text-base sm:text-xl font-semibold"
+          >
             {t("navigation.movies")}
           </Link>{" "}
           <span className="text-white mx-2">{<FaChevronRight />}</span>
@@ -425,24 +428,24 @@ const DetailMovie = () => {
             <>
               <Link
                 to={`/movies/${category.name}`}
-                className="text-white text-xl font-semibold"
+                className="text-white text-base sm:text-xl font-semibold"
               >
                 {category.name.toLowerCase()}
               </Link>{" "}
               <span className="text-white mx-2">{<FaChevronRight />}</span>
             </>
           )}
-          <span className="text-orange-500 text-xl font-semibold">
+          <span className="text-orange-500 text-base sm:text-xl font-semibold line-clamp-1">
             {movieDetail.data.title}
           </span>
         </nav>
 
-        <div className="flex justify-between">
-          <div className="relative w-[30%] h-[300px] flex items-start flex-col justify-start float-left mb-6">
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-6">
+          <div className="relative w-full lg:w-[30%] h-auto lg:h-[300px] flex items-start flex-col justify-start mb-3 lg:mb-6">
             <img
               src={movieDetail.data.thumb_url}
               alt={movieDetail.data.title}
-              className="h-full object-contain"
+              className="w-full lg:w-auto h-auto lg:h-full max-h-[360px] object-cover lg:object-contain rounded-lg"
             />
             <div className="w-full font-bold text-white rounded-b-lg uppercase mt-4">
               <span>{movieDetail.data.title}</span>
@@ -450,7 +453,7 @@ const DetailMovie = () => {
             </div>
           </div>
 
-          <div className="w-[70%] pl-12">
+          <div className="w-full lg:w-[70%] lg:pl-12">
             <h2 className="font-bold my-4 text-white sm:text-xl md:text-2xl">
               {t("movieDetail.detail_content")}
             </h2>
@@ -616,7 +619,7 @@ const DetailMovie = () => {
 
       {/* <div className="my-4 mt-12"></div> */}
 
-      <div className=" mx-12 mt-40">
+      <div className="mx-3 sm:mx-8 lg:mx-12 mt-16 sm:mt-24">
         <HorizontalMovies
           title={t("movieDetail.related_movies")}
           movies={relatedMovies}

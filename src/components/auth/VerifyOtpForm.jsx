@@ -35,7 +35,7 @@ function VerifyOtpForm({ email, onClose, onVerifySuccess }) {
       onClick={onClose}
     >
       <div
-        className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+        className="bg-orange-950/70 p-4 sm:p-8 md:p-10 rounded-lg shadow-xl w-[94vw] sm:w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button

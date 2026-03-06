@@ -22,7 +22,11 @@
     "check_auth": "Kiểm tra đăng nhập...",
     "load_ui": "Tải giao diện...",
     "complete": "Hoàn tất...",
-    "preparing_default": "Đang chuẩn bị ..."
+    "preparing_default": "Đang chuẩn bị ...",
+    "movie_tip_1": "Đang khởi động rạp phim của bạn...",
+    "movie_tip_2": "Chuẩn bị danh sách phim hot hôm nay...",
+    "movie_tip_3": "Bắp rang sẵn sàng, phim sắp lên sóng...",
+    "movie_tip_4": "Kết nối máy chủ WeMovies..."
   },
   "header": {
     "search_placeholder": "Tìm kiếm phim...",
@@ -877,6 +881,12 @@
       "preparing_home": "Đang chuẩn bị trang chủ",
       "finishing_ui": "Hoàn thiện giao diện...",
       "completed": "Hoàn thành!"
+    },
+    "loader": {
+      "msg_1": "Đang chọn phim hợp gu của bạn...",
+      "msg_2": "WeMovies đang chuẩn bị rạp chiếu riêng cho bạn...",
+      "msg_3": "Kéo màn chiếu xuống, phim sắp bắt đầu...",
+      "msg_4": "Đợi chút, nội dung đang được làm nóng..."
     },
     "sections": {
       "by_category": "Khám phá theo thể loại",

@@ -280,7 +280,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
       onClick={onClose}
     >
       <div
-        className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+        className="bg-orange-950/70 p-4 sm:p-8 md:p-10 rounded-lg shadow-xl w-[94vw] sm:w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -289,7 +289,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         >
           <FaTimes />
         </button>
-        <h2 className="text-xl text-white font-semibold mb-4">
+        <h2 className="text-lg sm:text-xl text-white font-semibold mb-4">
           {t("auth.login_now")}
         </h2>
         <p className="text-gray-300 mb-6">
@@ -376,7 +376,7 @@ function LoginForm({ onClose, onSwitchToRegister, onLoginSuccess }) {
         {/* Modal Quên mật khẩu */}
         {showForgotPassword && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-            <div className="bg-orange-950/90 p-8 rounded-lg shadow-xl w-full max-w-sm relative">
+            <div className="bg-orange-950/90 p-4 sm:p-6 md:p-8 rounded-lg shadow-xl w-[92vw] sm:w-full max-w-sm relative">
               <button
                 className="absolute top-2 right-2 text-white hover:text-gray-300"
                 onClick={() => {

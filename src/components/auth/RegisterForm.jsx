@@ -158,7 +158,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
         onClick={onClose}
       >
         <div
-          className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+          className="bg-orange-950/70 p-4 sm:p-8 md:p-10 rounded-lg shadow-xl w-[94vw] sm:w-full max-w-md relative"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -167,7 +167,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
           >
             <FaTimes />
           </button>
-          <h2 className="text-xl text-white font-semibold mb-4">
+          <h2 className="text-lg sm:text-xl text-white font-semibold mb-4">
             {t("register.otp.title")}
           </h2>
           <form
@@ -221,7 +221,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
       onClick={onClose}
     >
       <div
-        className="bg-orange-950/70 p-10 rounded-lg shadow-xl w-full max-w-md relative"
+        className="bg-orange-950/70 p-4 sm:p-8 md:p-10 rounded-lg shadow-xl w-[94vw] sm:w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -230,7 +230,7 @@ function RegisterForm({ onClose, onSwitchToLogin }) {
         >
           <FaTimes />
         </button>
-        <h2 className="text-xl text-white font-semibold mb-4">
+        <h2 className="text-lg sm:text-xl text-white font-semibold mb-4">
           {t("register.title")}
         </h2>
         <p className="text-gray-300 mb-6">

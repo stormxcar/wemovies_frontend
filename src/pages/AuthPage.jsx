@@ -261,14 +261,14 @@ const AuthPage = () => {
   const [email, setEmail] = useState("");
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-3 py-8 sm:px-4">
+      <div className="w-full max-w-[22rem] sm:max-w-md p-4 sm:p-6 bg-white rounded-lg shadow-md">
         {step === "register" && (
           <RegisterForm setStep={setStep} setEmail={setEmail} />
         )}
         {step === "verify" && <VerifyOtpForm email={email} setStep={setStep} />}
         {step === "login" && <LoginForm />}
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-center text-sm sm:text-base">
           {step !== "login" && (
             <button
               onClick={() => setStep("login")}

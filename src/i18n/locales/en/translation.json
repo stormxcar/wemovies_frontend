@@ -22,7 +22,11 @@
     "check_auth": "Checking authentication...",
     "load_ui": "Loading interface...",
     "complete": "Finalizing...",
-    "preparing_default": "Preparing ..."
+    "preparing_default": "Preparing ...",
+    "movie_tip_1": "Starting your private cinema...",
+    "movie_tip_2": "Preparing today's hot movie lineup...",
+    "movie_tip_3": "Popcorn is ready, showtime soon...",
+    "movie_tip_4": "Connecting to WeMovies servers..."
   },
   "header": {
     "search_placeholder": "Search movies...",
@@ -877,6 +881,12 @@
       "preparing_home": "Preparing homepage",
       "finishing_ui": "Finishing interface...",
       "completed": "Completed!"
+    },
+    "loader": {
+      "msg_1": "Picking movies that match your vibe...",
+      "msg_2": "WeMovies is preparing your private theater...",
+      "msg_3": "Curtain is rising, show starts soon...",
+      "msg_4": "One moment, warming up your content..."
     },
     "sections": {
       "by_category": "Explore by category",

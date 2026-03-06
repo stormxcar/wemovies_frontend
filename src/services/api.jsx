@@ -158,6 +158,7 @@ export const fetchScheduleData = async (endpoint, defaultValue = null) => {
 
 // Các hàm fetch khác giữ nguyên
 const MOVIES_CACHE_TTL_MS = 60 * 1000;
+const MOVIES_FETCH_TIMEOUT_MS = 15000;
 let moviesCacheData = null;
 let moviesCacheTime = 0;
 let moviesCachePromise = null;
@@ -179,18 +180,26 @@ export const fetchMovies = async (options = {}) => {
   }
 
   moviesCachePromise = (async () => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const data = await fetchJson("/api/movies");
+      const data = await Promise.race([
+        fetchJson("/api/movies", { timeout: MOVIES_FETCH_TIMEOUT_MS }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("fetchMovies timeout")),
+            MOVIES_FETCH_TIMEOUT_MS,
+          ),
+        ),
+      ]);
       const movies = Array.isArray(data.data) ? data.data : [];
       moviesCacheData = movies;
       moviesCacheTime = Date.now();
       return movies;
     } catch (error) {
+      if (Array.isArray(moviesCacheData) && moviesCacheData.length > 0) {
+        return moviesCacheData;
+      }
       return [];
     } finally {
-      clearTimeout(timeoutId);
       moviesCachePromise = null;
     }
   })();

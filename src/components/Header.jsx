@@ -448,10 +448,10 @@ function Header() {
       <div
         className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ${
           isScrolled ? "bg-black/80 shadow-lg" : "bg-transparent"
-        } p-4 flex items-center justify-between text-white`}
+        } px-3 py-2 sm:p-4 flex items-center justify-between text-white`}
         onClick={closeModal}
       >
-        <div className="flex items-center space-x-4 w-full">
+        <div className="flex items-center space-x-2 sm:space-x-4 w-full min-w-0">
           <button
             type="button"
             onClick={(e) => {
@@ -460,7 +460,7 @@ function Header() {
                 loadingMessage: t("header.loading_home"),
               });
             }}
-            className="text-2xl font-bold hover:text-orange-300 transition-colors"
+            className="text-lg sm:text-2xl font-bold hover:text-orange-300 transition-colors whitespace-nowrap"
           >
             Wemovies
           </button>
@@ -635,16 +635,16 @@ function Header() {
           </div>
         </div>
 
-        <div className="flex items-center w-[30%] justify-end">
+        <div className="flex items-center w-auto sm:w-[30%] justify-end ml-2">
           {isLoading("search") ? null : user ? (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1.5 sm:space-x-3">
               {/* Theme Toggle Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleTheme();
                 }}
-                className={`p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   isDarkMode
                     ? t("header.theme_to_light")
@@ -652,9 +652,9 @@ function Header() {
                 }
               >
                 {isDarkMode ? (
-                  <Sun className="h-5 w-5 text-yellow-400" />
+                  <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
                 ) : (
-                  <Moon className="h-5 w-5 text-orange-300" />
+                  <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-orange-300" />
                 )}
               </button>
 
@@ -664,7 +664,7 @@ function Header() {
                   e.stopPropagation();
                   toggleLanguage();
                 }}
-                className={`p-2 rounded-lg transition-colors flex items-center space-x-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors flex items-center gap-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   i18n.language === "vi"
                     ? t("header.switch_to_english")
@@ -672,11 +672,13 @@ function Header() {
                 }
               >
                 <Languages className="h-4 w-4 text-green-400" />
-                <span className="text-xs font-medium">
+                <span className="hidden min-[375px]:inline text-[10px] sm:text-xs font-medium">
                   {i18n.language === "vi" ? "EN" : "VI"}
                 </span>
               </button>
-              <NotificationCenter />
+              <div className="hidden sm:block">
+                <NotificationCenter />
+              </div>
               <div className="relative">
                 <button
                   onClick={(e) => {
@@ -688,9 +690,11 @@ function Header() {
                   <img
                     src={user.avatarUrl}
                     alt="Avatar"
-                    className="w-10 h-10 rounded-full border-2 border-orange-300"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300"
                   />
-                  <span className="text-white">{user?.fullName}</span>
+                  <span className="hidden xl:inline text-white line-clamp-1 max-w-[140px]">
+                    {user?.fullName}
+                  </span>
                 </button>
                 {showUserModal && (
                   <div
@@ -748,14 +752,14 @@ function Header() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1.5 sm:space-x-3">
               {/* Theme Toggle Button for non-logged in users */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleTheme();
                 }}
-                className={`p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   isDarkMode
                     ? t("header.theme_to_light")
@@ -763,9 +767,9 @@ function Header() {
                 }
               >
                 {isDarkMode ? (
-                  <Sun className="h-5 w-5 text-yellow-400" />
+                  <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
                 ) : (
-                  <Moon className="h-5 w-5 text-orange-300" />
+                  <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-orange-300" />
                 )}
               </button>
 
@@ -775,7 +779,7 @@ function Header() {
                   e.stopPropagation();
                   toggleLanguage();
                 }}
-                className={`p-2 rounded-lg transition-colors flex items-center space-x-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors flex items-center gap-1 ${themeClasses.textPrimary} ${isDarkMode ? "bg-gray-800/50 hover:bg-gray-700/50" : "bg-white/90 hover:bg-gray-100 border border-gray-200"}`}
                 title={
                   i18n.language === "vi"
                     ? t("header.switch_to_english")
@@ -783,7 +787,7 @@ function Header() {
                 }
               >
                 <Languages className="h-4 w-4 text-green-400" />
-                <span className="text-xs font-medium">
+                <span className="hidden min-[375px]:inline text-[10px] sm:text-xs font-medium">
                   {i18n.language === "vi" ? "EN" : "VI"}
                 </span>
               </button>
@@ -794,7 +798,7 @@ function Header() {
                   e.stopPropagation();
                   setShowLogin(true);
                 }}
-                className="hover:text-orange-300 transition-colors py-2 px-4 rounded-full bg-orange-900 text-center w-[50%]"
+                className="hover:text-orange-300 transition-colors py-1.5 sm:py-2 px-3 sm:px-4 rounded-full bg-orange-900 text-center text-sm sm:text-base whitespace-nowrap"
                 aria-label={t("header.login")}
               >
                 {t("header.login")}

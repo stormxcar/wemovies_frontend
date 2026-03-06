@@ -10,6 +10,39 @@ import PageLoader from "../components/loading/PageLoader";
 import i18n from "../i18n";
 
 const LoadingContext = createContext();
+let hasWarnedMissingProvider = false;
+
+const fallbackLoadingContext = {
+  componentLoadingStates: {},
+  setComponentLoading: () => {},
+  isComponentLoading: () => false,
+  isAnyComponentLoading: false,
+  withLoading: async (_key, asyncFunction) =>
+    typeof asyncFunction === "function" ? asyncFunction() : undefined,
+  pageLoading: false,
+  pageLoadingMessage: i18n.t("loading.default"),
+  showPageLoading: () => {},
+  hidePageLoading: () => {},
+  navigateWithLoading: () => {},
+  isAppLoading: false,
+  appLoadingMessage: i18n.t("loading.default"),
+  appProgress: 0,
+  showAppLoader: () => {},
+  hideAppLoader: () => {},
+  updateProgress: () => {},
+  componentsLoaded: {
+    app: true,
+    auth: true,
+    banner: true,
+    movies: true,
+    ui: true,
+  },
+  setComponentsLoaded: () => {},
+  setLoading: () => {},
+  isLoading: () => false,
+  isAnyLoading: false,
+  loadingStates: {},
+};
 
 export const LoadingProvider = ({ children }) => {
   // Individual component loading states
@@ -256,7 +289,13 @@ export const LoadingProvider = ({ children }) => {
 export const useLoading = () => {
   const context = useContext(LoadingContext);
   if (!context) {
-    throw new Error("useLoading must be used within a LoadingProvider");
+    if (!hasWarnedMissingProvider) {
+      hasWarnedMissingProvider = true;
+      console.error(
+        "[UnifiedLoadingContext] useLoading called without LoadingProvider. Returning fallback context.",
+      );
+    }
+    return fallbackLoadingContext;
   }
   return context;
 };

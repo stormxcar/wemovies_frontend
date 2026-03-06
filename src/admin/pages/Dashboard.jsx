@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "../components/Header"
+import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 const Dashboard = ({
@@ -47,8 +47,8 @@ const Dashboard = ({
           navigate={navigate}
         />
         <main
-          className={`flex-1 bg-gray-100 p-6 mt-16 overflow-y-auto transition-all duration-300 ${
-            isSidebarOpen ? "md:ml-64" : "md:ml-0"
+          className={`flex-1 bg-gray-100 p-3 sm:p-4 lg:p-6 mt-16 overflow-y-auto transition-all duration-300 ${
+            isSidebarOpen ? "lg:ml-64" : "lg:ml-0"
           }`}
         >
           <Outlet

@@ -304,10 +304,10 @@ const List = ({
   }, [displayFields]);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-3 sm:p-4 lg:p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-4">
         <h1 className="text-2xl font-bold">Danh sách {title}</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {title === "Người dùng" && onCreateUser && (
             <button
               onClick={() => setShowCreateUserForm((prev) => !prev)}
@@ -487,148 +487,152 @@ const List = ({
         {currentPage} / {totalPages})
       </div>
 
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2 w-12">
-              <button
-                onClick={handleSelectAll}
-                className="flex items-center justify-center w-full"
-              >
-                {selectedItems.length === paginatedItems.length &&
-                paginatedItems.length > 0 ? (
-                  <CheckSquare className="h-4 w-4" />
-                ) : (
-                  <Square className="h-4 w-4" />
-                )}
-              </button>
-            </th>
-            {displayFields.map((field) => (
-              <th key={field.key} className="border p-2">
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="w-full min-w-[900px] border-collapse">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2 w-12">
                 <button
-                  onClick={() => handleSort(field.key)}
-                  className="flex items-center gap-1 hover:bg-gray-300 px-2 py-1 rounded"
+                  onClick={handleSelectAll}
+                  className="flex items-center justify-center w-full"
                 >
-                  {field.label}
-                  {sortField === field.key &&
-                    (sortDirection === "asc" ? (
-                      <SortAsc className="h-4 w-4" />
-                    ) : (
-                      <SortDesc className="h-4 w-4" />
-                    ))}
+                  {selectedItems.length === paginatedItems.length &&
+                  paginatedItems.length > 0 ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
                 </button>
               </th>
-            ))}
-            <th className="border p-2">Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading
-            ? // Show skeleton rows when loading
-              Array.from({ length: Math.min(5, itemsPerPage) }).map(
-                (_, index) => (
+              {displayFields.map((field) => (
+                <th key={field.key} className="border p-2">
+                  <button
+                    onClick={() => handleSort(field.key)}
+                    className="flex items-center gap-1 hover:bg-gray-300 px-2 py-1 rounded"
+                  >
+                    {field.label}
+                    {sortField === field.key &&
+                      (sortDirection === "asc" ? (
+                        <SortAsc className="h-4 w-4" />
+                      ) : (
+                        <SortDesc className="h-4 w-4" />
+                      ))}
+                  </button>
+                </th>
+              ))}
+              <th className="border p-2">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading
+              ? // Show skeleton rows when loading
+                Array.from({ length: Math.min(5, itemsPerPage) }).map(
+                  (_, index) => (
+                    <tr
+                      key={`skeleton-${index}`}
+                      className="border animate-pulse"
+                    >
+                      <td className="border p-2">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                      </td>
+                      {displayFields.map((field) => (
+                        <td key={field.key} className="border p-2">
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                        </td>
+                      ))}
+                      <td className="border p-2">
+                        <div className="flex space-x-2">
+                          <div className="h-6 w-12 bg-gray-200 rounded"></div>
+                          <div className="h-6 w-12 bg-gray-200 rounded"></div>
+                          <div className="h-6 w-12 bg-gray-200 rounded"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  ),
+                )
+              : paginatedItems.map((item) => (
                   <tr
-                    key={`skeleton-${index}`}
-                    className="border animate-pulse"
+                    key={item[keyField]}
+                    className={`border ${
+                      selectedItems.includes(item[keyField])
+                        ? "bg-orange-50"
+                        : ""
+                    }`}
                   >
                     <td className="border p-2">
-                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <button
+                        onClick={() => handleSelectItem(item[keyField])}
+                        className="flex items-center justify-center w-full"
+                      >
+                        {selectedItems.includes(item[keyField]) ? (
+                          <CheckSquare className="h-4 w-4 text-orange-600" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
+                      </button>
                     </td>
                     {displayFields.map((field) => (
                       <td key={field.key} className="border p-2">
-                        <div className="h-4 bg-gray-200 rounded"></div>
+                        {field.render
+                          ? field.render(item[field.key])
+                          : field.key.includes(".")
+                            ? (item[field.key.split(".")[0]]?.[
+                                field.key.split(".")[1]
+                              ] ?? "N/A")
+                            : (item[field.key] ?? "N/A")}
                       </td>
                     ))}
-                    <td className="border p-2">
-                      <div className="flex space-x-2">
-                        <div className="h-6 w-12 bg-gray-200 rounded"></div>
-                        <div className="h-6 w-12 bg-gray-200 rounded"></div>
-                        <div className="h-6 w-12 bg-gray-200 rounded"></div>
-                      </div>
+                    <td className="border p-2 flex space-x-2">
+                      {title === "Người dùng" && onToggleUserLock && (
+                        <button
+                          onClick={() => handleToggleLock(item)}
+                          className={`px-2 py-1 text-white rounded flex items-center gap-1 ${
+                            item?.isActive === false
+                              ? "bg-green-600 hover:bg-green-700"
+                              : "bg-orange-600 hover:bg-orange-700"
+                          }`}
+                          title={
+                            item?.isActive === false
+                              ? "Mở khóa tài khoản"
+                              : "Khóa tài khoản"
+                          }
+                        >
+                          {item?.isActive === false ? (
+                            <Unlock className="h-3 w-3" />
+                          ) : (
+                            <Lock className="h-3 w-3" />
+                          )}
+                        </button>
+                      )}
+                      {onViewDetails && (
+                        <button
+                          onClick={() => onViewDetails(item[keyField])}
+                          className="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-1"
+                          title="Chi tiết"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onEdit(item)}
+                        className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-1"
+                        title="Sửa"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(item[keyField])}
+                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-1"
+                        title="Xóa"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
                     </td>
                   </tr>
-                ),
-              )
-            : paginatedItems.map((item) => (
-                <tr
-                  key={item[keyField]}
-                  className={`border ${
-                    selectedItems.includes(item[keyField]) ? "bg-orange-50" : ""
-                  }`}
-                >
-                  <td className="border p-2">
-                    <button
-                      onClick={() => handleSelectItem(item[keyField])}
-                      className="flex items-center justify-center w-full"
-                    >
-                      {selectedItems.includes(item[keyField]) ? (
-                        <CheckSquare className="h-4 w-4 text-orange-600" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </button>
-                  </td>
-                  {displayFields.map((field) => (
-                    <td key={field.key} className="border p-2">
-                      {field.render
-                        ? field.render(item[field.key])
-                        : field.key.includes(".")
-                          ? (item[field.key.split(".")[0]]?.[
-                              field.key.split(".")[1]
-                            ] ?? "N/A")
-                          : (item[field.key] ?? "N/A")}
-                    </td>
-                  ))}
-                  <td className="border p-2 flex space-x-2">
-                    {title === "Người dùng" && onToggleUserLock && (
-                      <button
-                        onClick={() => handleToggleLock(item)}
-                        className={`px-2 py-1 text-white rounded flex items-center gap-1 ${
-                          item?.isActive === false
-                            ? "bg-green-600 hover:bg-green-700"
-                            : "bg-orange-600 hover:bg-orange-700"
-                        }`}
-                        title={
-                          item?.isActive === false
-                            ? "Mở khóa tài khoản"
-                            : "Khóa tài khoản"
-                        }
-                      >
-                        {item?.isActive === false ? (
-                          <Unlock className="h-3 w-3" />
-                        ) : (
-                          <Lock className="h-3 w-3" />
-                        )}
-                      </button>
-                    )}
-                    {onViewDetails && (
-                      <button
-                        onClick={() => onViewDetails(item[keyField])}
-                        className="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-1"
-                        title="Chi tiết"
-                      >
-                        <Eye className="h-3 w-3" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onEdit(item)}
-                      className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-1"
-                      title="Sửa"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(item[keyField])}
-                      className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-1"
-                      title="Xóa"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-        </tbody>
-      </table>
+                ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
       <Pagination

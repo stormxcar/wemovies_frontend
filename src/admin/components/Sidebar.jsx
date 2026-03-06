@@ -55,7 +55,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
   return (
     <div className="relative">
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] ${themeClasses.primary} ${themeClasses.textPrimary} w-64 p-4 overflow-y-auto transition-transform duration-300 transform ${
+        className={`fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] ${themeClasses.primary} ${themeClasses.textPrimary} w-[88vw] max-w-72 lg:w-64 p-4 overflow-y-auto transition-transform duration-300 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } ${themeClasses.border} border-r`}
       >
@@ -285,8 +285,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
         </nav>
       </aside>
       <button
-        className={`fixed top-20 left-5 z-50 p-2 bg-gray-700 text-white rounded ${
-          isSidebarOpen ? "hidden" : "block"
+        className={`fixed top-20 left-3 z-[60] p-2 bg-gray-700 text-white rounded shadow ${
+          isSidebarOpen ? "hidden" : "inline-flex"
         }`}
         onClick={() => setIsSidebarOpen(true)}
       >
@@ -306,7 +306,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, navigate }) => {
       </button>
       {isSidebarOpen && (
         <button
-          className="fixed top-20 left-[260px] p-2 bg-gray-700 text-white rounded"
+          className="fixed top-20 left-[calc(min(88vw,18rem)+0.5rem)] z-[60] p-2 bg-gray-700 text-white rounded shadow lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         >
           <svg

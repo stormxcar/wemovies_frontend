@@ -83,7 +83,7 @@ function ResetPasswordForm({ onClose, userEmail }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70]">
-      <div className="bg-orange-950/90 p-8 rounded-lg shadow-xl w-full max-w-md relative">
+      <div className="bg-orange-950/90 p-4 sm:p-6 md:p-8 rounded-lg shadow-xl w-[94vw] sm:w-full max-w-md relative">
         <button
           className="absolute top-2 right-2 text-white hover:text-gray-300"
           onClick={onClose}

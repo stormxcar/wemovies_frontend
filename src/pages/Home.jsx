@@ -9,6 +9,8 @@ import { useGlobalLoading } from "../context/UnifiedLoadingContext";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { fetchJson, fetchMovies } from "../services/api";
 
+const HOME_MAX_BLOCKING_LOADER_MS = 12000;
+
 const Home = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -21,7 +23,44 @@ const Home = () => {
   const [topReviewedMovies, setTopReviewedMovies] = useState([]);
   const [topReviewEntries, setTopReviewEntries] = useState([]);
   const reviewSummaryCacheRef = useRef(new Map());
+  const homeLoadStartRef = useRef(performance.now());
   const { updateProgress } = useGlobalLoading();
+
+  const loadingMessages = useMemo(
+    () => [
+      t("loading.movie_tip_1"),
+      t("loading.movie_tip_2"),
+      t("loading.movie_tip_3"),
+      t("loading.movie_tip_4"),
+    ],
+    [t],
+  );
+
+  useEffect(() => {
+    const startedAt = homeLoadStartRef.current;
+    console.info("[Home] Loading started", {
+      startedAt,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (allContentReady) return;
+
+    const unlockTimer = window.setTimeout(() => {
+      console.warn("[Home] Fail-open activated to avoid blocking UI", {
+        timeoutMs: HOME_MAX_BLOCKING_LOADER_MS,
+        bannerLoaded,
+        moviesLoaded,
+        elapsedMs: Math.round(performance.now() - homeLoadStartRef.current),
+      });
+      updateProgress(100, t("home.loading.completed"));
+      setAllContentReady(true);
+    }, HOME_MAX_BLOCKING_LOADER_MS);
+
+    return () => {
+      window.clearTimeout(unlockTimer);
+    };
+  }, [allContentReady, bannerLoaded, moviesLoaded, t, updateProgress]);
 
   // Set document title for homepage
   useDocumentTitle(t("home.title"));
@@ -29,22 +68,42 @@ const Home = () => {
   // Check if both components are ready
   useEffect(() => {
     if (bannerLoaded && moviesLoaded) {
+      const totalMs = Math.round(performance.now() - homeLoadStartRef.current);
+      console.info("[Home] Core sections ready", {
+        bannerLoaded,
+        moviesLoaded,
+        totalMs,
+      });
+
       updateProgress(95, t("home.loading.finishing_ui"));
       // Small delay to ensure smooth transition
       setTimeout(() => {
         updateProgress(100, t("home.loading.completed"));
         setTimeout(() => {
           setAllContentReady(true);
+          console.info("[Home] Page visible", {
+            visibleAfterMs: Math.round(
+              performance.now() - homeLoadStartRef.current,
+            ),
+          });
         }, 200);
       }, 300);
     }
   }, [bannerLoaded, moviesLoaded, updateProgress, t]);
 
   const handleBannerLoaded = (success) => {
+    console.info("[Home] Banner loaded callback", {
+      success,
+      elapsedMs: Math.round(performance.now() - homeLoadStartRef.current),
+    });
     setBannerLoaded(true);
   };
 
   const handleMoviesLoaded = (success) => {
+    console.info("[Home] ShowMovies loaded callback", {
+      success,
+      elapsedMs: Math.round(performance.now() - homeLoadStartRef.current),
+    });
     setMoviesLoaded(true);
   };
 
@@ -52,8 +111,21 @@ const Home = () => {
     let mounted = true;
 
     const buildHomeSections = async () => {
+      const sectionStart = performance.now();
       try {
         const movies = await fetchMovies();
+        const durationMs = Math.round(performance.now() - sectionStart);
+        console.info("[Home] buildHomeSections fetchMovies completed", {
+          durationMs,
+          count: Array.isArray(movies) ? movies.length : 0,
+        });
+
+        if (durationMs > 10000) {
+          console.warn("[Home] fetchMovies is very slow", {
+            durationMs,
+          });
+        }
+
         if (!mounted) return;
 
         const safeMovies = Array.isArray(movies) ? movies : [];
@@ -215,6 +287,10 @@ const Home = () => {
           loadReviewHighlights();
         }, 0);
       } catch (error) {
+        console.error("[Home] buildHomeSections failed", {
+          durationMs: Math.round(performance.now() - sectionStart),
+          error,
+        });
         if (!mounted) return;
         setHomeMovies([]);
         setTopCategorySections([]);
@@ -278,13 +354,126 @@ const Home = () => {
     [rankedMovies],
   );
 
+  const topRankChartData = useMemo(
+    () => rankedMovies.slice(0, 6),
+    [rankedMovies],
+  );
+
+  const topRankSummary = useMemo(() => {
+    if (rankedMovies.length === 0) {
+      return {
+        totalViews: 0,
+        avgRating: 0,
+      };
+    }
+
+    const totalViews = rankedMovies.reduce(
+      (sum, movie) => sum + Number(movie?.views || 0),
+      0,
+    );
+    const avgRatingRaw = rankedMovies.reduce(
+      (sum, movie) => sum + Number(movie?.averageRating || 0),
+      0,
+    );
+
+    return {
+      totalViews,
+      avgRating: Number((avgRatingRaw / rankedMovies.length).toFixed(1)),
+    };
+  }, [rankedMovies]);
+
+  const topRankExtras = useMemo(() => {
+    const hottestCount = rankedMovies.filter((movie) =>
+      Boolean(movie?.hot),
+    ).length;
+    const bestScoreMovie = rankedMovies[0] || null;
+    const bestRatedMovie =
+      [...rankedMovies].sort(
+        (a, b) => Number(b?.averageRating || 0) - Number(a?.averageRating || 0),
+      )[0] || null;
+
+    return {
+      hottestCount,
+      bestScoreMovie,
+      bestRatedMovie,
+    };
+  }, [rankedMovies]);
+
+  const topRankComboChart = useMemo(() => {
+    const chartData = topRankChartData;
+    const width = 860;
+    const height = 460;
+    const padding = { top: 36, right: 24, bottom: 54, left: 44 };
+    const innerWidth = width - padding.left - padding.right;
+    const innerHeight = height - padding.top - padding.bottom;
+
+    const hasViewsData = chartData.some(
+      (movie) => Number(movie?.views || 0) > 0,
+    );
+    const barMetric = hasViewsData
+      ? chartData.map((movie) => Number(movie?.views || 0))
+      : chartData.map((movie) => Number(movie?.rankingScore || 0));
+    const maxViews = Math.max(1, ...barMetric);
+    const maxRating = Math.max(
+      1,
+      ...chartData.map((movie) => Number(movie?.averageRating || 0)),
+      5,
+    );
+
+    const slotWidth = chartData.length > 0 ? innerWidth / chartData.length : 0;
+    const barWidth = Math.max(18, Math.min(52, slotWidth * 0.55));
+
+    const bars = chartData.map((movie, index) => {
+      const value = barMetric[index] || 0;
+      const valueRatio = value / maxViews;
+      const barHeight = valueRatio * innerHeight;
+      const x = padding.left + index * slotWidth + (slotWidth - barWidth) / 2;
+      const y = padding.top + innerHeight - barHeight;
+
+      return {
+        id: movie.id,
+        label: `#${index + 1}`,
+        x,
+        y,
+        barWidth,
+        barHeight: Math.max(4, barHeight),
+      };
+    });
+
+    const points = chartData.map((movie, index) => {
+      const rating = Number(movie?.averageRating || 0);
+      const valueRatio = rating / maxRating;
+      const x = padding.left + index * slotWidth + slotWidth / 2;
+      const y = padding.top + innerHeight - valueRatio * innerHeight;
+      return { x, y, rating };
+    });
+
+    const linePath = points
+      .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+      .join(" ");
+
+    return {
+      width,
+      height,
+      padding,
+      innerHeight,
+      bars,
+      points,
+      linePath,
+      maxViews,
+      maxRating,
+      hasViewsData,
+      labels: [0, 0.25, 0.5, 0.75, 1],
+    };
+  }, [topRankChartData]);
+
   // Show loading until both components are ready
   if (!allContentReady) {
     return (
       <>
         <PageLoader
           isVisible={true}
-          message={t("home.loading.preparing_home")}
+          messages={loadingMessages}
           progress={
             bannerLoaded && moviesLoaded
               ? 95
@@ -642,76 +831,254 @@ const Home = () => {
             {t("home.sections.top10_chart")}
           </h2>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-6">
-            {rankedMovies.map((movie, index) => {
-              const scorePercent = Math.max(
-                8,
-                Math.round(((movie.rankingScore || 0) / maxRankingScore) * 100),
-              );
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+            <div className="xl:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+              {rankedMovies.map((movie, index) => {
+                const scorePercent = Math.max(
+                  8,
+                  Math.round(
+                    ((movie.rankingScore || 0) / maxRankingScore) * 100,
+                  ),
+                );
 
-              return (
-                <div
-                  key={`chart-rank-${movie.id}`}
-                  className="flex items-start gap-4 bg-black/30 p-4 rounded-xl hover:bg-black/50 transition-colors"
-                >
-                  {/* Thumbnail phim ở đầu row */}
-                  <img
-                    src={movie.thumb_url}
-                    alt={movie.title}
-                    className="w-16 h-24 object-cover rounded-md shadow-md"
-                  />
+                return (
+                  <div
+                    key={`chart-rank-${movie.id}`}
+                    className="flex items-start gap-3 sm:gap-4 bg-black/30 p-3 sm:p-4 rounded-xl hover:bg-black/50 transition-colors"
+                  >
+                    <img
+                      src={movie.thumb_url}
+                      alt={movie.title}
+                      className="w-14 h-20 sm:w-16 sm:h-24 object-cover rounded-md shadow-md"
+                    />
 
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <button
-                        onClick={() => navigate(`/movie/${movie.id}`)}
-                        className="text-left text-white hover:text-red-400 font-semibold text-lg"
-                      >
-                        #{index + 1} • {movie.title}
-                      </button>
-                      <div className="text-right text-sm text-gray-300">
-                        <span className="mr-3">
-                          {Number(movie.views || 0).toLocaleString()}{" "}
-                          {t("home.views")}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-2">
+                        <button
+                          onClick={() => navigate(`/movie/${movie.id}`)}
+                          className="text-left text-white hover:text-red-400 font-semibold text-base sm:text-lg line-clamp-1"
+                        >
+                          #{index + 1} • {movie.title}
+                        </button>
+                        <div className="text-left sm:text-right text-xs sm:text-sm text-gray-300">
+                          <span className="mr-2 sm:mr-3">
+                            {Number(movie.views || 0).toLocaleString()}{" "}
+                            {t("home.views")}
+                          </span>
+                          <span>
+                            {movie.rankingScore} {t("home.points")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden mb-2">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-400 to-yellow-300"
+                          style={{ width: `${scorePercent}%` }}
+                        />
+                      </div>
+
+                      <div className="mt-1 text-xs text-gray-400 flex items-center gap-3 sm:gap-4 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          ⭐{" "}
+                          {movie.averageRating
+                            ? movie.averageRating.toFixed(1)
+                            : "-"}{" "}
+                          / 5
                         </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full ${movie.hot ? "bg-green-600/30 text-green-300" : "bg-gray-600/30 text-gray-300"}`}
+                        >
+                          {movie.hot
+                            ? t("home.featured")
+                            : t("home.not_featured")}
+                        </span>
+
                         <span>
-                          {movie.rankingScore} {t("home.points")}
+                          {movie.release_year
+                            ? `Năm: ${movie.release_year}`
+                            : ""}
                         </span>
                       </div>
                     </div>
-
-                    <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden mb-2">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-400 to-yellow-300"
-                        style={{ width: `${scorePercent}%` }}
-                      />
-                    </div>
-
-                    {/* Thông tin bổ sung: Rating với stars icon, Featured badge, và có thể thêm year nếu data có (giả sử thêm placeholder) */}
-                    <div className="mt-1 text-xs text-gray-400 flex items-center gap-4 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        ⭐{" "}
-                        {movie.averageRating
-                          ? movie.averageRating.toFixed(1)
-                          : "-"}{" "}
-                        / 5
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full ${movie.hot ? "bg-green-600/30 text-green-300" : "bg-gray-600/30 text-gray-300"}`}
-                      >
-                        {movie.hot
-                          ? t("home.featured")
-                          : t("home.not_featured")}
-                      </span>
-
-                      <span>
-                        {movie.release_year ? `Năm: ${movie.release_year}` : ""}
-                      </span>
-                    </div>
                   </div>
+                );
+              })}
+            </div>
+
+            <aside className="bg-gradient-to-br from-red-950/45 via-black/60 to-orange-950/35 border border-orange-200/20 rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+              <h3 className="text-white text-lg font-semibold mb-4">
+                {t("home.overview", { defaultValue: "Tổng quan Top 10" })}
+              </h3>
+
+              <div className="space-y-3 mb-5">
+                <div className="flex items-center justify-between rounded-lg bg-black/30 px-3 py-2 text-sm">
+                  <span className="text-gray-300">Top 10 lượt xem</span>
+                  <span className="text-white font-semibold">
+                    {topRankSummary.totalViews.toLocaleString()}
+                  </span>
                 </div>
-              );
-            })}
+                <div className="flex items-center justify-between rounded-lg bg-black/30 px-3 py-2 text-sm">
+                  <span className="text-gray-300">Rating trung bình</span>
+                  <span className="text-white font-semibold">
+                    {topRankSummary.avgRating}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-black/30 px-3 py-2 text-sm">
+                  <span className="text-gray-300">Phim HOT</span>
+                  <span className="text-white font-semibold">
+                    {topRankExtras.hottestCount}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+                  <p className="text-gray-400">Top theo điểm</p>
+                  <p className="text-orange-300 font-semibold line-clamp-1">
+                    {topRankExtras.bestScoreMovie?.title || "N/A"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+                  <p className="text-gray-400">Top theo rating</p>
+                  <p className="text-amber-200 font-semibold line-clamp-1">
+                    {topRankExtras.bestRatedMovie?.title || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative rounded-xl border border-white/10 bg-black/35 p-3">
+                <div className="pointer-events-none absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_top,rgba(251,146,60,0.2),transparent_60%)]" />
+
+                <svg
+                  viewBox={`0 0 ${topRankComboChart.width} ${topRankComboChart.height}`}
+                  className="relative z-10 w-full h-[280px] sm:h-[340px]"
+                  role="img"
+                  aria-label="Top 10 combo chart"
+                >
+                  <defs>
+                    <linearGradient
+                      id="barGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#f97316"
+                        stopOpacity="0.95"
+                      />
+                      <stop
+                        offset="55%"
+                        stopColor="#ef4444"
+                        stopOpacity="0.82"
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="#7f1d1d"
+                        stopOpacity="0.45"
+                      />
+                    </linearGradient>
+                    <linearGradient
+                      id="lineGradient"
+                      x1="0"
+                      y1="0"
+                      x2="1"
+                      y2="0"
+                    >
+                      <stop offset="0%" stopColor="#fbbf24" />
+                      <stop offset="50%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#fb7185" />
+                    </linearGradient>
+                  </defs>
+
+                  {topRankComboChart.labels.map((step, index) => {
+                    const y =
+                      topRankComboChart.padding.top +
+                      topRankComboChart.innerHeight -
+                      topRankComboChart.innerHeight * step;
+                    return (
+                      <g key={`grid-${index}`}>
+                        <line
+                          x1={topRankComboChart.padding.left}
+                          x2={
+                            topRankComboChart.width -
+                            topRankComboChart.padding.right
+                          }
+                          y1={y}
+                          y2={y}
+                          stroke="rgba(255,255,255,0.14)"
+                          strokeDasharray="5 6"
+                        />
+                      </g>
+                    );
+                  })}
+
+                  {topRankComboChart.bars.map((bar) => (
+                    <g key={`combo-bar-${bar.id}`}>
+                      <rect
+                        x={bar.x}
+                        y={bar.y}
+                        width={bar.barWidth}
+                        height={bar.barHeight}
+                        rx="6"
+                        fill="url(#barGradient)"
+                      />
+                      <text
+                        x={bar.x + bar.barWidth / 2}
+                        y={topRankComboChart.height - 20}
+                        textAnchor="middle"
+                        className="fill-gray-300"
+                        fontSize="12"
+                      >
+                        {bar.label}
+                      </text>
+                    </g>
+                  ))}
+
+                  {topRankComboChart.linePath ? (
+                    <path
+                      d={topRankComboChart.linePath}
+                      fill="none"
+                      stroke="url(#lineGradient)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  ) : null}
+
+                  {topRankComboChart.points.map((point, index) => (
+                    <g key={`combo-point-${index}`}>
+                      <circle
+                        cx={point.x}
+                        cy={point.y}
+                        r="4.2"
+                        fill="#fef08a"
+                      />
+                      <circle
+                        cx={point.x}
+                        cy={point.y}
+                        r="9"
+                        fill="rgba(254,240,138,0.2)"
+                      />
+                    </g>
+                  ))}
+                </svg>
+
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                  <span className="inline-flex items-center gap-2 text-orange-300">
+                    <span className="h-2 w-2 rounded-full bg-orange-400" />
+                    Cột:{" "}
+                    {topRankComboChart.hasViewsData
+                      ? t("home.views")
+                      : t("home.points")}
+                  </span>
+                  <span className="inline-flex items-center gap-2 text-amber-200">
+                    <span className="h-[2px] w-4 bg-amber-300" /> Đường: Rating
+                  </span>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       )}

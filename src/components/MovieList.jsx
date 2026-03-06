@@ -117,6 +117,30 @@ function MovieList({ movies = [], onMovieClick }) {
           fetchMovieByHot(),
         ]);
 
+        const categoriesArray = Array.isArray(categoriesResponse)
+          ? categoriesResponse
+          : Array.isArray(categoriesResponse?.data)
+            ? categoriesResponse.data
+            : [];
+        const movieTypesArray = Array.isArray(movieTypesResponse)
+          ? movieTypesResponse
+          : Array.isArray(movieTypesResponse?.data)
+            ? movieTypesResponse.data
+            : [];
+        const countriesArray = Array.isArray(countriesResponse)
+          ? countriesResponse
+          : Array.isArray(countriesResponse?.data)
+            ? countriesResponse.data
+            : [];
+        const hotMoviesArray = Array.isArray(hotMoviesResponse)
+          ? hotMoviesResponse
+          : Array.isArray(hotMoviesResponse?.data)
+            ? hotMoviesResponse.data
+            : [];
+
+        setTypes(categoriesArray);
+        setMovieTypes(movieTypesArray);
+        setCountries(countriesArray);
         setSuggestedMovies(hotMoviesArray.slice(0, 14));
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -295,7 +319,7 @@ function MovieList({ movies = [], onMovieClick }) {
 
   return (
     <div
-      className={`w-full h-full ${themeClasses.primary} ${themeClasses.textPrimary} p-4 px-12 min-h-screen pt-32`}
+      className={`w-full h-full ${themeClasses.primary} ${themeClasses.textPrimary} p-3 sm:p-4 sm:px-8 lg:px-12 min-h-screen pt-24 sm:pt-28 lg:pt-32`}
     >
       {/* Title */}
       <h2 className="text-xl font-bold mb-4">{title || categoryName}</h2>
@@ -387,12 +411,12 @@ function MovieList({ movies = [], onMovieClick }) {
         <div
           className={`${themeClasses.card} ${themeClasses.textPrimary} p-4 rounded-lg shadow-lg border`}
         >
-          <div className="flex flex-col gap-4 pr-10 pl-6">
-            <div className="flex items-center">
-              <h4 className="font-semibold min-w-[100px] text-right">
+          <div className="flex flex-col gap-4 px-1 sm:px-3 lg:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movie.country")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 {countryOptions.map((item) => (
                   <li
                     key={item}
@@ -404,11 +428,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex items-center ">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movieList.labels.movie_type")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 <li
                   className={filterOptionClass(selectedMovieType === allLabel)}
                   onClick={() => setSelectedMovieType(allLabel)}
@@ -428,11 +452,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex items-center">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movie.rating")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 {[allLabel, "P", "K", "T13", "T16", "T18"].map((item) => (
                   <li
                     key={item}
@@ -444,11 +468,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movie.genre")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 <li
                   className={filterOptionClass(selectedGenre === allLabel)}
                   onClick={() => setSelectedGenre(allLabel)}
@@ -466,11 +490,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex items-center">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movieList.labels.version")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 {versionOptions.map((item) => (
                   <li
                     key={item}
@@ -482,11 +506,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex items-center">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movieList.labels.production_year")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 {yearOptions.map((item) => (
                   <li
                     key={item}
@@ -498,11 +522,11 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="flex items-center">
-              <h4 className="font-semibold min-w-[100px] text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h4 className="font-semibold min-w-[100px] sm:text-right">
                 {t("movieList.labels.sort")}:
               </h4>
-              <ul className="space-y-1 flex flex-wrap gap-4 ml-4 items-center">
+              <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
                 {sortOptions.map((item) => (
                   <li
                     key={item}
@@ -514,7 +538,7 @@ function MovieList({ movies = [], onMovieClick }) {
                 ))}
               </ul>
             </div>
-            <div className="mt-8 flex justify-start space-x-4">
+            <div className="mt-6 flex flex-wrap justify-start gap-3">
               <button
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-4 py-2 rounded transition-colors"
                 onClick={applyFilters}
