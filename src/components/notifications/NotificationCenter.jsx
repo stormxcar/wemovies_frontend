@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
+import { normalizeNotificationActionUrl } from "../../utils/notificationRoutes";
 
 const NotificationCenter = () => {
   const { t } = useTranslation();
@@ -247,10 +248,14 @@ const NotificationCenter = () => {
 
     // Navigate to action URL
     if (notification.actionUrl) {
-      if (notification.actionUrl.startsWith("http")) {
-        window.open(notification.actionUrl, "_blank");
+      const targetUrl = await normalizeNotificationActionUrl(
+        notification.actionUrl,
+      );
+
+      if (targetUrl?.startsWith("http")) {
+        window.open(targetUrl, "_blank");
       } else {
-        navigateWithLoading(notification.actionUrl, {
+        navigateWithLoading(targetUrl, {
           loadingMessage: t("notifications.center.loading_open"),
         });
       }

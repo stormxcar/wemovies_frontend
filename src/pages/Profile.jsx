@@ -11,6 +11,8 @@ import WatchingHistoryTab from "../components/profile/WatchingHistoryTab";
 import WatchLaterTab from "../components/profile/WatchLaterTab";
 import NotificationTab from "../components/profile/NotificationTab";
 import SettingsTab from "../components/profile/SettingsTab";
+// icons for tab sidebar
+import { FaUser, FaList, FaClock, FaBell, FaCog } from "react-icons/fa";
 
 const Profile = () => {
   const location = useLocation();
@@ -19,13 +21,44 @@ const Profile = () => {
   const { themeClasses } = useTheme();
   const { t } = useTranslation();
 
+  // tab definitions include icons 🖼️ and optional emoji for tiny dropdown
   const tabs = [
-    { id: "profile", name: t("profile.tabs.profile") },
-    { id: "watchlist", name: t("profile.tabs.watchlist") },
-    { id: "watch-later", name: t("profile.tabs.watch_later") },
-    { id: "continue-watching", name: t("profile.tabs.continue_watching") },
-    { id: "notifications", name: t("profile.tabs.notifications") },
-    { id: "settings", name: t("profile.tabs.settings") },
+    {
+      id: "profile",
+      name: t("profile.tabs.profile"),
+      icon: <FaUser className="w-5 h-5 mr-2" />,
+      emoji: "👤",
+    },
+    {
+      id: "watchlist",
+      name: t("profile.tabs.watchlist"),
+      icon: <FaList className="w-5 h-5 mr-2" />,
+      emoji: "📃",
+    },
+    {
+      id: "watch-later",
+      name: t("profile.tabs.watch_later"),
+      icon: <FaClock className="w-5 h-5 mr-2" />,
+      emoji: "⏳",
+    },
+    {
+      id: "continue-watching",
+      name: t("profile.tabs.continue_watching"),
+      icon: <FaClock className="w-5 h-5 mr-2" />, // reuse clock
+      emoji: "▶️",
+    },
+    {
+      id: "notifications",
+      name: t("profile.tabs.notifications"),
+      icon: <FaBell className="w-5 h-5 mr-2" />,
+      emoji: "🔔",
+    },
+    {
+      id: "settings",
+      name: t("profile.tabs.settings"),
+      icon: <FaCog className="w-5 h-5 mr-2" />,
+      emoji: "⚙️",
+    },
   ];
 
   const isValidTab = (tabId) => {
@@ -230,29 +263,47 @@ const Profile = () => {
               <h2 className="text-white font-semibold mb-4 text-lg">
                 {t("profilePage.navigation")}
               </h2>
-              <ul className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 hide-scrollbar">
-                {tabs.map((tab) => (
-                  <li key={tab.id} className="min-w-[165px] lg:min-w-0">
-                    <button
-                      onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-all duration-200 ${
-                        activeTab === tab.id
-                          ? "bg-orange-600 text-white shadow-lg border-l-4 border-orange-400"
-                          : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary}`
-                      }`}
-                    >
-                      <span className="font-medium text-left whitespace-nowrap">
-                        {tab.name}
-                      </span>
-                      {activeTab === tab.id && (
-                        <span className="ml-auto text-orange-200 text-[10px] sm:text-xs font-semibold uppercase">
-                          {t("profilePage.active")}
+
+              {/* grid buttons for normal screens, hidden on very small devices */}
+              <div className="max-[360px]:hidden">
+                <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+                  {tabs.map((tab) => (
+                    <li key={tab.id} className="min-w-0">
+                      <button
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`w-full flex items-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-all duration-200 ${
+                          activeTab === tab.id
+                            ? "bg-orange-600 text-white shadow-lg border-l-4 border-orange-400"
+                            : `${themeClasses.textSecondary} hover:${themeClasses.tertiary} hover:${themeClasses.textPrimary}`
+                        }`}
+                      >
+                        {tab.icon && (
+                          <span className="flex-shrink-0">{tab.icon}</span>
+                        )}
+                        <span className="font-medium text-left whitespace-nowrap">
+                          {tab.name}
                         </span>
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* dropdown selection on extra small screens (<360px) */}
+              <div className="hidden max-[360px]:block">
+                <select
+                  value={activeTab}
+                  onChange={(e) => handleTabChange(e.target.value)}
+                  className="w-full bg-gray-800 text-white p-2 rounded-lg"
+                >
+                  {tabs.map((tab) => (
+                    <option key={tab.id} value={tab.id}>
+                      {tab.emoji ? `${tab.emoji} ` : ""}
+                      {tab.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </nav>
           </div>
 

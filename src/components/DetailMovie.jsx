@@ -8,7 +8,11 @@ import React, {
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import HorizontalMovies from "./HorizontalMovies";
-import { fetchJson, fetchScheduleData } from "../services/api";
+import {
+  fetchJson,
+  fetchScheduleData,
+  fetchMovieByIdentifier,
+} from "../services/api";
 import {
   FaChevronRight,
   FaHeart,
@@ -24,9 +28,14 @@ import { trackMovieView, trackUserAction } from "../services/analytics";
 import { useWatchingTracker } from "../hooks/useWatchingTracker";
 import ReviewSection from "./ReviewSection";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import {
+  getMovieDetailPath,
+  getMovieEpisodePath,
+  getMovieWatchPath,
+} from "../utils/movieRoutes";
 
 const DetailMovie = () => {
-  const { id } = useParams();
+  const { identifier } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   // loading context might not be present in some standalone usages (e.g. tests)
@@ -56,6 +65,7 @@ const DetailMovie = () => {
   const [scheduleDateTime, setScheduleDateTime] = useState("");
   const [scheduleNotes, setScheduleNotes] = useState("");
   const [scheduleReminder, setScheduleReminder] = useState(true);
+  const currentMovieId = movieDetail?.data?.id || identifier;
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -66,7 +76,7 @@ const DetailMovie = () => {
     };
   }, []);
   const { startWatching } = useWatchingTracker(
-    id,
+    movieDetail?.data?.id || identifier,
     movieDetail?.data?.title,
     user?.id,
     isAuthenticated,
@@ -86,31 +96,34 @@ const DetailMovie = () => {
     }
   }, []);
 
-  const checkScheduleStatus = useCallback(async () => {
-    if (!isAuthenticated) return;
-    try {
-      // Use safe schedule data fetcher
-      const scheduled = await fetchScheduleData(
-        `/api/schedules/check/${id}`,
-        false,
-      );
-      setIsScheduled(Boolean(scheduled)); // Ensure boolean value
+  const checkScheduleStatus = useCallback(
+    async (movieIdToCheck) => {
+      if (!isAuthenticated || !movieIdToCheck) return;
+      try {
+        // Use safe schedule data fetcher
+        const scheduled = await fetchScheduleData(
+          `/api/schedules/check/${movieIdToCheck}`,
+          false,
+        );
+        setIsScheduled(Boolean(scheduled)); // Ensure boolean value
 
-      // Check watch later status with safe fetcher
-      const watchLaterList = await fetchScheduleData(
-        "/api/schedules/watch-later",
-        [],
-      );
-      const isInList = Array.isArray(watchLaterList)
-        ? watchLaterList.some((item) => item.movie?.id === id)
-        : false;
-      setIsInWatchLater(isInList);
-    } catch (error) {
-      // Set defaults on error
-      setIsScheduled(false);
-      setIsInWatchLater(false);
-    }
-  }, [id, isAuthenticated]);
+        // Check watch later status with safe fetcher
+        const watchLaterList = await fetchScheduleData(
+          "/api/schedules/watch-later",
+          [],
+        );
+        const isInList = Array.isArray(watchLaterList)
+          ? watchLaterList.some((item) => item.movie?.id === movieIdToCheck)
+          : false;
+        setIsInWatchLater(isInList);
+      } catch (error) {
+        // Set defaults on error
+        setIsScheduled(false);
+        setIsInWatchLater(false);
+      }
+    },
+    [isAuthenticated],
+  );
 
   const handleCreateSchedule = async (e) => {
     e.preventDefault();
@@ -124,7 +137,7 @@ const DetailMovie = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          movieId: id,
+          movieId: currentMovieId,
           scheduledDateTime: scheduleDateTime,
           reminderEnabled: scheduleReminder,
           notes: scheduleNotes,
@@ -135,7 +148,7 @@ const DetailMovie = () => {
       setScheduleDateTime("");
       setScheduleNotes("");
       setScheduleReminder(true);
-      checkScheduleStatus();
+      checkScheduleStatus(currentMovieId);
     } catch (error) {
       toast.error(t("movieDetail.toasts.schedule_create_error"));
     }
@@ -150,7 +163,7 @@ const DetailMovie = () => {
     try {
       if (isInWatchLater) {
         // Remove from watch later
-        await fetchJson(`/api/schedules/watch-later/${id}`, {
+        await fetchJson(`/api/schedules/watch-later/${currentMovieId}`, {
           method: "DELETE",
         });
         setIsInWatchLater(false);
@@ -165,7 +178,7 @@ const DetailMovie = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              movieId: id,
+              movieId: currentMovieId,
               scheduledDateTime: farFutureDate, // Use far future date instead of null
               reminderEnabled: false,
               notes: "Added to watch later",
@@ -204,17 +217,29 @@ const DetailMovie = () => {
     const fetchMovieDetail = async () => {
       try {
         setLoading("movieDetail", true, t("movieDetail.loading_message"));
-        const data = await fetchJson(`/api/movies/${id}`);
+        const resolvedMovie = await fetchMovieByIdentifier(identifier);
+        const data = { data: resolvedMovie };
 
         setMovieDetail(data);
 
+        // Keep canonical, professional URL format: /movie/:slug
+        if (resolvedMovie?.slug && identifier !== resolvedMovie.slug) {
+          navigate(getMovieDetailPath(resolvedMovie), {
+            replace: true,
+          });
+        }
+
         // Track movie view with analytics (respects cookie consent)
         if (data?.data?.title) {
-          trackMovieView(id, data.data.title);
+          trackMovieView(data.data.id || identifier, data.data.title);
         }
 
         if (data.data.movieCategories?.length) {
           fetchRelatedMovies(data.data.movieCategories[0].name);
+        }
+
+        if (data.data?.id) {
+          checkScheduleStatus(data.data.id);
         }
       } catch (e) {
         setMovieDetail(null);
@@ -223,8 +248,14 @@ const DetailMovie = () => {
       }
     };
     fetchMovieDetail();
-    checkScheduleStatus();
-  }, [id, fetchRelatedMovies, checkScheduleStatus, setLoading]);
+  }, [
+    identifier,
+    fetchRelatedMovies,
+    checkScheduleStatus,
+    setLoading,
+    t,
+    navigate,
+  ]);
 
   const isLoadingMovieDetail = isLoading("movieDetail");
   const movieData = movieDetail?.data;
@@ -232,8 +263,8 @@ const DetailMovie = () => {
   // when movie has episodes, navigate to first episode instead of generic watch page
   const initialWatchPath =
     Array.isArray(movieData?.episodes) && movieData.episodes.length > 0
-      ? `/movie/${id}/episode/0`
-      : `/movie/watch/${id}`;
+      ? getMovieEpisodePath(movieData, 0, identifier)
+      : getMovieWatchPath(movieData, identifier);
 
   const episodeLinks = useMemo(() => {
     const episodes = Array.isArray(movieData?.episodes)
@@ -575,7 +606,7 @@ const DetailMovie = () => {
                 )}
               </div>
 
-              <ReviewSection movieId={id} />
+              <ReviewSection movieId={movieData?.id || identifier} />
 
               <div className="mt-8">
                 <h3 className="text-white text-xl font-semibold mb-4">
@@ -587,7 +618,7 @@ const DetailMovie = () => {
                     ? episodeLinks.map((link, idx) => (
                         <Link
                           key={idx}
-                          to={`/movie/${id}/episode/${idx}`}
+                          to={getMovieEpisodePath(movieData, idx, identifier)}
                           state={{ movieDetail: movieDetail.data }}
                           className="group bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-200"
                         >

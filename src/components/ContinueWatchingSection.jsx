@@ -6,6 +6,7 @@ import { useWatchingProgress } from "../hooks/useWatchingProgress";
 import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import PageLoader from "./loading/PageLoader";
+import { getMovieWatchPath } from "../utils/movieRoutes";
 
 const ContinueWatchingSection = () => {
   const { user, isAuthenticated } = useAuth();
@@ -133,7 +134,14 @@ const ContinueWatchingSection = () => {
               {/* Play button overlay */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Link
-                  to={`/watch/${movie.movieId}?t=${movie.currentTime || 0}`}
+                  to={`${getMovieWatchPath(
+                    {
+                      slug: movie.movieSlug,
+                      movieSlug: movie.movieSlug,
+                      id: movie.movieId,
+                    },
+                    movie.movieId,
+                  )}?t=${movie.currentTime || 0}`}
                   state={{
                     movieDetail: {
                       id: movie.movieId,

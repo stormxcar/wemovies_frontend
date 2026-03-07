@@ -16,6 +16,7 @@ import NotificationService from "../../services/NotificationService";
 import { useLoading } from "../../context/UnifiedLoadingContext";
 import Pagination from "../ui/pagination";
 import { useTranslation } from "react-i18next";
+import { normalizeNotificationActionUrl } from "../../utils/notificationRoutes";
 
 const NotificationTab = () => {
   const { t, i18n } = useTranslation();
@@ -419,10 +420,14 @@ const NotificationTab = () => {
     }
 
     if (notification.actionUrl) {
-      if (notification.actionUrl.startsWith("http")) {
-        window.open(notification.actionUrl, "_blank");
+      const targetUrl = await normalizeNotificationActionUrl(
+        notification.actionUrl,
+      );
+
+      if (targetUrl?.startsWith("http")) {
+        window.open(targetUrl, "_blank");
       } else {
-        navigateWithLoading(notification.actionUrl, {
+        navigateWithLoading(targetUrl, {
           loadingMessage: t("notifications.tab.loading_open"),
         });
       }

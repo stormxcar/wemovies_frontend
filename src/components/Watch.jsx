@@ -12,15 +12,16 @@ import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
-import { fetchJson } from "../services/api";
+import { fetchMovieByIdentifier, fetchJson } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
 import ReviewSection from "./ReviewSection";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { getMovieWatchPath } from "../utils/movieRoutes";
 
 const Watch = React.memo(() => {
   const location = useLocation();
-  const { id: paramId } = useParams();
-  const { movieDetail, id = paramId } = location.state || {};
+  const { identifier: paramIdentifier } = useParams();
+  const { movieDetail, id = paramIdentifier } = location.state || {};
   const navigate = useNavigate();
   const { user } = useAuth();
   const { autoPlay } = useSettings();
@@ -337,15 +338,22 @@ const Watch = React.memo(() => {
   React.useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
-        const data = await fetchJson(`/api/movies/${id}`);
-        setCurrentMovieData(data.data);
+        const resolvedMovie = await fetchMovieByIdentifier(id);
+        setCurrentMovieData(resolvedMovie);
 
-        if (data.data.movieCategories?.length) {
-          fetchRelatedMovies(data.data.movieCategories[0].name);
+        if (resolvedMovie?.slug && id !== resolvedMovie.slug) {
+          navigate(getMovieWatchPath(resolvedMovie), {
+            replace: true,
+            state: location.state,
+          });
+        }
+
+        if (resolvedMovie.movieCategories?.length) {
+          fetchRelatedMovies(resolvedMovie.movieCategories[0].name);
         }
 
         // Start watching session with hybrid storage
-        const sessionResult = await startWatchingSession(data.data);
+        const sessionResult = await startWatchingSession(resolvedMovie);
 
         const resumeTimeFromSession = Math.max(
           0,
@@ -361,7 +369,7 @@ const Watch = React.memo(() => {
         );
 
         // Fetch view count for this movie
-        await fetchViewCount(data.data.id);
+        await fetchViewCount(resolvedMovie.id);
       } catch (error) {
         console.error("Error fetching movie detail:", error);
       }
@@ -376,6 +384,8 @@ const Watch = React.memo(() => {
     startWatchingSession,
     fetchViewCount,
     navigationStartTime,
+    navigate,
+    location.state,
   ]);
 
   // Cleanup on unmount
@@ -417,6 +427,63 @@ const Watch = React.memo(() => {
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const videoContent = useMemo(() => {
+    const videoSrc = currentMovieData?.link;
+
+    if (!currentMovieData || !videoSrc || videoSrc.trim() === "") {
+      return (
+        <div
+          className={`w-full h-64 ${themeClasses.primary} flex items-center justify-center border-2 border-yellow-500 rounded-lg`}
+        >
+          <div className="text-center p-6">
+            <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
+            <h3
+              className={`text-lg font-bold mb-2 ${themeClasses.textPrimary}`}
+            >
+              {t("watchPage.video_unavailable")}
+            </h3>
+            <p className={`text-sm mb-4 ${themeClasses.textSecondary}`}>
+              {t("watchPage.video_unavailable_desc")}
+            </p>
+            <div
+              className={`text-xs ${themeClasses.textMuted} ${themeClasses.cardSecondary} p-2 rounded`}
+            >
+              <p>
+                {t("watchPage.movie_id")}: {currentMovieData?.id}
+              </p>
+              <p>
+                {t("watchPage.movie_title")}: {currentMovieData?.title}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <UnifiedVideoPlayer
+        key={`${currentMovieData.id}-${resolvedStartTime}`}
+        src={videoSrc}
+        startTime={resolvedStartTime}
+        autoPlay={autoPlay}
+        onTimeUpdate={handleTimeUpdate}
+        onPlay={handleVideoPlay}
+        onPause={handleVideoPause}
+        onEnded={handleVideoEnded}
+      />
+    );
+  }, [
+    currentMovieData,
+    resolvedStartTime,
+    autoPlay,
+    handleTimeUpdate,
+    handleVideoPlay,
+    handleVideoPause,
+    handleVideoEnded,
+    themeClasses,
+    t,
+  ]);
+
   if (!currentMovieData) {
     return (
       <div
@@ -457,61 +524,7 @@ const Watch = React.memo(() => {
         </div>
 
         <div className="rounded-lg overflow-hidden shadow-lg mb-4">
-          {useMemo(() => {
-            const videoSrc = currentMovieData.link;
-
-            if (!videoSrc || videoSrc.trim() === "") {
-              return (
-                <div
-                  className={`w-full h-64 ${themeClasses.primary} flex items-center justify-center border-2 border-yellow-500 rounded-lg`}
-                >
-                  <div className="text-center p-6">
-                    <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
-                    <h3
-                      className={`text-lg font-bold mb-2 ${themeClasses.textPrimary}`}
-                    >
-                      {t("watchPage.video_unavailable")}
-                    </h3>
-                    <p className={`text-sm mb-4 ${themeClasses.textSecondary}`}>
-                      {t("watchPage.video_unavailable_desc")}
-                    </p>
-                    <div
-                      className={`text-xs ${themeClasses.textMuted} ${themeClasses.cardSecondary} p-2 rounded`}
-                    >
-                      <p>
-                        {t("watchPage.movie_id")}: {currentMovieData.id}
-                      </p>
-                      <p>
-                        {t("watchPage.movie_title")}: {currentMovieData.title}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <UnifiedVideoPlayer
-                key={`${currentMovieData.id}-${resolvedStartTime}`}
-                src={videoSrc}
-                startTime={resolvedStartTime}
-                autoPlay={autoPlay}
-                onTimeUpdate={handleTimeUpdate}
-                onPlay={handleVideoPlay}
-                onPause={handleVideoPause}
-                onEnded={handleVideoEnded}
-              />
-            );
-          }, [
-            currentMovieData.id,
-            currentMovieData.link,
-            resolvedStartTime,
-            autoPlay,
-            handleTimeUpdate,
-            handleVideoPlay,
-            handleVideoPause,
-            handleVideoEnded,
-          ])}
+          {videoContent}
         </div>
       </div>
 
@@ -650,7 +663,7 @@ const Watch = React.memo(() => {
             />
           </div>
 
-          <ReviewSection movieId={id} />
+          <ReviewSection movieId={currentMovieData?.id || id} />
 
           <div className={`mt-8 border-t-[1px] ${themeClasses.border} pt-8`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -669,7 +682,7 @@ const Watch = React.memo(() => {
                 {relatedMovies.slice(0, 5).map((movie) => (
                   <button
                     key={movie.id}
-                    onClick={() => navigate(`/watch/${movie.id}`)}
+                    onClick={() => navigate(getMovieWatchPath(movie, movie.id))}
                     className={`group flex items-start rounded-xl border p-2.5 w-full text-left transition-all ${
                       isDarkMode
                         ? "border-gray-700 hover:bg-gray-700/70 hover:border-orange-500/60"

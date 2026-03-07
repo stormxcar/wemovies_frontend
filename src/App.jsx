@@ -6,6 +6,7 @@ import {
   Outlet,
   useNavigate,
   useLocation,
+  useParams,
   Navigate,
 } from "react-router-dom";
 import { ToastContainer } from "@toast";
@@ -76,6 +77,20 @@ const LazyLoadingFallback = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <PageLoader message="Đang tải component..." />
     </div>
+  );
+};
+
+const WatchLegacyRedirect = () => {
+  const { identifier } = useParams();
+  const location = useLocation();
+  const encodedIdentifier = encodeURIComponent(identifier || "");
+
+  return (
+    <Navigate
+      to={`/movie/watch/${encodedIdentifier}${location.search || ""}`}
+      replace
+      state={location.state}
+    />
   );
 };
 
@@ -551,9 +566,9 @@ const AppContent = () => {
               element={<CategoryMovies />}
             />
             <Route path="/country/:countryName" element={<CategoryMovies />} />
-            <Route path="/movie/:id" element={<DetailMovie />} />
+            <Route path="/movie/:identifier" element={<DetailMovie />} />
             <Route
-              path="/movie/:id/episode/:episodeIndex"
+              path="/movie/:identifier/episode/:episodeIndex"
               element={<EpisodeDetail />}
             />
             <Route path="/movies/:categoryName" element={<MovieList />} />
@@ -561,10 +576,13 @@ const AppContent = () => {
             <Route path="/search" element={<Search />} />
             <Route path="/allmovies" element={<MovieList />} />
             <Route path="/allmovies/:categoryName" element={<MovieList />} />
-            <Route path="/watch/:id" element={<Watch />} />
-            <Route path="/movie/watch/:id" element={<Watch />} />
             <Route
-              path="/movie/:id/episode/:episodeIndex"
+              path="/watch/:identifier"
+              element={<WatchLegacyRedirect />}
+            />
+            <Route path="/movie/watch/:identifier" element={<Watch />} />
+            <Route
+              path="/movie/:identifier/episode/:episodeIndex"
               element={<Watch />}
             />
             <Route path="/moviepage" element={<MoviePage />} />

@@ -164,9 +164,11 @@ class WatchingProgressService {
       );
 
       if (!response.ok) {
-        console.warn(
-          `Hybrid resume position API failed with status: ${response.status}`,
-        );
+        if (response.status !== 404) {
+          console.warn(
+            `Hybrid resume position API failed with status: ${response.status}`,
+          );
+        }
         return { success: false, resumeTime: 0 }; // Safe fallback
       }
 

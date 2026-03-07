@@ -119,7 +119,7 @@ export const useWatchingProgress = (userId) => {
     }
 
     if (!currentUserId || typeof currentUserId !== "string") {
-      console.warn("No valid userId provided, skipping fetch watching list");
+      // Auth state may still be hydrating; skip quietly.
       setWatchingList([]);
       setIsLoading(false);
       return;

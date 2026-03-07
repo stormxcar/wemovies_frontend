@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { fetchJson } from "../../services/api";
 import { toast } from "@toast";
 import { useAuth } from "../../context/AuthContext";
+import { getMovieDetailPath, getMovieWatchPath } from "../../utils/movieRoutes";
 
 const WatchLaterTab = ({ movies, loading, onRefresh }) => {
   const { t, i18n } = useTranslation();
@@ -88,7 +89,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-opacity flex items-center justify-center">
             <Link
-              to={`/movie/watch/${movie.id}`}
+              to={getMovieWatchPath(movie, movie.id)}
               className="bg-orange-600 text-white p-3 rounded-full hover:bg-orange-700 transition-colors"
             >
               <Play className="h-6 w-6" />
@@ -115,7 +116,7 @@ const WatchLaterTab = ({ movies, loading, onRefresh }) => {
 
           <div className="flex items-center justify-between">
             <Link
-              to={`/movie/${movie.id}`}
+              to={getMovieDetailPath(movie, movie.id)}
               className="text-orange-400 hover:text-orange-300 text-sm font-medium"
             >
               {t("watchLater.view_detail")}

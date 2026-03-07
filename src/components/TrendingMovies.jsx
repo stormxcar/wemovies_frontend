@@ -8,6 +8,7 @@ import useTrending from "../hooks/useTrending";
 import useViewTracking from "../hooks/useViewTracking";
 import { useAuth } from "../context/AuthContext";
 import { fetchJson } from "../services/api";
+import { getMovieWatchPath } from "../utils/movieRoutes";
 
 const TrendingMovies = ({
   className = "",
@@ -95,7 +96,7 @@ const TrendingMovies = ({
       return;
     }
 
-    navigate(`/watch/${movieId}`, {
+    navigate(getMovieWatchPath(movie, movieId), {
       state: {
         movieDetail: movie,
       },

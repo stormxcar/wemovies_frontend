@@ -6,6 +6,7 @@ import ViewCountDisplay from "./ViewCountDisplay";
 import { FaPlay, FaTrash, FaClock, FaSync } from "react-icons/fa";
 import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
+import { getMovieWatchPath } from "../utils/movieRoutes";
 
 const ContinueWatching = ({
   className = "",
@@ -142,15 +143,21 @@ const ContinueWatching = ({
         (item.currentProgress / 100) * item.totalDuration,
       );
 
-      navigate(`/watch/${item.movieId}`, {
-        state: {
-          movieDetail: {
-            id: item.movieId,
-            title: item.movieTitle,
+      navigate(
+        getMovieWatchPath(
+          { slug: item.movieSlug, movieSlug: item.movieSlug, id: item.movieId },
+          item.movieId,
+        ),
+        {
+          state: {
+            movieDetail: {
+              id: item.movieId,
+              title: item.movieTitle,
+            },
+            startTime: startTimeSeconds,
           },
-          startTime: startTimeSeconds,
         },
-      });
+      );
 
       toast.success(
         t("continueWatchingComponent.toasts.continue_success", {

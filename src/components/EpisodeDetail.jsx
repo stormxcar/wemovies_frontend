@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fetchJson } from "../services/api";
+import { fetchJson, fetchMovieByIdentifier } from "../services/api";
 import HorizontalMovies from "./HorizontalMovies";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { getMovieEpisodePath } from "../utils/movieRoutes";
 
 const EpisodeDetail = () => {
-  const { id, episodeIndex } = useParams();
+  const { identifier, episodeIndex } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -42,10 +43,18 @@ const EpisodeDetail = () => {
       }
 
       try {
-        const data = await fetchJson(`/api/movies/${id}`);
+        const resolvedMovie = await fetchMovieByIdentifier(identifier);
+        const data = { data: resolvedMovie };
         if (!isMounted) return;
 
         setMovieDetail(data);
+
+        if (resolvedMovie?.slug && identifier !== resolvedMovie.slug) {
+          navigate(getMovieEpisodePath(resolvedMovie, episodeIndex), {
+            replace: true,
+            state: location.state,
+          });
+        }
 
         if (data.data.movieCategories?.length) {
           fetchRelatedMovies(data.data.movieCategories[0].id);
@@ -62,7 +71,7 @@ const EpisodeDetail = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, location.state, fetchRelatedMovies]);
+  }, [identifier, location.state, fetchRelatedMovies, navigate, episodeIndex]);
 
   const movieData = movieDetail?.data;
 
@@ -211,7 +220,7 @@ const EpisodeDetail = () => {
                       return (
                         <Link
                           key={`${episodeNumber}-${idx}`}
-                          to={`/movie/${id}/episode/${idx}`}
+                          to={getMovieEpisodePath(movieData, idx, identifier)}
                           className={`group rounded-xl border p-3 transition-all duration-300 ${
                             isActive
                               ? "border-orange-400 bg-orange-500/20 shadow-lg shadow-blue-500/20"

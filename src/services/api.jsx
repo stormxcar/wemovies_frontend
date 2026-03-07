@@ -248,6 +248,43 @@ export const fetchMovieByHot = async () => {
   }
 };
 
+export const fetchMovieBySlug = async (slug) => {
+  const response = await fetchJson(
+    `/api/movies/slug/${encodeURIComponent(slug)}`,
+  );
+  return response?.data ?? response;
+};
+
+export const fetchMovieByIdentifier = async (identifier) => {
+  const value = typeof identifier === "string" ? identifier.trim() : "";
+  if (!value) {
+    throw new Error("Movie identifier is required");
+  }
+
+  const uuidLike =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
+
+  if (uuidLike) {
+    try {
+      const byId = await fetchJson(`/api/movies/${encodeURIComponent(value)}`);
+      return byId?.data ?? byId;
+    } catch {
+      const bySlug = await fetchMovieBySlug(value);
+      return bySlug?.data ?? bySlug;
+    }
+  }
+
+  try {
+    const bySlug = await fetchMovieBySlug(value);
+    return bySlug?.data ?? bySlug;
+  } catch {
+    const byId = await fetchJson(`/api/movies/${encodeURIComponent(value)}`);
+    return byId?.data ?? byId;
+  }
+};
+
 export const fetchMovieByCategoryId = async (categoryId) => {
   try {
     const data = await fetchJson(

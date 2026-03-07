@@ -8,6 +8,7 @@ import ViewCountDisplay from "../ViewCountDisplay";
 import { toast } from "@toast";
 import { useTranslation } from "react-i18next";
 import PageLoader from "../loading/PageLoader";
+import { getMovieWatchPath } from "../../utils/movieRoutes";
 
 const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
   const { t, i18n } = useTranslation();
@@ -439,15 +440,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
               )}
               {t("watchingHistory.refresh")}
             </button>
-            <button
-              onClick={() => {
-                toast.success(t("watchingHistory.toasts.debug_logged"));
-              }}
-              className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-              title={t("watchingHistory.debug_title")}
-            >
-              🐛
-            </button>
           </div>
         )}
       </div>
@@ -506,7 +498,6 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          
           {watchingMovies.map((movie) => (
             <div
               key={movie.movieId}
@@ -603,9 +594,14 @@ const WatchingHistoryTab = ({ movies, loading, onRefresh, title }) => {
                     {/* Action Buttons */}
                     <div className="flex flex-col space-y-2 ml-4">
                       <Link
-                        to={`/watch/${movie.movieId}?t=${
-                          movie.currentTime || 0
-                        }`}
+                        to={`${getMovieWatchPath(
+                          {
+                            slug: movie.movieSlug,
+                            movieSlug: movie.movieSlug,
+                            id: movie.movieId,
+                          },
+                          movie.movieId,
+                        )}?t=${movie.currentTime || 0}`}
                         state={{
                           movieDetail: {
                             id: movie.movieId,

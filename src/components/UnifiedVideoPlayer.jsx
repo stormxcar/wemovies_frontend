@@ -223,7 +223,7 @@ const UnifiedVideoPlayer = ({
         <iframe
           ref={iframeRef}
           src={buildIframeSrc(src)}
-          className="w-full h-96 border-0"
+          className="w-full h-[600px] border-0"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowFullScreen
           title="Video Player"

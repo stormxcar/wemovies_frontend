@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaPlay, FaTrash, FaCheck, FaSync, FaClock } from "react-icons/fa";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
+import { getMovieWatchPath } from "../utils/movieRoutes";
 
 const WatchingList = ({
   userId,
@@ -78,17 +79,27 @@ const WatchingList = ({
 
   // Handle continue watching
   const handleContinueWatching = (movie) => {
-    navigate(`/watch/${movie.movieId}`, {
-      state: {
-        movieDetail: {
+    navigate(
+      getMovieWatchPath(
+        {
+          slug: movie.movieSlug,
+          movieSlug: movie.movieSlug,
           id: movie.movieId,
-          title: movie.movieTitle,
-          thumb_url: movie.moviePoster,
         },
-        startTime: movie.currentTime || 0,
-        resumeFromProgress: true,
+        movie.movieId,
+      ),
+      {
+        state: {
+          movieDetail: {
+            id: movie.movieId,
+            title: movie.movieTitle,
+            thumb_url: movie.moviePoster,
+          },
+          startTime: movie.currentTime || 0,
+          resumeFromProgress: true,
+        },
       },
-    });
+    );
   };
 
   // Handle mark completed

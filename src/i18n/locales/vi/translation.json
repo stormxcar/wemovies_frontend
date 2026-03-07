@@ -863,8 +863,26 @@
       "cannot_load_image": "Không thể tải ảnh. Vui lòng kiểm tra URL."
     }
   },
+  "cookieBanner": {
+    "title": "Tùy chọn Cookie",
+    "description": "Chúng tôi sử dụng cookie để nâng cao trải nghiệm của bạn. Bằng cách tiếp tục sử dụng trang web, bạn đồng ý với việc sử dụng cookie của chúng tôi.",
+    "compliance_note": "Bạn có thể thay đổi lựa chọn cookie bất kỳ lúc nào trong cài đặt quyền riêng tư.",
+    "show_details": "Xem chi tiết",
+    "hide_details": "Ẩn chi tiết",
+    "necessary": "Cookie cần thiết",
+    "necessary_desc": "Bắt buộc cho chức năng cơ bản của trang web",
+    "analytics": "Cookie phân tích",
+    "analytics_desc": "Giúp chúng tôi cải thiện website",
+    "advertising": "Cookie quảng cáo",
+    "advertising_desc": "Được sử dụng cho quảng cáo cá nhân hóa",
+    "save_preferences": "Lưu tùy chọn",
+    "reject": "Từ chối",
+    "necessary_only": "Chỉ cần thiết",
+    "accept_all": "Chấp nhận tất cả"
+  },
   "home": {
     "title": "Trang chủ",
+    "overview": "Tổng quan Top 10",
     "view_all": "Xem tất cả",
     "featured_prefix": "Nổi bật",
     "featured_movie_fallback": "Phim nổi bật",

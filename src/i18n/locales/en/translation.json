@@ -863,8 +863,26 @@
       "cannot_load_image": "Cannot load image. Please check the URL."
     }
   },
+  "cookieBanner": {
+    "title": "Cookie Preferences",
+    "description": "We use cookies to improve your experience. By continuing to use the site, you consent to our use of cookies.",
+    "compliance_note": "You can update these cookie choices anytime in privacy settings.",
+    "show_details": "Show details",
+    "hide_details": "Hide details",
+    "necessary": "Necessary Cookies",
+    "necessary_desc": "Required for basic site functionality",
+    "analytics": "Analytics Cookies",
+    "analytics_desc": "Help us improve the website",
+    "advertising": "Advertising Cookies",
+    "advertising_desc": "Used for personalized advertising",
+    "save_preferences": "Save preferences",
+    "reject": "Reject",
+    "necessary_only": "Necessary only",
+    "accept_all": "Accept all"
+  },
   "home": {
     "title": "Home",
+    "overview": "Top 10 Overview",
     "view_all": "View all",
     "featured_prefix": "Featured",
     "featured_movie_fallback": "Featured movie",

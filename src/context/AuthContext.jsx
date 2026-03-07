@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { fetchJson } from "../services/api";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import api from "../services/api";
 import { toast } from "@toast";
 import NotificationService from "../services/NotificationService";
@@ -17,78 +22,98 @@ const AuthContext = createContext({
 
 export const useAuth = () => useContext(AuthContext);
 
+const clearStoredAuth = () => {
+  localStorage.removeItem("jwtToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+};
+
 export const AuthProvider = ({ children }) => {
   const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to decode JWT token
-  const decodeJWT = (token) => {
+  const decodeJWT = useCallback((token) => {
     try {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split("")
-          .map(function (c) {
-            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-          })
+          .map(
+            (char) => "%" + ("00" + char.charCodeAt(0).toString(16)).slice(-2),
+          )
           .join(""),
       );
       return JSON.parse(jsonPayload);
-    } catch (error) {
+    } catch {
       return null;
     }
-  };
+  }, []);
 
-  // Get user ID from JWT token
-  const getUserIdFromToken = (token) => {
-    const decoded = decodeJWT(token);
-    return decoded?.sub || decoded?.userId || decoded?.id || decoded?.email;
-  };
+  const getUserIdFromToken = useCallback(
+    (token) => {
+      const decoded = decodeJWT(token);
+      return decoded?.sub || decoded?.userId || decoded?.id || decoded?.email;
+    },
+    [decodeJWT],
+  );
 
-  // Auto logout function với safeguard
-  const autoLogout = React.useCallback(
+  const getTokenExpiryMs = useCallback(
+    (token) => {
+      const decoded = decodeJWT(token);
+      if (!decoded?.exp) return null;
+      return Number(decoded.exp) * 1000;
+    },
+    [decodeJWT],
+  );
+
+  const isTokenExpired = useCallback(
+    (token) => {
+      const expiryMs = getTokenExpiryMs(token);
+      if (!expiryMs) return false;
+      return Date.now() >= expiryMs;
+    },
+    [getTokenExpiryMs],
+  );
+
+  const connectNotificationService = useCallback(async (userId, token) => {
+    try {
+      await NotificationService.connect(userId, token);
+    } catch {
+      // Keep app running if websocket connection fails
+    }
+  }, []);
+
+  const autoLogout = useCallback(
     (reason = t("authContext.session_expired")) => {
-      // Tránh multiple logout calls
       if (!isAuthenticated) return;
-      localStorage.removeItem("jwtToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+      clearStoredAuth();
       setUser(null);
       setIsAuthenticated(false);
-
+      NotificationService.disconnect();
       toast.error(`${reason}. ${t("authContext.login_again")}`);
     },
     [isAuthenticated, t],
   );
 
-  // Kiểm tra token expiration thường xuyên (Tắc tạm)
-  useEffect(() => {
-    // Đã loại bỏ logic kiểm tra token expiration vì backend xử lý authentication
-    return;
-  }, [isAuthenticated]); // Chỉ depend on isAuthenticated
-
-  // Setup response interceptor để handle 401/403
   useEffect(() => {
     const responseInterceptor = api.interceptors.response.use(
       (response) => response,
       async (error) => {
-        const originalRequest = error.config;
-
-        // Tránh infinite loop
+        const originalRequest = error.config || {};
         if (originalRequest._retry) {
           return Promise.reject(error);
         }
 
         if (error.response?.status === 401 || error.response?.status === 403) {
-          // Skip auto-logout cho một số endpoints
           const skipEndpoints = [
             "/api/auth/refresh",
             "/api/auth/logout",
             "/api/auth/verifyUser",
           ];
+
           if (
             skipEndpoints.some((endpoint) =>
               originalRequest.url?.includes(endpoint),
@@ -96,9 +121,9 @@ export const AuthProvider = ({ children }) => {
           ) {
             return Promise.reject(error);
           }
+
           originalRequest._retry = true;
 
-          // Thử refresh token trước
           const refreshToken = localStorage.getItem("refreshToken");
           if (refreshToken) {
             try {
@@ -106,20 +131,19 @@ export const AuthProvider = ({ children }) => {
                 refreshToken,
               });
 
-              if (refreshResponse.data.accessToken) {
+              if (refreshResponse.data?.accessToken) {
                 localStorage.setItem(
                   "jwtToken",
                   refreshResponse.data.accessToken,
                 );
-                // Backend đã tự động set HttpOnly cookie, không cần retry với header
-                // Request tiếp theo sẽ tự động dùng cookie mới
-                return Promise.resolve(); // Không retry request cũ vì cookie đã được update
+                return Promise.resolve();
               }
-            } catch (refreshError) {}
+            } catch {
+              autoLogout("Session is no longer valid");
+            }
+          } else {
+            autoLogout("Session is no longer valid");
           }
-
-          // Tắc tạm auto-logout để debug
-          // autoLogout("Phiên đăng nhập không hợp lệ");
         }
 
         return Promise.reject(error);
@@ -129,61 +153,77 @@ export const AuthProvider = ({ children }) => {
     return () => {
       api.interceptors.response.eject(responseInterceptor);
     };
-  }, []); // Empty dependency array
+  }, [autoLogout]);
 
-  // ĐƠN GIẢN HÓA: Chỉ check localStorage token
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
     const userData = localStorage.getItem("user");
 
-    if (token) {
-      setIsAuthenticated(true);
-
-      // Nếu có user data trong localStorage thì dùng luôn
-      if (userData) {
-        try {
-          let parsedUser = JSON.parse(userData);
-
-          // Ensure user has ID from JWT if missing
-          if (!parsedUser.id) {
-            const userId = getUserIdFromToken(token);
-            if (userId) {
-              parsedUser = { ...parsedUser, id: userId };
-              // Update localStorage with userId
-              localStorage.setItem("user", JSON.stringify(parsedUser));
-            }
-          }
-
-          setUser(parsedUser);
-          // Try to find user ID from various fields
-          const userId =
-            parsedUser.id ||
-            parsedUser.userId ||
-            parsedUser.sub ||
-            parsedUser.email;
-          if (userId) {
-            // Connect to NotificationService
-            connectNotificationService(userId, token);
-          } else {
-          }
-        } catch (error) {}
-      }
-    } else {
-      // Disconnect NotificationService when not authenticated
+    if (!token) {
       NotificationService.disconnect();
+      setLoading(false);
+      return;
+    }
+
+    if (isTokenExpired(token)) {
+      clearStoredAuth();
+      NotificationService.disconnect();
+      setUser(null);
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
+
+    if (userData) {
+      try {
+        let parsedUser = JSON.parse(userData);
+        if (!parsedUser.id) {
+          const userId = getUserIdFromToken(token);
+          if (userId) {
+            parsedUser = { ...parsedUser, id: userId };
+            localStorage.setItem("user", JSON.stringify(parsedUser));
+          }
+        }
+
+        setUser(parsedUser);
+        const userId =
+          parsedUser.id ||
+          parsedUser.userId ||
+          parsedUser.sub ||
+          parsedUser.email;
+
+        if (userId) {
+          connectNotificationService(userId, token);
+        }
+      } catch {
+        clearStoredAuth();
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     }
 
     setLoading(false);
-  }, []);
+  }, [connectNotificationService, getUserIdFromToken, isTokenExpired]);
 
-  // Connect to NotificationService
-  const connectNotificationService = async (userId, token) => {
-    try {
-      await NotificationService.connect(userId, token);
-    } catch (error) {
-      // Don't throw error - allow app to continue without WebSocket
-    }
-  };
+  // Production behavior: auto-logout when JWT expires.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkTokenExpiry = () => {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) return;
+      if (isTokenExpired(token)) {
+        autoLogout(t("authContext.session_expired"));
+      }
+    };
+
+    checkTokenExpiry();
+    const intervalId = setInterval(checkTokenExpiry, 15000);
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, isTokenExpired, autoLogout, t]);
 
   const checkCookieConsent = () => {
     // Cookie consent functionality removed for simplification
@@ -203,22 +243,26 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
+
+      if (isTokenExpired(token)) {
+        clearStoredAuth();
+        setUser(null);
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
           setIsAuthenticated(true);
-        } catch (error) {
-          // Clear invalid data
-          localStorage.removeItem("user");
-          localStorage.removeItem("jwtToken");
-          localStorage.removeItem("refreshToken");
+        } catch {
+          clearStoredAuth();
         }
       } else {
-        localStorage.removeItem("jwtToken");
-        localStorage.removeItem("refreshToken");
+        clearStoredAuth();
       }
-    } catch (error) {
     } finally {
       setLoading(false);
     }
@@ -233,15 +277,12 @@ export const AuthProvider = ({ children }) => {
 
       const data = response.data;
 
-      // Lưu tokens vào localStorage
       if (data.accessToken) localStorage.setItem("jwtToken", data.accessToken);
       if (data.refreshToken)
         localStorage.setItem("refreshToken", data.refreshToken);
 
-      // Lưu user data vào localStorage
       const userData = data.user || data;
       if (userData && data.accessToken) {
-        // Add userId from JWT token to userData
         const userId = getUserIdFromToken(data.accessToken);
         const userDataWithId = { ...userData, id: userId };
         localStorage.setItem("user", JSON.stringify(userDataWithId));
@@ -251,15 +292,13 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
       }
 
-      // Set authentication state
       setIsAuthenticated(true);
 
-      // Connect to NotificationService after successful login
       const userId = getUserIdFromToken(data.accessToken);
       if (data.accessToken && userId) {
         await connectNotificationService(userId, data.accessToken);
-      } else {
       }
+
       return {
         success: true,
         message: data.message || "Login successful",
@@ -273,20 +312,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const acceptCookies = async (customPreferences = null) => {
+  const acceptCookies = async () => {
     // Cookie consent functionality removed for simplification
   };
 
   const logout = async () => {
-    // Clear auth state immediately to avoid stale UI/account after toast
     setUser(null);
     setIsAuthenticated(false);
     setLoading(false);
 
-    // Disconnect realtime services first
     NotificationService.disconnect();
 
-    // Clear all possible auth artifacts (local/session storage)
     const keysToClear = [
       "jwtToken",
       "refreshToken",
@@ -301,31 +337,25 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem(key);
     });
 
-    // Remove default auth header if present
     try {
       delete api.defaults.headers.common.Authorization;
-    } catch (error) {}
+    } catch {
+      // ignore
+    }
 
     try {
-      // Get current user ID before clearing
       const currentUserId = user?.id || user?.email || user?.sub;
-
-      // Clear all watching data for this user
       if (currentUserId) {
-        try {
-          // Clear all local storage watching data
-          localStorage.removeItem("wemovies_current_session");
-          localStorage.removeItem("wemovies_local_watching");
-          localStorage.removeItem("wemovies_retry_queue");
-          localStorage.removeItem("watchingSessions"); // LocalWatchingService data
-        } catch (watchingError) {}
+        localStorage.removeItem("wemovies_current_session");
+        localStorage.removeItem("wemovies_local_watching");
+        localStorage.removeItem("wemovies_retry_queue");
+        localStorage.removeItem("watchingSessions");
       }
 
-      // Gọi backend logout API
       await api.post("/api/auth/logout");
-    } catch (error) {
+    } catch {
+      // ignore logout API errors
     } finally {
-      // Clear JWT cookie if present
       try {
         document.cookie =
           "jwtToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
@@ -333,8 +363,8 @@ export const AuthProvider = ({ children }) => {
           "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
         document.cookie =
           "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
-      } catch (error) {
-        // Ignore cookie clearing errors
+      } catch {
+        // ignore cookie cleanup failures
       }
     }
   };
@@ -350,6 +380,7 @@ export const AuthProvider = ({ children }) => {
     acceptCookies,
     checkAuthStatus,
     fetchCookiePreferences,
+    checkCookieConsent,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
