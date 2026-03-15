@@ -30,6 +30,9 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
     country.name.toLowerCase().includes(countrySearch.toLowerCase()),
   );
 
+  const getCountryId = (country) =>
+    country?.id || country?.country_id || country?.countryId || null;
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -97,7 +100,7 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                           className="text-left py-2 px-2 rounded-md hover:bg-gray-800 transition-colors text-sm text-gray-300 hover:text-white border border-gray-700 hover:border-gray-600"
                           onClick={() => {
                             navigateToMovies(
-                              `/api/movies/types/id/${item.id}`,
+                              `/api/movies/type/id/${item.id}`,
                               item.name,
                             );
                             setActiveSection(null);
@@ -192,8 +195,12 @@ const MobileMenu = ({ categories, types, countries, navigateToMovies }) => {
                           key={item.name}
                           className="text-left py-2 px-2 rounded-md hover:bg-gray-800 transition-colors text-sm text-gray-300 hover:text-white border border-gray-700 hover:border-gray-600"
                           onClick={() => {
+                            const countryId = getCountryId(item);
+                            if (!countryId) {
+                              return;
+                            }
                             navigateToMovies(
-                              `/api/movies/country/${item.id}`,
+                              `/api/movies/country/${countryId}`,
                               item.name,
                             );
                             setActiveSection(null);

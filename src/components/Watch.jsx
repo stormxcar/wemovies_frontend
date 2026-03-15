@@ -12,7 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useWatchingProgress } from "../hooks/useWatchingProgress";
-import { fetchMovieByIdentifier, fetchJson } from "../services/api";
+import { fetchMovieByIdentifier, fetchMoviesByCategory } from "../services/api";
 import UnifiedVideoPlayer from "./UnifiedVideoPlayer";
 import ReviewSection from "./ReviewSection";
 import useDocumentTitle from "../hooks/useDocumentTitle";
@@ -125,8 +125,13 @@ const Watch = React.memo(() => {
       return;
     }
     try {
-      const data = await fetchJson(`/api/movies/category/${categoryName}`);
-      setRelatedMovies(Array.isArray(data.data) ? data.data : []);
+      const data = await fetchMoviesByCategory(categoryName, {
+        page: 0,
+        size: 20,
+        sortBy: "createdAt",
+        sortDir: "desc",
+      });
+      setRelatedMovies(Array.isArray(data) ? data : []);
     } catch (error) {
       setRelatedMovies([]);
     }
@@ -182,6 +187,10 @@ const Watch = React.memo(() => {
           movieData.id,
           movieData.title,
           derivedDuration,
+          movieData.thumbnail_url ||
+            movieData.poster_url ||
+            movieData.thumb_url ||
+            "",
         );
 
         if (sessionResult?.status === "SUCCESS") {

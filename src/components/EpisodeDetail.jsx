@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fetchJson, fetchMovieByIdentifier } from "../services/api";
+import {
+  fetchMovieByCategoryId,
+  fetchMovieByIdentifier,
+} from "../services/api";
 import HorizontalMovies from "./HorizontalMovies";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { getMovieEpisodePath } from "../utils/movieRoutes";
@@ -20,9 +23,9 @@ const EpisodeDetail = () => {
       return;
     }
     try {
-      const data = await fetchJson(`/api/movies/category/id/${categoryId}`);
+      const data = await fetchMovieByCategoryId(categoryId);
 
-      setRelatedMovies(Array.isArray(data.data) ? data.data : []);
+      setRelatedMovies(Array.isArray(data) ? data : []);
     } catch (e) {
       setRelatedMovies([]);
     }

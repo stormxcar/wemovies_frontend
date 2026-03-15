@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { fetchJson } from "../services/api";
 import { FaStar } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
@@ -13,11 +13,15 @@ const ReviewSection = ({ movieId }) => {
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [replyDrafts, setReplyDrafts] = useState({});
+  const [replyingToReviewId, setReplyingToReviewId] = useState(null);
+  const [visibleRepliesCount, setVisibleRepliesCount] = useState({});
 
   const fetchReviews = useCallback(async () => {
     try {
       const reviewsData = await fetchJson(`/api/reviews/${movieId}/reviews`);
-      setReviews(reviewsData?.data || reviewsData || []);
+      const rawReviews = reviewsData?.data || reviewsData || [];
+      setReviews(Array.isArray(rawReviews) ? rawReviews : []);
     } catch (error) {
       setReviews([]);
     }
@@ -75,9 +79,80 @@ const ReviewSection = ({ movieId }) => {
     }
   };
 
+  const getRepliesForReview = useCallback(
+    (review) => {
+      if (Array.isArray(review?.replies) && review.replies.length > 0) {
+        return review.replies;
+      }
+
+      const parentId = review?.id;
+      if (!parentId) {
+        return [];
+      }
+
+      return reviews.filter((candidate) => {
+        const candidateParentId =
+          candidate?.parentReview?.id || candidate?.parentReviewId;
+        return candidateParentId === parentId;
+      });
+    },
+    [reviews],
+  );
+
+  const handleReplySubmit = async (review) => {
+    if (!isAuthenticated) {
+      toast.error(t("review.toasts.login_required"));
+      return;
+    }
+
+    const reviewId = review?.id;
+    const comment = replyDrafts[reviewId]?.trim();
+
+    if (!reviewId || !comment) {
+      toast.error(t("review.replies.comment_required"));
+      return;
+    }
+
+    try {
+      await fetchJson(
+        `/api/reviews/${encodeURIComponent(reviewId)}/reply?comment=${encodeURIComponent(comment)}`,
+        {
+          method: "POST",
+        },
+      );
+
+      toast.success(t("review.toasts.submit_success"));
+      setReplyDrafts((prev) => ({
+        ...prev,
+        [reviewId]: "",
+      }));
+      setReplyingToReviewId(null);
+      await fetchReviews();
+    } catch (error) {
+      if (
+        error?.response?.status === 400 &&
+        String(error?.response?.data?.message || "").includes(
+          "Only one-level reply is supported",
+        )
+      ) {
+        toast.error(t("review.replies.one_level_only"));
+      } else {
+        toast.error(t("review.toasts.submit_error"));
+      }
+    }
+  };
+
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
+
+  const topLevelReviews = useMemo(
+    () =>
+      reviews.filter(
+        (review) => !review?.parentReview && !review?.parentReviewId,
+      ),
+    [reviews],
+  );
 
   return (
     <div>
@@ -119,13 +194,13 @@ const ReviewSection = ({ movieId }) => {
       </div>
 
       {/* Reviews Section */}
-      {reviews.length > 0 && (
+      {topLevelReviews.length > 0 && (
         <div className="my-8">
           <h3 className="text-xl font-bold text-white mb-4">
             {t("review.user_reviews")}
           </h3>
           <div className="space-y-4">
-            {reviews.slice(0, 3).map((review, index) => (
+            {topLevelReviews.slice(0, 3).map((review, index) => (
               <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-white font-semibold">
@@ -152,6 +227,88 @@ const ReviewSection = ({ movieId }) => {
                     i18n.language === "vi" ? "vi-VN" : "en-US",
                   )}
                 </p>
+
+                <div className="mt-3 border-t border-gray-600/60 pt-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setReplyingToReviewId((prev) =>
+                        prev === review.id ? null : review.id,
+                      )
+                    }
+                    className="text-sm text-yellow-300 hover:text-yellow-200"
+                  >
+                    {t("review.replies.reply_action")}
+                  </button>
+
+                  {replyingToReviewId === review.id && (
+                    <div className="mt-2 space-y-2">
+                      <textarea
+                        value={replyDrafts[review.id] || ""}
+                        onChange={(event) =>
+                          setReplyDrafts((prev) => ({
+                            ...prev,
+                            [review.id]: event.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        rows="2"
+                        placeholder={t("review.replies.placeholder")}
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleReplySubmit(review)}
+                          className="bg-yellow-500 text-black px-3 py-1.5 rounded-md hover:bg-yellow-600 transition-colors"
+                        >
+                          {t("review.replies.submit")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {getRepliesForReview(review).length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {getRepliesForReview(review)
+                        .slice(0, visibleRepliesCount[review.id] || 1)
+                        .map((reply) => (
+                          <div
+                            key={reply.id}
+                            className="ml-3 pl-3 border-l-2 border-yellow-400/50"
+                          >
+                            <p className="text-sm text-gray-200">
+                              <span className="font-medium text-white">
+                                {reply.user?.fullName ||
+                                  t("review.user_fallback")}
+                              </span>
+                              {": "}
+                              {reply.comment}
+                            </p>
+                          </div>
+                        ))}
+
+                      {(visibleRepliesCount[review.id] || 1) <
+                        getRepliesForReview(review).length && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVisibleRepliesCount((prev) => ({
+                              ...prev,
+                              [review.id]: getRepliesForReview(review).length,
+                            }))
+                          }
+                          className="ml-3 text-xs text-orange-300 hover:text-orange-200"
+                        >
+                          {t("review.replies.show_more", {
+                            count:
+                              getRepliesForReview(review).length -
+                              (visibleRepliesCount[review.id] || 1),
+                          })}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

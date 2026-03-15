@@ -7,15 +7,18 @@ import { FaFilter } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 import CardMovie from "./CardMovie";
 import {
-  fetchJson,
   fetchCategories,
   fetchMovieType,
   fetchCountries,
   fetchMovieByHot,
+  fetchMoviesByCategory as fetchMoviesByCategoryApi,
+  fetchJson,
 } from "../services/api";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
-function MovieList({ movies = [], onMovieClick }) {
+const EMPTY_MOVIES = [];
+
+function MovieList({ movies, onMovieClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { categoryName } = useParams();
@@ -27,7 +30,9 @@ function MovieList({ movies = [], onMovieClick }) {
     movies: stateMovies,
     title,
     categoryId,
+    sourceEndpoint,
   } = location.state || {};
+  const inputMovies = Array.isArray(movies) ? movies : EMPTY_MOVIES;
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [allMovies, setAllMovies] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -56,6 +61,77 @@ function MovieList({ movies = [], onMovieClick }) {
   const [selectedVersion, setSelectedVersion] = useState(allLabel);
   const [selectedYear, setSelectedYear] = useState(allLabel);
   const [selectedSort, setSelectedSort] = useState(newestSortLabel);
+  const [isFilterDebugEnabled, setIsFilterDebugEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const queryEnabled = params.get("debugFilters") === "1";
+    const localStorageEnabled =
+      window.localStorage.getItem("debugMovieFilters") === "1";
+
+    // Debug is enabled by default in development. In production, enable with
+    // ?debugFilters=1 or localStorage.debugMovieFilters = "1".
+    setIsFilterDebugEnabled(
+      Boolean(import.meta.env.DEV || queryEnabled || localStorageEnabled),
+    );
+  }, []);
+
+  const getMovieYear = (movie) => {
+    const rawYear = movie?.release_year ?? movie?.releaseYear;
+    if (rawYear === null || rawYear === undefined || rawYear === "") {
+      return "";
+    }
+    return String(rawYear);
+  };
+
+  const getMovieCountryName = (movie) => {
+    return movie?.country?.name || movie?.countryName || "";
+  };
+
+  const getMovieTypeNames = (movie) => {
+    if (!Array.isArray(movie?.movieTypes)) {
+      return [];
+    }
+    return movie.movieTypes
+      .map((type) => type?.name || type?.type_name || "")
+      .filter(Boolean);
+  };
+
+  const getMovieCategoryNames = (movie) => {
+    if (Array.isArray(movie?.movieCategories)) {
+      return movie.movieCategories
+        .map((category) => category?.name || "")
+        .filter(Boolean);
+    }
+
+    if (Array.isArray(movie?.categories)) {
+      return movie.categories
+        .map((category) => category?.name || category)
+        .filter(Boolean);
+    }
+
+    return [];
+  };
+
+  const getMovieAgeRating = (movie) => {
+    return movie?.ageRating || movie?.age_rating || "";
+  };
+
+  const getMovieDebugSnapshot = (movie) => ({
+    id: movie?.id,
+    title: movie?.title || movie?.name || "",
+    year: getMovieYear(movie),
+    country: getMovieCountryName(movie),
+    movieTypes: getMovieTypeNames(movie),
+    categories: getMovieCategoryNames(movie),
+    ageRating: getMovieAgeRating(movie),
+    vietSub: movie?.vietSub,
+    views: movie?.views || 0,
+  });
 
   const countryOptions = useMemo(() => {
     const names = countries
@@ -68,7 +144,7 @@ function MovieList({ movies = [], onMovieClick }) {
     const years = [
       ...new Set(
         allMovies
-          .map((movie) => movie?.release_year)
+          .map((movie) => getMovieYear(movie))
           .filter((year) => year !== null && year !== undefined && year !== ""),
       ),
     ]
@@ -151,14 +227,19 @@ function MovieList({ movies = [], onMovieClick }) {
       }
     };
     fetchAll();
-  }, [stateMovies?.length, movies?.length]);
+  }, [stateMovies?.length, inputMovies.length]);
 
   const fetchMoviesByCategory = async (categoryName) => {
     try {
-      const movies = await fetchJson(`/api/movies/category/${categoryName}`);
-      const movieData = Array.isArray(movies.data) ? movies.data : [];
+      const movieData = await fetchMoviesByCategoryApi(categoryName, {
+        page: 0,
+        size: 60,
+        sortBy: "createdAt",
+        sortDir: "desc",
+      });
 
-      setFilteredMovies(movieData);
+      setAllMovies(Array.isArray(movieData) ? movieData : []);
+      setFilteredMovies(Array.isArray(movieData) ? movieData : []);
     } catch (error) {
       console.error("Error fetching movies:", error);
       setAllMovies([]);
@@ -166,23 +247,95 @@ function MovieList({ movies = [], onMovieClick }) {
     }
   };
 
-  useEffect(() => {
-    if (stateMovies && Array.isArray(stateMovies)) {
-      // Nếu có stateMovies từ navigate (ví dụ: từ HorizontalMovies), sử dụng nó
-      setAllMovies(stateMovies);
-      setFilteredMovies(stateMovies);
-    } else if (categoryId) {
-      // Nếu có categoryId, gọi API để lấy danh sách phim
-      fetchMoviesByCategory(categoryId);
-    } else if (categoryName) {
-      // Nếu chỉ có categoryName (truy cập trực tiếp), gọi API với tên category
-      fetchMoviesByCategory(categoryName);
-    } else {
-      // Sử dụng movies mặc định nếu không có dữ liệu
-      setAllMovies(movies);
-      setFilteredMovies(movies);
+  const fetchMoviesBySourceEndpoint = async (endpoint) => {
+    if (!endpoint) {
+      return [];
     }
-  }, [categoryName, stateMovies, categoryId, movies]);
+
+    try {
+      const separator = endpoint.includes("?") ? "&" : "?";
+      const fullEndpoint = `${endpoint}${separator}page=0&size=200&sortBy=createdAt&sortDir=desc`;
+      const response = await fetchJson(fullEndpoint);
+      const moviesArray = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.items)
+          ? response.items
+          : Array.isArray(response?.data?.items)
+            ? response.data.items
+            : Array.isArray(response?.data)
+              ? response.data
+              : [];
+
+      return moviesArray;
+    } catch (error) {
+      console.error("Error fetching movies from source endpoint:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMovies = async () => {
+      if (stateMovies && Array.isArray(stateMovies)) {
+        // Show initial list quickly while we refresh from endpoint if possible.
+        setAllMovies(stateMovies);
+        setFilteredMovies(stateMovies);
+      }
+
+      if (sourceEndpoint) {
+        const endpointMovies =
+          await fetchMoviesBySourceEndpoint(sourceEndpoint);
+        if (isMounted && endpointMovies.length > 0) {
+          setAllMovies(endpointMovies);
+          setFilteredMovies(endpointMovies);
+          return;
+        }
+      }
+
+      if (categoryId) {
+        const movieData = await fetchMoviesByCategoryApi(categoryId, {
+          page: 0,
+          size: 200,
+          sortBy: "createdAt",
+          sortDir: "desc",
+        });
+        const list = Array.isArray(movieData) ? movieData : [];
+        if (isMounted) {
+          setAllMovies(list);
+          setFilteredMovies(list);
+        }
+        return;
+      }
+
+      if (categoryName) {
+        const movieData = await fetchMoviesByCategoryApi(categoryName, {
+          page: 0,
+          size: 200,
+          sortBy: "createdAt",
+          sortDir: "desc",
+        });
+        const list = Array.isArray(movieData) ? movieData : [];
+        if (isMounted) {
+          setAllMovies(list);
+          setFilteredMovies(list);
+        }
+        return;
+      }
+
+      const fallbackList = inputMovies;
+      if (isMounted) {
+        setAllMovies(fallbackList);
+        setFilteredMovies(fallbackList);
+      }
+    };
+
+    loadMovies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryName, stateMovies, categoryId, sourceEndpoint, inputMovies]);
 
   // Auto-apply filters when any filter state changes
   useEffect(() => {
@@ -203,55 +356,102 @@ function MovieList({ movies = [], onMovieClick }) {
   // Internal filter function that doesn't close modal
   const applyFiltersInternal = () => {
     let filtered = [...allMovies];
+    const stepLogs = [];
+
+    const selectedCriteria = {
+      selectedCountry,
+      selectedMovieType,
+      selectedRating,
+      selectedGenre,
+      selectedVersion,
+      selectedYear,
+      selectedSort,
+      sourceMoviesCount: allMovies.length,
+    };
+
+    const logStep = (name, before, after, criterion) => {
+      if (!isFilterDebugEnabled) {
+        return;
+      }
+      stepLogs.push({
+        step: name,
+        criterion,
+        before,
+        after,
+        removed: before - after,
+      });
+    };
+
+    const matchYear = (movie) =>
+      selectedYear === allLabel || getMovieYear(movie) === selectedYear;
+    const matchCountry = (movie) =>
+      selectedCountry === allLabel ||
+      getMovieCountryName(movie) === selectedCountry;
+    const matchMovieType = (movie) =>
+      selectedMovieType === allLabel ||
+      getMovieTypeNames(movie).includes(selectedMovieType);
+    const matchRating = (movie) =>
+      selectedRating === allLabel ||
+      getMovieAgeRating(movie) === selectedRating;
+    const matchGenre = (movie) =>
+      selectedGenre === allLabel ||
+      getMovieCategoryNames(movie).includes(selectedGenre);
+    const matchVersion = (movie) => {
+      if (selectedVersion === allLabel) {
+        return true;
+      }
+      if (selectedVersion === subtitleVersionLabel) {
+        return movie?.vietSub === true;
+      }
+      if (
+        selectedVersion === dubbedVersionLabel ||
+        selectedVersion === voiceoverVersionLabel
+      ) {
+        return movie?.vietSub === false;
+      }
+      return true;
+    };
 
     // Filter by year
     if (selectedYear !== allLabel) {
-      filtered = filtered.filter(
-        (movie) =>
-          movie.release_year && movie.release_year.toString() === selectedYear,
-      );
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchYear(movie));
+      logStep("year", before, filtered.length, selectedYear);
     }
 
     // Filter by country
     if (selectedCountry !== allLabel) {
-      filtered = filtered.filter(
-        (movie) => movie.country && movie.country.name === selectedCountry,
-      );
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchCountry(movie));
+      logStep("country", before, filtered.length, selectedCountry);
     }
 
     // Filter by movie type (loại phim) - sử dụng data thật từ movieTypes
     if (selectedMovieType !== allLabel) {
-      filtered = filtered.filter(
-        (movie) =>
-          movie.movieTypes &&
-          movie.movieTypes.some((type) => type.name === selectedMovieType),
-      );
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchMovieType(movie));
+      logStep("movieType", before, filtered.length, selectedMovieType);
     }
 
     // Filter by age rating
     if (selectedRating !== allLabel) {
-      filtered = filtered.filter((movie) => movie.ageRating === selectedRating);
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchRating(movie));
+      logStep("ageRating", before, filtered.length, selectedRating);
     }
 
     // Filter by genre (thể loại)
     if (selectedGenre !== allLabel) {
-      filtered = filtered.filter(
-        (movie) =>
-          movie.movieCategories &&
-          movie.movieCategories.some((cat) => cat.name === selectedGenre),
-      );
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchGenre(movie));
+      logStep("genre", before, filtered.length, selectedGenre);
     }
 
     // Filter by version (phiên bản)
     if (selectedVersion !== allLabel) {
-      if (selectedVersion === subtitleVersionLabel) {
-        filtered = filtered.filter((movie) => movie.vietSub === true);
-      } else if (
-        selectedVersion === dubbedVersionLabel ||
-        selectedVersion === voiceoverVersionLabel
-      ) {
-        filtered = filtered.filter((movie) => movie.vietSub === false);
-      }
+      const before = filtered.length;
+      filtered = filtered.filter((movie) => matchVersion(movie));
+      logStep("version", before, filtered.length, selectedVersion);
     }
 
     // Apply sorting
@@ -262,7 +462,72 @@ function MovieList({ movies = [], onMovieClick }) {
     } else if (selectedSort === viewsSortLabel) {
       filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (selectedSort === yearSortLabel) {
-      filtered.sort((a, b) => (b.release_year || 0) - (a.release_year || 0));
+      filtered.sort(
+        (a, b) => Number(getMovieYear(b)) - Number(getMovieYear(a)),
+      );
+    }
+
+    if (isFilterDebugEnabled) {
+      const inspected = allMovies.slice(0, 20).map((movie) => {
+        const snapshot = getMovieDebugSnapshot(movie);
+        const checks = {
+          year: matchYear(movie),
+          country: matchCountry(movie),
+          movieType: matchMovieType(movie),
+          ageRating: matchRating(movie),
+          genre: matchGenre(movie),
+          version: matchVersion(movie),
+        };
+        const matchedAll =
+          checks.year &&
+          checks.country &&
+          checks.movieType &&
+          checks.ageRating &&
+          checks.genre &&
+          checks.version;
+
+        return {
+          id: snapshot.id,
+          title: snapshot.title,
+          year: snapshot.year,
+          country: snapshot.country,
+          movieTypes: snapshot.movieTypes.join(", "),
+          categories: snapshot.categories.join(", "),
+          ageRating: snapshot.ageRating,
+          vietSub: snapshot.vietSub,
+          yearMatch: checks.year,
+          countryMatch: checks.country,
+          movieTypeMatch: checks.movieType,
+          ageRatingMatch: checks.ageRating,
+          genreMatch: checks.genre,
+          versionMatch: checks.version,
+          matchedAll,
+        };
+      });
+
+      const excludedSamples = inspected
+        .filter((movie) => !movie.matchedAll)
+        .slice(0, 10);
+      const includedSamples = inspected
+        .filter((movie) => movie.matchedAll)
+        .slice(0, 10);
+
+      console.groupCollapsed(
+        `[MovieList][FilterDebug] Result ${filtered.length}/${allMovies.length}`,
+      );
+      console.log("Criteria:", selectedCriteria);
+      if (stepLogs.length > 0) {
+        console.table(stepLogs);
+      }
+      if (excludedSamples.length > 0) {
+        console.log("Excluded sample movies (first 10):");
+        console.table(excludedSamples);
+      }
+      if (includedSamples.length > 0) {
+        console.log("Included sample movies (first 10):");
+        console.table(includedSamples);
+      }
+      console.groupEnd();
     }
 
     setFilteredMovies(filtered);
@@ -457,15 +722,17 @@ function MovieList({ movies = [], onMovieClick }) {
                 {t("movie.rating")}:
               </h4>
               <ul className="space-y-1 flex flex-wrap gap-2 sm:gap-3 sm:ml-4 items-center">
-                {[allLabel, "P", "K", "T13", "T16", "T18"].map((item) => (
-                  <li
-                    key={item}
-                    className={filterOptionClass(selectedRating === item)}
-                    onClick={() => setSelectedRating(item)}
-                  >
-                    {item}
-                  </li>
-                ))}
+                {[allLabel, "P", "T7", "T13", "T16", "T18", "T21"].map(
+                  (item) => (
+                    <li
+                      key={item}
+                      className={filterOptionClass(selectedRating === item)}
+                      onClick={() => setSelectedRating(item)}
+                    >
+                      {item}
+                    </li>
+                  ),
+                )}
               </ul>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">

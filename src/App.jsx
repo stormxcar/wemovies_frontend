@@ -1,4 +1,12 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BrowserRouter as Router,
   Route,
@@ -65,7 +73,12 @@ import {
   useDeleteType,
   useDeleteUser,
 } from "./hooks/useAdminQueries";
-import { createAdminUser, setAdminUserLockStatus } from "./services/api";
+import {
+  createAdminUser,
+  fetchJson,
+  normalizeMoviesPageResponse,
+  setAdminUserLockStatus,
+} from "./services/api";
 
 import ProtectedRoute, { AuthRoute } from "./ProtectRoute";
 import { UserLayout, AdminLayout } from "./layout";
@@ -95,8 +108,121 @@ const WatchLegacyRedirect = () => {
 };
 
 const AppContent = () => {
+  const queryClient = useQueryClient();
   const { pageLoading, pageLoadingMessage, showPageLoading, hidePageLoading } =
     useLoading();
+
+  const [adminMoviesQuery, setAdminMoviesQuery] = useState({
+    page: 1,
+    size: 10,
+    sortField: "createdAt",
+    sortDirection: "desc",
+    search: "",
+    filters: {},
+  });
+  const [adminMoviesLoadingAction, setAdminMoviesLoadingAction] =
+    useState(null);
+
+  const normalizeAdminMoviesQuery = useCallback((query) => {
+    const page = Number.isFinite(Number(query?.page))
+      ? Math.max(1, Number(query.page))
+      : 1;
+    const size = Number.isFinite(Number(query?.size))
+      ? Math.max(1, Number(query.size))
+      : 10;
+    const sortDirection = query?.sortDirection === "asc" ? "asc" : "desc";
+    const sortField =
+      typeof query?.sortField === "string" && query.sortField.trim()
+        ? query.sortField
+        : "createdAt";
+    const search = typeof query?.search === "string" ? query.search : "";
+    const filters =
+      query?.filters && typeof query.filters === "object" ? query.filters : {};
+
+    return {
+      page,
+      size,
+      sortField,
+      sortDirection,
+      search,
+      filters,
+    };
+  }, []);
+
+  const resolveAdminSortBy = useCallback((sortField) => {
+    const sortMap = {
+      title: "title",
+      release_year: "release_year",
+      views: "views",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt",
+      duration: "duration",
+      hot: "hot",
+    };
+
+    return sortMap[sortField] || "createdAt";
+  }, []);
+
+  const buildMoviesListEndpoint = useCallback(
+    (query, countriesList = []) => {
+      const normalized = normalizeAdminMoviesQuery(query);
+      const page0 = normalized.page - 1;
+      const queryString = new URLSearchParams({
+        page: String(page0),
+        size: String(normalized.size),
+        sortBy: resolveAdminSortBy(normalized.sortField),
+        sortDir: normalized.sortDirection,
+      });
+
+      const keyword = normalized.search.trim();
+      const countryId = normalized.filters?.["country.name"];
+      const movieTypeName = normalized.filters?.movieTypes;
+      const categoryName = normalized.filters?.movieCategories;
+
+      if (keyword) {
+        queryString.set("keyword", keyword);
+        return `/api/movies/search?${queryString.toString()}`;
+      }
+
+      if (countryId && categoryName) {
+        const countryName = countriesList.find(
+          (country) => String(country.id) === String(countryId),
+        )?.name;
+
+        if (countryName) {
+          return `/api/movies/country/${encodeURIComponent(countryName)}/category/${encodeURIComponent(categoryName)}?${queryString.toString()}`;
+        }
+      }
+
+      if (categoryName) {
+        return `/api/movies/category/${encodeURIComponent(categoryName)}?${queryString.toString()}`;
+      }
+
+      if (movieTypeName) {
+        return `/api/movies/type/${encodeURIComponent(movieTypeName)}?${queryString.toString()}`;
+      }
+
+      if (countryId) {
+        return `/api/movies/country/${encodeURIComponent(countryId)}?${queryString.toString()}`;
+      }
+
+      return `/api/movies?${queryString.toString()}`;
+    },
+    [normalizeAdminMoviesQuery, resolveAdminSortBy],
+  );
+
+  const fetchAdminMoviesPage = useCallback(
+    async (query, countriesList = []) => {
+      const normalized = normalizeAdminMoviesQuery(query);
+      const endpoint = buildMoviesListEndpoint(normalized, countriesList);
+      const response = await fetchJson(endpoint);
+      return normalizeMoviesPageResponse(response, {
+        page: normalized.page - 1,
+        size: normalized.size,
+      });
+    },
+    [buildMoviesListEndpoint, normalizeAdminMoviesQuery],
+  );
 
   // Use TanStack Query hooks
   const {
@@ -114,6 +240,46 @@ const AppContent = () => {
     isLoading: countriesLoading,
     refetch: refetchCountries,
   } = useCountries();
+
+  const {
+    data: adminMoviesPage,
+    isLoading: adminMoviesLoading,
+    isFetching: adminMoviesFetching,
+    refetch: refetchAdminMovies,
+  } = useQuery({
+    queryKey: ["admin-movies-list", adminMoviesQuery, countries],
+    queryFn: () => fetchAdminMoviesPage(adminMoviesQuery, countries),
+    staleTime: 10 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+  useEffect(() => {
+    if (!adminMoviesFetching) {
+      setAdminMoviesLoadingAction(null);
+    }
+  }, [adminMoviesFetching]);
+
+  useEffect(() => {
+    if (!adminMoviesPage?.hasNext) return;
+
+    const nextQuery = normalizeAdminMoviesQuery({
+      ...adminMoviesQuery,
+      page: Number(adminMoviesQuery.page || 1) + 1,
+    });
+
+    queryClient.prefetchQuery({
+      queryKey: ["admin-movies-list", nextQuery, countries],
+      queryFn: () => fetchAdminMoviesPage(nextQuery, countries),
+      staleTime: 10 * 1000,
+    });
+  }, [
+    adminMoviesPage,
+    adminMoviesQuery,
+    countries,
+    fetchAdminMoviesPage,
+    normalizeAdminMoviesQuery,
+    queryClient,
+  ]);
   const {
     data: types = [],
     isLoading: typesLoading,
@@ -224,6 +390,8 @@ const AppContent = () => {
   const handleDeleteMovie = async (id) => {
     try {
       await deleteMovieMutation.mutateAsync(id);
+      await refetchAdminMovies();
+      await refetchMovies();
     } catch (error) {
       // display server message and log
       const msg =
@@ -243,13 +411,37 @@ const AppContent = () => {
 
   const handleAddMovie = (data) => {
     // This will be handled by the mutation in AddMovie component
+    refetchAdminMovies();
     refetchMovies();
   };
 
   const handleUpdateMovie = (data) => {
     // This will be handled by the mutation in UpdateMovie component
+    refetchAdminMovies();
     refetchMovies();
   };
+
+  const handleAdminMoviesQueryChange = useCallback(
+    (nextPartial, action = null) => {
+      if (action) {
+        setAdminMoviesLoadingAction(action);
+      }
+
+      setAdminMoviesQuery((prev) => {
+        const merged = {
+          ...prev,
+          ...nextPartial,
+          filters: {
+            ...(prev.filters || {}),
+            ...((nextPartial && nextPartial.filters) || {}),
+          },
+        };
+
+        return normalizeAdminMoviesQuery(merged);
+      });
+    },
+    [normalizeAdminMoviesQuery],
+  );
   const handleEditCategory = () => {
     navigate("/admin/categories/update");
   };
@@ -393,11 +585,11 @@ const AppContent = () => {
       label: "Quốc gia",
       filterType: "select",
       filterOptions: countries.map((country) => ({
-        value: country.name,
+        value: country.id,
         label: country.name,
       })),
       filterFn: (item, value) =>
-        String(item?.country?.name || "")
+        String(item?.country?.id || "")
           .toLowerCase()
           .includes(String(value || "").toLowerCase()),
     },
@@ -619,11 +811,11 @@ const AppContent = () => {
               element={
                 <List
                   title="Phim"
-                  items={movies}
+                  items={adminMoviesPage?.items || []}
                   onEdit={handleEditMovie}
                   onDelete={handleDeleteMovie}
                   onViewDetails={(id) => navigate(`/admin/movies/${id}`)}
-                  onRefresh={refetchMovies}
+                  onRefresh={refetchAdminMovies}
                   searchFields={[
                     "title",
                     "country.name",
@@ -632,7 +824,17 @@ const AppContent = () => {
                   ]}
                   displayFields={movieDisplayFields}
                   keyField="id"
-                  isLoading={moviesLoading}
+                  isLoading={adminMoviesLoading || adminMoviesFetching}
+                  serverMode
+                  serverMeta={{
+                    page: Number(adminMoviesPage?.page || 0) + 1,
+                    size: Number(adminMoviesPage?.size || 10),
+                    totalItems: Number(adminMoviesPage?.totalItems || 0),
+                    totalPages: Number(adminMoviesPage?.totalPages || 0),
+                  }}
+                  serverQuery={adminMoviesQuery}
+                  onServerQueryChange={handleAdminMoviesQueryChange}
+                  serverLoadingAction={adminMoviesLoadingAction}
                 />
               }
             />

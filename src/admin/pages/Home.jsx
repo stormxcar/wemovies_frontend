@@ -73,7 +73,12 @@ const Home = () => {
           reportData,
         ] = await Promise.all([
           getCategories(),
-          getMovies(),
+          getMovies({
+            page: 0,
+            size: 100,
+            sortBy: "createdAt",
+            sortDir: "desc",
+          }),
           getUsers(),
           getCountries(),
           getTypes(),

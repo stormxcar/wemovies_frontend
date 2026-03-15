@@ -159,7 +159,7 @@ export const useWatchingProgress = (userId) => {
 
   // Bắt đầu xem phim
   const startWatching = useCallback(
-    async (movieId, movieTitle, totalDuration = null) => {
+    async (movieId, movieTitle, totalDuration = null, movieThumbnail = "") => {
       const token = getAuthToken();
       if (!token) {
         throw new Error(t("watchingProgress.errors.login_required"));
@@ -189,6 +189,7 @@ export const useWatchingProgress = (userId) => {
           userId: finalUserId,
           movieId: movieId.toString(),
           movieTitle,
+          movieThumbnail,
           totalDuration: normalizedDuration,
         };
         const result = await WatchingProgressService.startWatching(
@@ -196,6 +197,7 @@ export const useWatchingProgress = (userId) => {
           payload.movieId,
           payload.movieTitle,
           payload.totalDuration,
+          payload.movieThumbnail,
         );
 
         if (result.status === "SUCCESS" || result.success) {
@@ -207,6 +209,7 @@ export const useWatchingProgress = (userId) => {
             userId: finalUserId,
             movieId: movieId.toString(),
             movieTitle,
+            movieThumbnail,
             totalDuration: normalizedDuration,
             startedAt: Date.now(),
           };

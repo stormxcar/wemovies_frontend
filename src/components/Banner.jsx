@@ -16,7 +16,7 @@ import { Link } from "react-router-dom";
 import { FaHeart, FaPlay, FaRegHeart, FaStar } from "react-icons/fa";
 import { toast } from "@toast";
 import SkeletonWrapper from "./SkeletonWrapper";
-import { fetchJson, fetchMovies } from "../services/api";
+import { fetchJson, fetchMovieByHot } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 import { useTranslation } from "react-i18next";
 import { useGlobalLoading } from "../context/UnifiedLoadingContext";
@@ -44,7 +44,13 @@ const pickHeroMovies = (data) =>
   (Array.isArray(data) ? data : [])
     .filter(
       (movie) =>
-        Boolean(movie?.id) && Boolean(movie?.banner_url || movie?.poster_url),
+        Boolean(movie?.id) &&
+        Boolean(
+          movie?.banner_url ||
+          movie?.poster_url ||
+          movie?.thumb_url ||
+          movie?.thumbnail_url,
+        ),
     )
     .sort(() => 0.5 - Math.random())
     .slice(0, 8);
@@ -241,6 +247,7 @@ const ThumbnailStrip = memo(
                   src={
                     movie?.banner_url ||
                     movie?.poster_url ||
+                    movie?.thumb_url ||
                     movie?.thumbnail_url
                   }
                   alt={movie?.title || "movie"}
@@ -366,13 +373,17 @@ function Banner({ onDataLoaded }) {
       updateProgress(85, t("home.loading.banner"));
 
       try {
-        const data = await fetchMovies();
+        const hotMovies = await fetchMovieByHot({
+          page: 0,
+          size: 12,
+          sortDir: "desc",
+        });
         if (!isMounted) return;
-        const validMovies = pickHeroMovies(data);
+        const validMovies = pickHeroMovies(hotMovies || []);
         console.info("[Banner] fetchMovies completed", {
           runId,
           durationMs: Math.round(performance.now() - fetchStart),
-          totalMovies: Array.isArray(data) ? data.length : 0,
+          totalMovies: Array.isArray(hotMovies) ? hotMovies.length : 0,
           validMovies: validMovies.length,
         });
         setMovies(validMovies);
@@ -652,7 +663,12 @@ function Banner({ onDataLoaded }) {
   const movieDescription = getMovieDescription(activeMovie);
   const movieDescriptionHtml =
     activeMovie?.description || activeMovie?.overview || movieDescription;
-  const movieBanner = activeMovie?.banner_url || activeMovie?.poster_url || "";
+  const movieBanner =
+    activeMovie?.banner_url ||
+    activeMovie?.poster_url ||
+    activeMovie?.thumb_url ||
+    activeMovie?.thumbnail_url ||
+    "";
   const youtubeTrailerUrl = getYoutubeEmbedUrl(movieTrailer);
   const isYoutubeTrailer = Boolean(youtubeTrailerUrl);
   const canRenderVideoElement = Boolean(movieTrailer) && !isYoutubeTrailer;

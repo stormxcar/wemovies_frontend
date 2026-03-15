@@ -146,6 +146,130 @@ export const fetchJson = async (
   return result.data !== undefined ? result.data : result;
 };
 
+const MOVIE_DEFAULT_PAGE = 0;
+const MOVIE_DEFAULT_SIZE = 20;
+const MOVIE_DEFAULT_SORT_BY = "createdAt";
+const MOVIE_DEFAULT_SORT_DIR = "desc";
+const MOVIE_ALLOWED_SORT_FIELDS = new Set([
+  "title",
+  "createdAt",
+  "updatedAt",
+  "views",
+  "release_year",
+  "hot",
+  "duration",
+]);
+
+const normalizeSortBy = (sortBy) => {
+  const value = typeof sortBy === "string" ? sortBy.trim() : "";
+  return MOVIE_ALLOWED_SORT_FIELDS.has(value) ? value : MOVIE_DEFAULT_SORT_BY;
+};
+
+const normalizeSortDir = (sortDir) => {
+  const value = String(sortDir || "").toLowerCase();
+  return value === "asc" ? "asc" : "desc";
+};
+
+const buildMovieQuery = (params = {}) => {
+  const query = new URLSearchParams();
+  const page = Number.isFinite(Number(params.page))
+    ? Math.max(0, Number(params.page))
+    : MOVIE_DEFAULT_PAGE;
+  const size = Number.isFinite(Number(params.size))
+    ? Math.max(1, Number(params.size))
+    : MOVIE_DEFAULT_SIZE;
+
+  query.set("page", String(page));
+  query.set("size", String(size));
+
+  if (params.sortBy !== undefined) {
+    query.set("sortBy", normalizeSortBy(params.sortBy));
+  }
+
+  if (params.sortDir !== undefined) {
+    query.set("sortDir", normalizeSortDir(params.sortDir));
+  }
+
+  if (typeof params.keyword === "string" && params.keyword.trim()) {
+    query.set("keyword", params.keyword.trim());
+  }
+
+  return query.toString();
+};
+
+const unwrapPayload = (response) => {
+  if (response && typeof response === "object" && "data" in response) {
+    return response.data;
+  }
+  return response;
+};
+
+export const normalizeMoviesPageResponse = (
+  response,
+  fallback = { page: MOVIE_DEFAULT_PAGE, size: MOVIE_DEFAULT_SIZE },
+) => {
+  const payload = unwrapPayload(response);
+
+  if (Array.isArray(payload)) {
+    return {
+      items: payload,
+      page: fallback.page,
+      size: fallback.size,
+      totalItems: payload.length,
+      totalPages: payload.length > 0 ? 1 : 0,
+      hasNext: false,
+      hasPrevious: false,
+    };
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return {
+      items: payload.items,
+      page: Number.isFinite(Number(payload.page))
+        ? Number(payload.page)
+        : fallback.page,
+      size: Number.isFinite(Number(payload.size))
+        ? Number(payload.size)
+        : fallback.size,
+      totalItems: Number.isFinite(Number(payload.totalItems))
+        ? Number(payload.totalItems)
+        : payload.items.length,
+      totalPages: Number.isFinite(Number(payload.totalPages))
+        ? Number(payload.totalPages)
+        : payload.items.length > 0
+          ? 1
+          : 0,
+      hasNext: Boolean(payload.hasNext),
+      hasPrevious: Boolean(payload.hasPrevious),
+    };
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return {
+      items: payload.data,
+      page: fallback.page,
+      size: fallback.size,
+      totalItems: payload.data.length,
+      totalPages: payload.data.length > 0 ? 1 : 0,
+      hasNext: false,
+      hasPrevious: false,
+    };
+  }
+
+  return {
+    items: [],
+    page: fallback.page,
+    size: fallback.size,
+    totalItems: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false,
+  };
+};
+
+export const extractMovieItems = (response, fallback) =>
+  normalizeMoviesPageResponse(response, fallback).items;
+
 // Helper function for schedule-related APIs that might return null/false
 export const fetchScheduleData = async (endpoint, defaultValue = null) => {
   try {
@@ -158,53 +282,77 @@ export const fetchScheduleData = async (endpoint, defaultValue = null) => {
 
 // Các hàm fetch khác giữ nguyên
 const MOVIES_CACHE_TTL_MS = 60 * 1000;
-const MOVIES_FETCH_TIMEOUT_MS = 15000;
-let moviesCacheData = null;
-let moviesCacheTime = 0;
-let moviesCachePromise = null;
+const MOVIES_FETCH_TIMEOUT_MS = 45000;
+const moviesCacheStore = new Map();
+const moviesPromiseStore = new Map();
+
+export const fetchMoviesPage = async (options = {}) => {
+  const page = Number.isFinite(Number(options.page))
+    ? Math.max(0, Number(options.page))
+    : MOVIE_DEFAULT_PAGE;
+  const size = Number.isFinite(Number(options.size))
+    ? Math.max(1, Number(options.size))
+    : MOVIE_DEFAULT_SIZE;
+  const sortBy = normalizeSortBy(options.sortBy ?? MOVIE_DEFAULT_SORT_BY);
+  const sortDir = normalizeSortDir(options.sortDir ?? MOVIE_DEFAULT_SORT_DIR);
+
+  const query = buildMovieQuery({ page, size, sortBy, sortDir });
+  const endpoint = `/api/movies?${query}`;
+
+  const data = await fetchJson(endpoint, { timeout: MOVIES_FETCH_TIMEOUT_MS });
+
+  return normalizeMoviesPageResponse(data, { page, size });
+};
 
 export const fetchMovies = async (options = {}) => {
   const { forceRefresh = false } = options;
+  const page = Number.isFinite(Number(options.page))
+    ? Math.max(0, Number(options.page))
+    : MOVIE_DEFAULT_PAGE;
+  const size = Number.isFinite(Number(options.size))
+    ? Math.max(1, Number(options.size))
+    : MOVIE_DEFAULT_SIZE;
+  const sortBy = normalizeSortBy(options.sortBy ?? MOVIE_DEFAULT_SORT_BY);
+  const sortDir = normalizeSortDir(options.sortDir ?? MOVIE_DEFAULT_SORT_DIR);
+  const cacheKey = `${page}:${size}:${sortBy}:${sortDir}`;
   const now = Date.now();
+  const cacheEntry = moviesCacheStore.get(cacheKey);
 
   if (
     !forceRefresh &&
-    Array.isArray(moviesCacheData) &&
-    now - moviesCacheTime < MOVIES_CACHE_TTL_MS
+    cacheEntry &&
+    Array.isArray(cacheEntry.items) &&
+    now - cacheEntry.time < MOVIES_CACHE_TTL_MS
   ) {
-    return moviesCacheData;
+    return cacheEntry.items;
   }
 
-  if (!forceRefresh && moviesCachePromise) {
-    return moviesCachePromise;
+  if (!forceRefresh && moviesPromiseStore.has(cacheKey)) {
+    return moviesPromiseStore.get(cacheKey);
   }
 
-  moviesCachePromise = (async () => {
+  const pendingPromise = (async () => {
     try {
-      const data = await Promise.race([
-        fetchJson("/api/movies", { timeout: MOVIES_FETCH_TIMEOUT_MS }),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("fetchMovies timeout")),
-            MOVIES_FETCH_TIMEOUT_MS,
-          ),
-        ),
-      ]);
-      const movies = Array.isArray(data.data) ? data.data : [];
-      moviesCacheData = movies;
-      moviesCacheTime = Date.now();
+      const moviesPage = await fetchMoviesPage({ page, size, sortBy, sortDir });
+      const movies = Array.isArray(moviesPage.items) ? moviesPage.items : [];
+      moviesCacheStore.set(cacheKey, {
+        items: movies,
+        time: Date.now(),
+      });
       return movies;
     } catch (error) {
-      if (Array.isArray(moviesCacheData) && moviesCacheData.length > 0) {
-        return moviesCacheData;
+      if (cacheEntry && Array.isArray(cacheEntry.items)) {
+        return cacheEntry.items;
       }
       return [];
     } finally {
-      moviesCachePromise = null;
+      moviesPromiseStore.delete(cacheKey);
     }
   })();
 
-  return moviesCachePromise;
+  moviesPromiseStore.set(cacheKey, pendingPromise);
+
+  return pendingPromise;
 };
 
 export const fetchCategories = async () => {
@@ -234,15 +382,39 @@ export const fetchMovieType = async () => {
   }
 };
 
-export const fetchMoviesByCategory = (categoryName) =>
-  fetchJson(`/api/movies/category/${encodeURIComponent(categoryName)}`).catch(
-    () => [],
-  );
-
-export const fetchMovieByHot = async () => {
+export const fetchMoviesByCategory = async (categoryName, options = {}) => {
   try {
-    const data = await fetchJson("/api/movies/hot");
-    return Array.isArray(data.data) ? data.data : [];
+    const query = buildMovieQuery({
+      page: options.page,
+      size: options.size,
+      sortBy: options.sortBy,
+      sortDir: options.sortDir,
+    });
+    const response = await fetchJson(
+      `/api/movies/category/${encodeURIComponent(categoryName)}?${query}`,
+    );
+    return extractMovieItems(response, {
+      page: Number(options.page) || MOVIE_DEFAULT_PAGE,
+      size: Number(options.size) || MOVIE_DEFAULT_SIZE,
+    });
+  } catch {
+    return [];
+  }
+};
+
+export const fetchMovieByHot = async (options = {}) => {
+  try {
+    const query = buildMovieQuery({
+      page: options.page ?? MOVIE_DEFAULT_PAGE,
+      size: options.size ?? MOVIE_DEFAULT_SIZE,
+      sortBy: "hot",
+      sortDir: options.sortDir ?? "desc",
+    });
+    const data = await fetchJson(`/api/movies/hot?${query}`);
+    return extractMovieItems(data, {
+      page: Number(options.page) || MOVIE_DEFAULT_PAGE,
+      size: Number(options.size) || MOVIE_DEFAULT_SIZE,
+    });
   } catch (error) {
     return [];
   }
@@ -287,10 +459,19 @@ export const fetchMovieByIdentifier = async (identifier) => {
 
 export const fetchMovieByCategoryId = async (categoryId) => {
   try {
+    const query = buildMovieQuery({
+      page: MOVIE_DEFAULT_PAGE,
+      size: MOVIE_DEFAULT_SIZE,
+      sortBy: MOVIE_DEFAULT_SORT_BY,
+      sortDir: MOVIE_DEFAULT_SORT_DIR,
+    });
     const data = await fetchJson(
-      `/api/movies/category/id/${encodeURIComponent(categoryId)}`,
+      `/api/movies/category/id/${encodeURIComponent(categoryId)}?${query}`,
     );
-    return Array.isArray(data.data) ? data.data : [];
+    return extractMovieItems(data, {
+      page: MOVIE_DEFAULT_PAGE,
+      size: MOVIE_DEFAULT_SIZE,
+    });
   } catch (error) {
     return [];
   }
@@ -299,25 +480,54 @@ export const fetchMovieByCategoryId = async (categoryId) => {
 export const fetchMoviesByCountryAndCategory = async (
   countryName,
   categoryName,
+  options = {},
 ) => {
   try {
+    const query = buildMovieQuery({
+      page: options.page,
+      size: options.size,
+      sortBy: options.sortBy,
+      sortDir: options.sortDir,
+    });
     const data = await fetchJson(
       `/api/movies/country/${encodeURIComponent(
         countryName,
-      )}/category/${encodeURIComponent(categoryName)}`,
+      )}/category/${encodeURIComponent(categoryName)}?${query}`,
     );
-    return Array.isArray(data.data) ? data.data : [];
+    return extractMovieItems(data, {
+      page: Number(options.page) || MOVIE_DEFAULT_PAGE,
+      size: Number(options.size) || MOVIE_DEFAULT_SIZE,
+    });
   } catch (error) {
     return [];
   }
 };
 
-export const fetchMoviesByName = async (name) => {
+export const fetchMoviesByName = async (name, options = {}) => {
   try {
-    const data = await fetchJson(
-      `/api/movies/search/${encodeURIComponent(name)}`,
-    );
-    return Array.isArray(data.data) ? data.data : [];
+    const query = buildMovieQuery({
+      page: options.page,
+      size: options.size,
+      sortBy: options.sortBy,
+      sortDir: options.sortDir,
+      keyword: name,
+    });
+
+    try {
+      const data = await fetchJson(`/api/movies/search?${query}`);
+      return extractMovieItems(data, {
+        page: Number(options.page) || MOVIE_DEFAULT_PAGE,
+        size: Number(options.size) || MOVIE_DEFAULT_SIZE,
+      });
+    } catch {
+      const legacyData = await fetchJson(
+        `/api/movies/search/${encodeURIComponent(name)}?${query}`,
+      );
+      return extractMovieItems(legacyData, {
+        page: Number(options.page) || MOVIE_DEFAULT_PAGE,
+        size: Number(options.size) || MOVIE_DEFAULT_SIZE,
+      });
+    }
   } catch (error) {
     return [];
   }

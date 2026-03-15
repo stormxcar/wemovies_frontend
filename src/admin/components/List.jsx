@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   RefreshCw,
   Trash2,
@@ -32,6 +32,11 @@ const List = ({
   isLoading = false,
   onCreateUser,
   onToggleUserLock,
+  serverMode = false,
+  serverMeta = null,
+  serverQuery = null,
+  onServerQueryChange,
+  serverLoadingAction = null,
 }) => {
   const [search, setSearch] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
@@ -52,6 +57,17 @@ const List = ({
   });
 
   const { handleRefresh } = useCrudOperations(title, onRefresh);
+  const hasInitializedSearchSyncRef = useRef(false);
+
+  useEffect(() => {
+    if (!serverMode || !serverQuery) return;
+    setSearch(serverQuery.search || "");
+    setSortField(serverQuery.sortField || null);
+    setSortDirection(serverQuery.sortDirection || "asc");
+    setFilters(serverQuery.filters || {});
+    setCurrentPage(serverQuery.page || 1);
+    setItemsPerPage(serverQuery.size || 10);
+  }, [serverMode, serverQuery]);
 
   // Handle multi-select
   const handleSelectItem = (itemId) => {
@@ -64,9 +80,9 @@ const List = ({
 
   const handleSelectAll = () => {
     setSelectedItems((prev) =>
-      prev.length === paginatedItems.length
+      prev.length === effectivePaginatedItems.length
         ? []
-        : paginatedItems.map((item) => item[keyField]),
+        : effectivePaginatedItems.map((item) => item[keyField]),
     );
   };
 
@@ -89,29 +105,72 @@ const List = ({
   // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      const nextDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(nextDirection);
+      if (serverMode && onServerQueryChange) {
+        onServerQueryChange(
+          {
+            sortField: field,
+            sortDirection: nextDirection,
+            page: 1,
+          },
+          "sort",
+        );
+      }
     } else {
       setSortField(field);
       setSortDirection("asc");
+      if (serverMode && onServerQueryChange) {
+        onServerQueryChange(
+          {
+            sortField: field,
+            sortDirection: "asc",
+            page: 1,
+          },
+          "sort",
+        );
+      }
     }
   };
 
   // Handle filtering
   const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({
-      ...prev,
+    const nextFilters = {
+      ...filters,
       [field]: value,
-    }));
+    };
+    setFilters(nextFilters);
+    if (serverMode && onServerQueryChange) {
+      onServerQueryChange(
+        {
+          filters: nextFilters,
+          page: 1,
+        },
+        "filter",
+      );
+    }
   };
 
   // Handle pagination
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    if (serverMode && onServerQueryChange) {
+      onServerQueryChange({ page }, "page");
+    }
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
+    if (serverMode && onServerQueryChange) {
+      onServerQueryChange(
+        {
+          size: newItemsPerPage,
+          page: 1,
+        },
+        "page",
+      );
+    }
   };
 
   const handleCreateUserInputChange = (event) => {
@@ -175,13 +234,36 @@ const List = ({
 
   // Reset to first page when search or filters change
   useEffect(() => {
+    if (serverMode) return;
     setCurrentPage(1);
   }, [search, filters]);
 
   // Reset to first page when items array changes (e.g., after refresh)
   useEffect(() => {
+    if (serverMode) return;
     setCurrentPage(1);
   }, [items]);
+
+  useEffect(() => {
+    if (!serverMode || !onServerQueryChange) return;
+
+    if (!hasInitializedSearchSyncRef.current) {
+      hasInitializedSearchSyncRef.current = true;
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onServerQueryChange(
+        {
+          search,
+          page: 1,
+        },
+        "search",
+      );
+    }, 350);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [search, serverMode, onServerQueryChange]);
 
   // Process items with search, filters, and sorting
   const { filteredItems, paginatedItems, totalPages } = useMemo(() => {
@@ -294,6 +376,24 @@ const List = ({
     currentPage,
     itemsPerPage,
   ]);
+
+  const effectivePaginatedItems = serverMode ? items : paginatedItems;
+  const effectiveFilteredItemsCount = serverMode
+    ? Number(serverMeta?.totalItems || items.length || 0)
+    : filteredItems.length;
+  const effectiveTotalPages = serverMode
+    ? Number(serverMeta?.totalPages || 0)
+    : totalPages;
+  const effectiveCurrentPage = serverMode
+    ? Number(serverMeta?.page || currentPage || 1)
+    : currentPage;
+  const effectiveItemsPerPage = serverMode
+    ? Number(serverMeta?.size || itemsPerPage || 10)
+    : itemsPerPage;
+  const isServerFilterActionLoading =
+    serverMode &&
+    isLoading &&
+    ["search", "filter", "sort"].includes(String(serverLoadingAction));
 
   const filterFields = useMemo(() => {
     const configuredFields = displayFields.filter(
@@ -483,9 +583,17 @@ const List = ({
 
       {/* Results count */}
       <div className="mb-4 text-sm text-gray-600">
-        Hiển thị {paginatedItems.length} / {filteredItems.length} mục (trang{" "}
-        {currentPage} / {totalPages})
+        Hiển thị {effectivePaginatedItems.length} /{" "}
+        {effectiveFilteredItemsCount} mục (trang {effectiveCurrentPage} /{" "}
+        {effectiveTotalPages || 1})
       </div>
+
+      {isServerFilterActionLoading && (
+        <div className="mb-3 flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          Đang cập nhật danh sách theo bộ lọc...
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full min-w-[900px] border-collapse">
@@ -496,8 +604,8 @@ const List = ({
                   onClick={handleSelectAll}
                   className="flex items-center justify-center w-full"
                 >
-                  {selectedItems.length === paginatedItems.length &&
-                  paginatedItems.length > 0 ? (
+                  {selectedItems.length === effectivePaginatedItems.length &&
+                  effectivePaginatedItems.length > 0 ? (
                     <CheckSquare className="h-4 w-4" />
                   ) : (
                     <Square className="h-4 w-4" />
@@ -524,7 +632,7 @@ const List = ({
             </tr>
           </thead>
           <tbody>
-            {isLoading
+            {(isLoading && !serverMode) || isServerFilterActionLoading
               ? // Show skeleton rows when loading
                 Array.from({ length: Math.min(5, itemsPerPage) }).map(
                   (_, index) => (
@@ -550,7 +658,7 @@ const List = ({
                     </tr>
                   ),
                 )
-              : paginatedItems.map((item) => (
+              : effectivePaginatedItems.map((item) => (
                   <tr
                     key={item[keyField]}
                     className={`border ${
@@ -636,11 +744,11 @@ const List = ({
 
       {/* Pagination */}
       <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
+        currentPage={effectiveCurrentPage}
+        totalPages={effectiveTotalPages}
         onPageChange={handlePageChange}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredItems.length}
+        itemsPerPage={effectiveItemsPerPage}
+        totalItems={effectiveFilteredItemsCount}
         onItemsPerPageChange={handleItemsPerPageChange}
       />
     </div>

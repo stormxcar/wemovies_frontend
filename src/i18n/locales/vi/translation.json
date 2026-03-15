@@ -337,6 +337,14 @@
       "comment_optional": "Bình luận (tùy chọn):",
       "comment_placeholder": "Viết bình luận của bạn...",
       "submit": "Gửi đánh giá"
+    },
+    "replies": {
+      "reply_action": "Trả lời bình luận",
+      "placeholder": "Nhập nội dung trả lời",
+      "submit": "Gửi trả lời",
+      "show_more": "Xem thêm {{count}} phản hồi",
+      "one_level_only": "Chỉ hỗ trợ trả lời 1 cấp cho bình luận.",
+      "comment_required": "Vui lòng nhập nội dung trả lời"
     }
   },
   "movie": {

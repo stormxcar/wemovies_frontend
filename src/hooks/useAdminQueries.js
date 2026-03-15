@@ -14,12 +14,28 @@ import {
 } from "../services/api";
 
 // Movies queries
-export const useMovies = () => {
+export const useMovies = (options = {}) => {
   const { isAuthenticated, user } = useAuth();
 
+  const page = Number.isFinite(Number(options.page))
+    ? Math.max(0, Number(options.page))
+    : 0;
+  const size = Number.isFinite(Number(options.size))
+    ? Math.max(1, Number(options.size))
+    : 100;
+  const sortBy =
+    typeof options.sortBy === "string" ? options.sortBy : "createdAt";
+  const sortDir = options.sortDir === "asc" ? "asc" : "desc";
+
   return useQuery({
-    queryKey: ["movies"],
-    queryFn: fetchMovies,
+    queryKey: ["movies", page, size, sortBy, sortDir],
+    queryFn: () =>
+      fetchMovies({
+        page,
+        size,
+        sortBy,
+        sortDir,
+      }),
     select: (data) => (Array.isArray(data) ? data : []),
     enabled: isAuthenticated && user?.role?.roleName === "ADMIN", // Check role object
   });

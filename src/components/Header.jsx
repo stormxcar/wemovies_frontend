@@ -24,6 +24,7 @@ import {
   fetchMovieType,
   fetchMovieByHot,
   fetchJson,
+  extractMovieItems,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -55,10 +56,11 @@ function Header() {
   const { navigateWithLoading } = useLoading();
 
   const parseMoviesResponse = useCallback((response) => {
-    if (Array.isArray(response)) return response;
-    if (response && Array.isArray(response.data)) return response.data;
-    if (response && Array.isArray(response.movies)) return response.movies;
-    return [];
+    return extractMovieItems(response);
+  }, []);
+
+  const getCountryId = useCallback((country) => {
+    return country?.id || country?.country_id || country?.countryId || null;
   }, []);
 
   const saveRecentSearch = useCallback(
@@ -80,7 +82,7 @@ function Header() {
   const searchMoviesByKeyword = useCallback(
     async (keyword) => {
       const response = await fetchJson(
-        `/api/movies/search?keyword=${encodeURIComponent(keyword)}`,
+        `/api/movies/search?page=0&size=8&sortBy=createdAt&sortDir=desc&keyword=${encodeURIComponent(keyword)}`,
       );
       return parseMoviesResponse(response);
     },
@@ -362,17 +364,19 @@ function Header() {
         });
       }
 
-      try {
-        await fetchJson("/api/watchlist", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-        });
-      } catch (error) {
-        handleApiError(error, t("header.error_watchlist"));
+      if (userRole !== "ADMIN") {
+        try {
+          await fetchJson("/api/watchlist", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            credentials: "include",
+          });
+        } catch (error) {
+          handleApiError(error, t("header.error_watchlist"));
+        }
       }
     },
     [handleApiError, navigateWithLoading, t],
@@ -401,27 +405,13 @@ function Header() {
     async (endpoint, name) => {
       try {
         const response = await fetchJson(endpoint);
-
-        // Handle different response formats
-        let movies = [];
-        if (response && Array.isArray(response)) {
-          movies = response;
-        } else if (response && Array.isArray(response.data)) {
-          movies = response.data;
-        } else if (
-          response &&
-          response.movies &&
-          Array.isArray(response.movies)
-        ) {
-          movies = response.movies;
-        } else {
-          movies = [];
-        }
+        const movies = parseMoviesResponse(response);
 
         navigateWithLoading(`/movies/${name}`, {
           state: {
             movies,
             title: name,
+            sourceEndpoint: endpoint,
           },
           loadingMessage: t("header.loading_open_list", { name }),
         });
@@ -434,13 +424,21 @@ function Header() {
           state: {
             movies: [],
             title: name,
+            sourceEndpoint: endpoint,
           },
           loadingMessage: t("header.loading_open_list", { name }),
         });
         closeModal();
       }
     },
-    [navigateWithLoading, handleApiError, closeModal, t],
+    [
+      closeModal,
+      fetchJson,
+      handleApiError,
+      navigateWithLoading,
+      parseMoviesResponse,
+      t,
+    ],
   );
 
   return (
@@ -619,12 +617,18 @@ function Header() {
                     <li
                       key={item.name}
                       className={`cursor-pointer hover:text-orange-400 transition-colors text-sm p-2 rounded ${isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-100"} flex`}
-                      onClick={() =>
+                      onClick={() => {
+                        const countryId = getCountryId(item);
+                        if (!countryId) {
+                          handleApiError(null, t("header.error_load_data"));
+                          return;
+                        }
+
                         navigateToMovies(
-                          `/api/movies/country/${item.id}`,
+                          `/api/movies/country/${countryId}`,
                           item.name,
-                        )
-                      }
+                        );
+                      }}
                     >
                       {item.name}
                     </li>

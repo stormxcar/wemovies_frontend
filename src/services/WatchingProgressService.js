@@ -7,7 +7,13 @@ class WatchingProgressService {
   }
 
   // Bắt đầu xem phim
-  async startWatching(userId, movieId, movieTitle, totalDuration = null) {
+  async startWatching(
+    userId,
+    movieId,
+    movieTitle,
+    totalDuration = null,
+    movieThumbnail = "",
+  ) {
     // Validate inputs
     if (!userId || typeof userId !== "string") {
       throw new Error("Invalid userId provided");
@@ -27,6 +33,7 @@ class WatchingProgressService {
           userId: userId.toString(),
           movieId: movieId.toString(),
           movieTitle,
+          movieThumbnail,
           totalDuration,
         }),
       });
@@ -285,7 +292,8 @@ class WatchingProgressService {
       totalDuration: item.totalDuration || 0,
       percentage: item.percentage || 0,
       lastWatched: item.lastWatched || new Date().toISOString(),
-      moviePoster: item.moviePoster || "",
+      moviePoster: item.moviePoster || item.movieThumbnail || "",
+      movieThumbnail: item.movieThumbnail || item.moviePoster || "",
       episodeNumber: item.episodeNumber,
       totalEpisodes: item.totalEpisodes,
       isCompleted: item.isCompleted || false,

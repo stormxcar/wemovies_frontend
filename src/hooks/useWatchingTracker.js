@@ -5,6 +5,7 @@ import { toast } from "@toast";
 export const useWatchingTracker = (
   movieId,
   movieTitle,
+  movieThumbnail,
   userId,
   isAuthenticated,
 ) => {
@@ -59,6 +60,7 @@ export const useWatchingTracker = (
         userId,
         movieId,
         movieTitle,
+        movieThumbnail,
         totalDuration:
           Number.isFinite(Number(totalDuration)) && Number(totalDuration) > 0
             ? Math.round(Number(totalDuration))
@@ -76,6 +78,7 @@ export const useWatchingTracker = (
         watchingSessionRef.current = {
           movieId,
           movieTitle,
+          movieThumbnail,
           userId,
           resumeTime: 0, // New session starts at 0
           totalDuration:

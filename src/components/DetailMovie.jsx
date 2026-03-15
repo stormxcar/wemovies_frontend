@@ -12,6 +12,7 @@ import {
   fetchJson,
   fetchScheduleData,
   fetchMovieByIdentifier,
+  fetchMoviesByCategory,
 } from "../services/api";
 import {
   FaChevronRight,
@@ -78,6 +79,10 @@ const DetailMovie = () => {
   const { startWatching } = useWatchingTracker(
     movieDetail?.data?.id || identifier,
     movieDetail?.data?.title,
+    movieDetail?.data?.thumbnail_url ||
+      movieDetail?.data?.poster_url ||
+      movieDetail?.data?.thumb_url ||
+      "",
     user?.id,
     isAuthenticated,
   );
@@ -88,9 +93,14 @@ const DetailMovie = () => {
       return;
     }
     try {
-      const data = await fetchJson(`/api/movies/category/${categoryName}`);
+      const data = await fetchMoviesByCategory(categoryName, {
+        page: 0,
+        size: 20,
+        sortBy: "createdAt",
+        sortDir: "desc",
+      });
 
-      setRelatedMovies(Array.isArray(data.data) ? data.data : []);
+      setRelatedMovies(Array.isArray(data) ? data : []);
     } catch (e) {
       setRelatedMovies([]);
     }

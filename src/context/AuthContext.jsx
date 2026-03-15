@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }) => {
           return Promise.reject(error);
         }
 
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (error.response?.status === 401) {
           const skipEndpoints = [
             "/api/auth/refresh",
             "/api/auth/logout",
@@ -141,8 +141,6 @@ export const AuthProvider = ({ children }) => {
             } catch {
               autoLogout("Session is no longer valid");
             }
-          } else {
-            autoLogout("Session is no longer valid");
           }
         }
 

@@ -337,6 +337,14 @@
       "comment_optional": "Comment (optional):",
       "comment_placeholder": "Write your comment...",
       "submit": "Submit review"
+    },
+    "replies": {
+      "reply_action": "Reply to comment",
+      "placeholder": "Type your reply",
+      "submit": "Send reply",
+      "show_more": "Show {{count}} more replies",
+      "one_level_only": "Only one-level reply is supported.",
+      "comment_required": "Please enter a reply"
     }
   },
   "movie": {
